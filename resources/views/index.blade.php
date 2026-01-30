@@ -1,12 +1,45 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>INDEX TEST</title>
-</head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lantaka Room and Venue Reservation Portal</title>
+    <link rel="stylesheet" href="{{ asset('css/nav.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/index.css') }}">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@700;800&family=Arsenal:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+
+    </head>
 <body>
-  <h1>LAGAY KA H1 TAG SA BABA NETO KUNG NAG WOWORK</h1>
-  <h1>OHSHIT H1 H1</h1>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-container">
+            <div class="logo-section">
+                <img src="{{ asset('images/adzu_logo.png') }}" class="logo">
+                <div class="header-text">
+                    <p class="subtitle-text">Ateneo de Zamboanga University</p>
+                    <h1 class="header-title">Lantaka Room and Venue Reservation Portal</h1>
+                    <p class="tagline"> &lt;Lantaka Online Room & Venue Reservation System/&gt; </p>
+                </div>
+            </div>
+            <nav class="nav">
+                <a href="#accommodation" class="nav-link">Accommodation</a>
+                <a href="{{ route('login') }}" class="nav-link">Login</a></nav>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <p class="welcome-text">WELCOME TO</p>
+            <h2 class="hero-title">LANTAKA CAMPUS</h2>
+            <p class="hero-subtitle">The Ateneo de Zamboanga University Spirituality, Formation, and Training Center<br>Since 2019</p>
+            <button class="explore-btn">EXPLORE</button>
+        </div>
+    </section>
+
 </body>
 </html>
