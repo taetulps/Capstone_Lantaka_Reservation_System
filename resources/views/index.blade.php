@@ -17,14 +17,16 @@
     <!-- Header -->
     <header class="header">
         <div class="header-container">
+
             <div class="logo-section">
                 <img src="{{ asset('images/adzu_logo.png') }}" class="logo">
                 <div class="header-text">
                     <p class="subtitle-text">Ateneo de Zamboanga University</p>
                     <h1 class="header-title">Lantaka Room and Venue Reservation Portal</h1>
-                    <p class="tagline"> &lt;Lantaka Online Room & Venue Reservation System/&gt; </p>
+                    <h1 class="tagline"> &lt;Lantaka Online Room & Venue Reservation System/&gt; </h1>
                 </div>
             </div>
+            
             <nav class="nav">
                 <a href="#accommodation" class="nav-link">Accommodation</a>
                 <a href="{{ route('login') }}" class="nav-link">Login</a></nav>
@@ -39,7 +41,6 @@
             <p class="hero-subtitle">The Ateneo de Zamboanga University Spirituality, Formation, and Training Center<br>Since 2019</p>
             <button class="explore-btn">EXPLORE</button>
         </div>
-    </section>
-
+    </section> 
 </body>
 </html>
