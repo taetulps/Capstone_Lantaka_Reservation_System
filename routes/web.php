@@ -22,6 +22,10 @@ Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [LoginController::class, 'login'])->name('login.post');
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
+Route::get('/signup', function () {
+    return view('signup');
+})->name('signup');
+
 Route::middleware(['auth'])->group(function () {
 
     // Employee & Admin Access
@@ -33,6 +37,10 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/employee_reservations', function () {
             return view('employee_reservations');
         })->name('employee_reservations');
+
+        Route::get('/employee_accounts', function () {
+            return view('employee_accounts');
+        })->name('employee_accounts');
     });
 
     // You can add Client-only protected routes here later

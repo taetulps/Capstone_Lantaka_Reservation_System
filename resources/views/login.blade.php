@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lantaka Room and Venue Reservation System - Login</title>
-    <link rel="stylesheet" href="{{ asset('css/login.css') }}">
+    <link rel="stylesheet" href="{{asset('css/login.css')}}">
 </head>
 <body>
     <div class="background-overlay"></div>
@@ -64,7 +64,7 @@
 
             <!-- Sign Up Link -->
             <p class="signup-text">
-                Don't have an account? <a href="#" class="signup-link">Sign up</a>
+                Don't have an account? <a href="{{ route('signup') }}" class="signup-link">Sign up</a>
                 <br>  
                 <br>
                 <a href="{{ route('employee_dashboard') }}" class="signup-link"> Employee Dashboard Page Test</a>

@@ -42,7 +42,7 @@
                 <span class="icon">👥</span>
                 <span>Guest</span>
             </a>
-            <a href="#" class="nav-item">
+            <a href="{{route('employee_accounts')}}" class="nav-item">
                 <span class="icon">👤</span>
                 <span>Accounts</span>
             </a>
