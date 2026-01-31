@@ -26,7 +26,8 @@
             <p class="subtitle">Lantaka Online Room & Venue Reservation System</p>
 
             <!-- Login Form -->
-            <form class="login-form">
+            <form class="login-form" method="POST" action="{{ route('login.post') }}">
+                @csrf
                 <!-- Username Input -->
                 <div class="input-group">
                     <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -35,6 +36,7 @@
                     </svg>
                     <input 
                         type="text" 
+                        name="username"
                         class="form-input" 
                         placeholder="Username" 
                         required
@@ -49,6 +51,7 @@
                     </svg>
                     <input 
                         type="password" 
+                        name="password"
                         class="form-input" 
                         placeholder="Password" 
                         required

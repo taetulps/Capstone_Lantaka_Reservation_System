@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\LoginController;
 
 /*
 |--------------------------------------------------------------------------
@@ -17,14 +18,22 @@ Route::get('/', function () {
     return view('index');
 })->name('index');
 
-Route::get('/login', function () {
-    return view('login');
-})->name('login');
+Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
+Route::post('/login', [LoginController::class, 'login'])->name('login.post');
+Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
-Route::get('/employee_dashboard', function () {
-    return view('employee_dashboard');
-})->name('employee_dashboard');
+Route::middleware(['auth'])->group(function () {
 
-Route::get('/employee_reservations', function () {
-    return view('employee_reservations');
-})->name('employee_reservations');
+    // Employee & Admin Access
+    Route::middleware(['role:admin,staff'])->group(function () {
+        Route::get('/employee_dashboard', function () {
+            return view('employee_dashboard');
+        })->name('employee_dashboard');
+
+        Route::get('/employee_reservations', function () {
+            return view('employee_reservations');
+        })->name('employee_reservations');
+    });
+
+    // You can add Client-only protected routes here later
+});
