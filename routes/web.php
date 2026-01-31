@@ -24,3 +24,7 @@ Route::get('/login', function () {
 Route::get('/employee_dashboard', function () {
     return view('employee_dashboard');
 })->name('employee_dashboard');
+
+Route::get('/employee_reservations', function () {
+    return view('employee_reservations');
+})->name('employee_reservations');
