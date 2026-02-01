@@ -14,8 +14,8 @@
 </head>
 <body>
 
-<!-- Sidebar -->
-<aside class="sidebar">
+    <!-- Sidebar -->
+    <aside class="sidebar">
         <div class="logo">
             <div class="logo-icon">
               <img src="{{ asset('images/adzu_logo.png') }}" class="logo-image">

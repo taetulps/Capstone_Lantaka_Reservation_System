@@ -37,6 +37,7 @@ class LoginController extends Controller
             if ($user->role === 'admin' || $user->role === 'staff') {
                 return redirect()->route('employee_dashboard');
             }
+            //if client dashboard exists, redirect there
 
             return redirect()->route('index');
         }

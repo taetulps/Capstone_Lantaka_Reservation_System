@@ -24,6 +24,14 @@
 
             <!-- Subtitle -->
             <p class="subtitle">Lantaka Online Room & Venue Reservation System</p>
+            
+            @if ($errors->any())
+                <div class="error-container" style="background-color: #f8d7da; color: #721c24; padding: 10px; border-radius: 5px; margin-bottom: 15px; text-align: center; border: 1px solid #f5c6cb;">
+                    @foreach ($errors->all() as $error)
+                        <p style="margin: 0; font-size: 0.9rem;">{{ $error }}</p>
+                    @endforeach
+                </div>
+            @endif
 
             <!-- Login Form -->
             <form class="login-form" method="POST" action="{{ route('login.post') }}">

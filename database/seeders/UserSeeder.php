@@ -17,6 +17,7 @@ class UserSeeder extends Seeder
         'email' => 'admin@example.com',
         'password' => Hash::make('password123'), // This hashes the password
         'role' => 'admin',
+        'status' => 'approved',
     ]);
 
 
@@ -26,6 +27,7 @@ class UserSeeder extends Seeder
         'email' => 'staff@example.com',
         'password' => Hash::make('password123'),
         'role' => 'staff',
+        'status' => 'approved',
     ]);
 
   
@@ -35,6 +37,7 @@ class UserSeeder extends Seeder
         'email' => 'client@example.com',
         'password' => Hash::make('password123'),
         'role' => 'client',
+        'status' => 'pending',
     ]);
     }
 }

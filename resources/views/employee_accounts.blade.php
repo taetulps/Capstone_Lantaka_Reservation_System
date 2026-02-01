@@ -7,11 +7,9 @@
   <link rel="stylesheet" href="{{asset('css/employee_accounts.css')}}">
   <link rel="stylesheet" href="{{asset('css/employee_side_nav.css')}}">
   <link rel="stylesheet" href="{{asset('css/employee_top_nav.css')}}">
-
 </head>
 <body>
   <div class="container">
-    <!-- Sidebar -->
     <aside class="sidebar">
       <div class="sidebar-logo">
         <div class="logo-circle">🎓</div>
@@ -21,7 +19,7 @@
         </div>
       </div>
       <nav class="nav-menu">
-            <a href="{{route('employee_dashboard')}}" class="nav-item active">
+            <a href="{{route('employee_dashboard')}}" class="nav-item">
                 <span class="icon">📈</span>
                 <span>Dashboard</span>
             </a>
@@ -33,7 +31,7 @@
                 <span class="icon">👥</span>
                 <span>Guest</span>
             </a>
-            <a href="{{route('employee_accounts')}}" class="nav-item">
+            <a href="{{route('employee_accounts')}}" class="nav-item active">
                 <span class="icon">👤</span>
                 <span>Accounts</span>
             </a>
@@ -48,9 +46,7 @@
         </nav>
     </aside>
 
-    <!-- Main Content -->
     <main class="main-content">
-      <!-- Header -->
       <header class="header">
         <button class="menu-btn">☰</button>
         <div class="header-right">
@@ -58,32 +54,34 @@
           <div class="user-profile">
             <span class="user-avatar">👤</span>
             <div class="user-info">
-              <p class="user-name">Welcome, Jane!</p>
-              <p class="user-role">Administrator</p>
+              <p class="user-name">Welcome, {{ Auth::user()->name }}!</p>
+              <p class="user-role">{{ ucfirst(Auth::user()->role) }}</p>
             </div>
           </div>
         </div>
       </header>
 
-      <!-- Page Content -->
       <div class="page-content">
         <h1 class="page-title">Accounts</h1>
 
-        <!-- Search Bar -->
         <div class="search-container">
-          <input type="text" class="search-input" placeholder="Search">
+          <form action="{{ route('employee_accounts') }}" method="GET">
+            <input type="text" name="search" class="search-input" placeholder="Search by name or email" value="{{ request('search') }}">
+          </form>
         </div>
 
-        <!-- Tabs -->
         <div class="tabs">
-          <button class="tab-btn active">All</button>
-          <button class="tab-btn">Employee Accounts</button>
-          <button class="tab-btn">Approved Client Account</button>
-          <button class="tab-btn">Declined Client Account</button>
-          <button class="tab-btn">Pending Client Account</button>
+          <a href="{{ route('employee_accounts') }}" class="tab-btn {{ !request('status') && !request('role') ? 'active' : '' }}">All</a>
+          
+          <a href="{{ route('employee_accounts', ['role' => 'employee']) }}" class="tab-btn {{ request('role') == 'employee' ? 'active' : '' }}">Employee Accounts</a>
+          
+          <a href="{{ route('employee_accounts', ['status' => 'approved']) }}" class="tab-btn {{ request('status') == 'approved' ? 'active' : '' }}">Approved Client Account</a>
+          
+          <a href="{{ route('employee_accounts', ['status' => 'declined']) }}" class="tab-btn {{ request('status') == 'declined' ? 'active' : '' }}">Declined Client Account</a>
+          
+          <a href="{{ route('employee_accounts', ['status' => 'pending']) }}" class="tab-btn {{ request('status') == 'pending' ? 'active' : '' }}">Pending Client Account</a>
         </div>
 
-        <!-- Table -->
         <div class="table-container">
           <table class="accounts-table">
             <thead>
@@ -97,58 +95,41 @@
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td>
-                  <div class="cell-with-icon">
-                    <span class="cell-icon">👤</span>
-                    <span>Beng Aray</span>
-                  </div>
-                </td>
-                <td>Administrator</td>
-                <td>bengramos19@gmail.com</td>
-                <td>09977990124</td>
-                <td><span class="status-badge online">Online</span></td>
-                <td><button class="action-btn">✎</button></td>
-              </tr>
-              <tr>
-                <td>
-                  <div class="cell-with-icon">
-                    <span class="cell-icon">👤</span>
-                    <span>Suzie Ko</span>
-                  </div>
-                </td>
-                <td>Staff</td>
-                <td>anditooh22@gmail.com</td>
-                <td>09972221124</td>
-                <td><span class="status-text">11/2/2025 12:46:02</span></td>
-                <td><button class="action-btn">✎</button></td>
-              </tr>
-              <tr>
-                <td>
-                  <div class="cell-with-icon">
-                    <span class="cell-icon">👤</span>
-                    <span>Jane Mendoza</span>
-                  </div>
-                </td>
-                <td>Administrator</td>
-                <td>skyflowers771@gmail.com</td>
-                <td>09972971888</td>
-                <td><span class="status-badge deactivated">Deactivated</span></td>
-                <td><button class="action-btn">✎</button></td>
-              </tr>
-              <tr>
-                <td>
-                  <div class="cell-with-icon">
-                    <span class="cell-icon">👤</span>
-                    <span>Mannex Delipus</span>
-                  </div>
-                </td>
-                <td>Client</td>
-                <td>billionDollars@gmail.com</td>
-                <td>09977210124</td>
-                <td><span class="status-badge declined">Declined</span></td>
-                <td><button class="action-btn">✎</button></td>
-              </tr>
+              @forelse($users as $user)
+                <tr>
+                  <td>
+                    <div class="cell-with-icon">
+                      <span class="cell-icon">👤</span>
+                      <span>{{ $user->name }}</span>
+                    </div>
+                  </td>
+                  <td>{{ ucfirst($user->role) }}</td>
+                  <td>{{ $user->email }}</td>
+                  <td>{{ $user->phone ?? 'N/A' }}</td>
+                  <td>
+                    @if($user->status == 'pending')
+                        <span class="status-badge pending" style="background: #ffd700; color: #000; padding: 4px 8px; border-radius: 4px;">Pending</span>
+                    @elseif($user->status == 'approved')
+                        <span class="status-badge online">Approved</span>
+                    @elseif($user->status == 'declined')
+                        <span class="status-badge deactivated">Declined</span>
+                    @else
+                        <span class="status-badge online">Online</span>
+                    @endif
+                  </td>
+                  <td>
+                    @if($user->status == 'pending')
+                        <a href="#" class="action-btn" title="Review Account">👁️</a>
+                    @else
+                        <button class="action-btn">✎</button>
+                    @endif
+                  </td>
+                </tr>
+              @empty
+                <tr>
+                    <td colspan="6" style="text-align: center; padding: 20px;">No accounts found.</td>
+                </tr>
+              @endforelse
             </tbody>
           </table>
         </div>
