@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lantaka Room and Venue Reservation System - Login</title>
     <link rel="stylesheet" href="{{asset('css/login.css')}}">
+
+    <link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@200;300;400;500;600;700;800;900&family=Arsenal:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="background-overlay"></div>
@@ -23,7 +25,7 @@
             <h1 class="main-heading">Lantaka Room and Venue Reservation System</h1>
 
             <!-- Subtitle -->
-            <p class="subtitle">Lantaka Online Room & Venue Reservation System</p>
+            <p class="subtitle"> &lt; Lantaka Online Room & Venue Reservation System /&gt; </p>
 
             <!-- Login Form -->
             <form class="login-form" method="POST" action="{{ route('login.post') }}">

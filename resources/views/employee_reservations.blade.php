@@ -28,7 +28,7 @@
         </div>
         
         <nav class="nav-menu">
-            <a href="{{route('employee_dashboard')}}" class="nav-item ">
+            <a href="{{route('employee_dashboard')}}" class="nav-item">
                 <span class="icon">📈</span>
                 <span>Dashboard</span>
             </a>
@@ -40,7 +40,7 @@
                 <span class="icon">👥</span>
                 <span>Guest</span>
             </a>
-            <a href="#" class="nav-item">
+            <a href="{{route('employee_accounts')}}" class="nav-item">
                 <span class="icon">👤</span>
                 <span>Accounts</span>
             </a>

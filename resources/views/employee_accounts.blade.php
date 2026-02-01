@@ -8,20 +8,27 @@
   <link rel="stylesheet" href="{{asset('css/employee_side_nav.css')}}">
   <link rel="stylesheet" href="{{asset('css/employee_top_nav.css')}}">
 
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@200;300;400;500;600;700;800;900&family=Arsenal:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
 </head>
 <body>
   <div class="container">
     <!-- Sidebar -->
     <aside class="sidebar">
-      <div class="sidebar-logo">
-        <div class="logo-circle">🎓</div>
-        <div class="logo-text">
-          <p class="logo-title">Ateneo de Zamboanga University</p>
-          <p class="logo-subtitle">Lantaka Room and Venue Reservation System</p>
+        <div class="logo">
+            <div class="logo-icon">
+              <img src="{{ asset('images/adzu_logo.png') }}" class="logo-image">
+            </div>
+            <div class="logo-text">
+                <div class="logo-subtitle">Ateneo de Zamboanga University</div>
+                <div class="logo-title">Lantaka Room and Venue Reservation System
+                </div>
+            </div>
         </div>
-      </div>
-      <nav class="nav-menu">
-            <a href="{{route('employee_dashboard')}}" class="nav-item active">
+        
+        <nav class="nav-menu">
+            <a href="{{route('employee_dashboard')}}" class="nav-item">
                 <span class="icon">📈</span>
                 <span>Dashboard</span>
             </a>
@@ -33,7 +40,7 @@
                 <span class="icon">👥</span>
                 <span>Guest</span>
             </a>
-            <a href="{{route('employee_accounts')}}" class="nav-item">
+            <a href="{{route('employee_accounts')}}" class="nav-item active">
                 <span class="icon">👤</span>
                 <span>Accounts</span>
             </a>
@@ -52,18 +59,20 @@
     <main class="main-content">
       <!-- Header -->
       <header class="header">
-        <button class="menu-btn">☰</button>
-        <div class="header-right">
-          <button class="notification-btn">🔔</button>
-          <div class="user-profile">
-            <span class="user-avatar">👤</span>
-            <div class="user-info">
-              <p class="user-name">Welcome, Jane!</p>
-              <p class="user-role">Administrator</p>
+            <div class="header-left">
+                <button class="menu-toggle">☰</button>
             </div>
-          </div>
-        </div>
-      </header>
+            <div class="header-right">
+                <button class="icon-btn">🔔</button>
+                <div class="user-profile">
+                    <div class="user-avatar">👤</div>
+                    <div class="user-info">
+                        <div class="user-greeting">Welcome, Jane !</div>
+                        <div class="user-role">Administrator</div>
+                    </div>
+                </div>
+            </div>
+        </header>
 
       <!-- Page Content -->
       <div class="page-content">
@@ -72,8 +81,8 @@
         <!-- Search Bar -->
         <div class="search-container">
           <input type="text" class="search-input" placeholder="Search">
+          <span class="search-icon">🔍</span>
         </div>
-
         <!-- Tabs -->
         <div class="tabs">
           <button class="tab-btn active">All</button>

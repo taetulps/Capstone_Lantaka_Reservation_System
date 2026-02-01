@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sign up - Lantaka Room and Venue Reservation System</title>
   <link rel="stylesheet" href="{{ asset('css/signup.css') }}">
+  <link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@200;300;400;500;600;700;800;900&family=Arsenal:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
 </head>
 <body>
   <div class="signup-container">
@@ -16,7 +17,7 @@
           <p class="university-name">Ateneo de Zamboanga University</p>
         </div>
         <h1 class="main-title">Lantaka Room and Venue Reservation System</h1>
-        <p class="subtitle">-Lantaka Online Room & Venue Reservation System-</p>
+        <p class="subtitle"> &lt; Lantaka Online Room & Venue Reservation System /&gt; </p>
       </div>
     <!-- Signup Form Card -->
     <div class="signup-card">
@@ -79,10 +80,7 @@
             <!-- Password -->
             <div class="form-group">
               <label for="password">Password</label>
-              <div class="password-input-group">
-                <input type="password" id="password" name="password" placeholder="Enter Password" required>
-                <button type="button" class="toggle-password" id="togglePassword">👁️</button>
-              </div>
+              <input type="password" id="password" name="password" placeholder="Enter Password" required>
             </div>
 
             <!-- Confirm Password -->
@@ -95,63 +93,29 @@
             <div class="form-group">
               <label for="validId">Valid ID</label>
               <div class="file-upload">
-                <input type="file" id="validId" name="validId" accept="image/*" required>
-                <div class="upload-label">
+                <label for="validId" class="upload-label">
                   <div class="upload-icon">⬇️</div>
                   <p class="upload-text">Upload Image</p>
-                  <p class="upload-hint">Drag or Click to upload image</p>
-                </div>
+                  <p class="upload-hint">Click to upload image</p>
+                </label>
+                <input type="file" id="validId" name="validId" accept="image/*" required>
               </div>
             </div>
           </div>
         </div>
 
         <!-- Submit Button -->
-        <button type="submit" class="submit-btn">Sign Up</button>
-        <p class="signup-text">
-                Already have an account? <a href="{{ route('login') }}" class="signup-link">Login</a>
+        <div class="form-bottom">
+          <button type="submit" class="submit-btn">Sign Up</button>
+          <p class="login-back">Already have an account? 
+            <a href="{{ route('login') }}" class="signup-link">Login</a>
+          </p>
+        </div> 
+
       </form>
     </div>
   </div>
 
-  <script>
-    // Toggle password visibility
-    document.getElementById('togglePassword').addEventListener('click', function() {
-      const passwordInput = document.getElementById('password');
-      const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-      passwordInput.setAttribute('type', type);
-    });
 
-    // File upload drag and drop
-    const fileInput = document.getElementById('validId');
-    const uploadLabel = document.querySelector('.upload-label');
-
-    uploadLabel.addEventListener('dragover', (e) => {
-      e.preventDefault();
-      uploadLabel.style.backgroundColor = 'rgba(0, 0, 0, 0.05)';
-    });
-
-    uploadLabel.addEventListener('dragleave', () => {
-      uploadLabel.style.backgroundColor = 'transparent';
-    });
-
-    uploadLabel.addEventListener('drop', (e) => {
-      e.preventDefault();
-      uploadLabel.style.backgroundColor = 'transparent';
-      if (e.dataTransfer.files.length) {
-        fileInput.files = e.dataTransfer.files;
-      }
-    });
-
-    uploadLabel.addEventListener('click', () => {
-      fileInput.click();
-    });
-
-    fileInput.addEventListener('change', function() {
-      if (this.files.length > 0) {
-        uploadLabel.innerHTML = `<p class="upload-text">✓ ${this.files[0].name}</p>`;
-      }
-    });
-  </script>
 </body>
 </html>
