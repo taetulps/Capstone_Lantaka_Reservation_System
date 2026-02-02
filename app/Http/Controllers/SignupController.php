@@ -2,16 +2,17 @@
 
 namespace App\Http\Controllers;
 
-
-
-use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Http\Request;
 use App\Models\User;
-use Illuminate\Support\Facades\Auth; // Important: This allows you to use the Auth system
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 
 class SignupController extends Controller
 {
+    public function showSignupForm()
+    {
+        return view('signup');
+    }
+
     public function store(Request $request)
     {
         $request->validate([
@@ -20,10 +21,8 @@ class SignupController extends Controller
             'password' => 'required|min:8|same:confirmPassword',
             'validId' => 'required|image|max:2048',
             'phone' => ['required', 'regex:/^0[0-9]{10}$/'],
-            
         ]);
 
-        // Handle File Upload
         $path = $request->file('validId')->store('ids', 'public');
 
         User::create([
@@ -34,7 +33,7 @@ class SignupController extends Controller
             'phone' => $request->phone,
             'affiliation' => $request->affiliation,
             'valid_id_path' => $path,
-            'role' => 'client',   // Forces the role to client
+            'role' => 'client',
             'status' => 'pending',
         ]);
 
