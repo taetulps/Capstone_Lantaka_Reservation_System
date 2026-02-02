@@ -14,8 +14,11 @@ return new class extends Migration
     public function up()
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->string('username')->unique()->nullable(); 
-            $table->string('role')->default('client');
+            // Status: 0 = Pending, 1 = Approved, 2 = Declined
+            $table->string('status')->default('pending'); 
+            $table->string('phone')->nullable();
+            $table->string('affiliation')->nullable();
+            $table->string('valid_id_path')->nullable();
         });
     }
 
@@ -25,9 +28,9 @@ return new class extends Migration
      * @return void
      */
     public function down()
-{
+    {
         Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn(['username', 'role']);
-    });
-}
+            //
+        });
+    }
 };

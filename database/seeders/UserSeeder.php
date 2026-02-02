@@ -12,20 +12,22 @@ class UserSeeder extends Seeder
 {
    
     User::create([
-        'name' => 'Admin User',
+        'name' => 'Tricia',
         'username' => 'admin01',
         'email' => 'admin@example.com',
         'password' => Hash::make('password123'), // This hashes the password
         'role' => 'admin',
+        'status' => 'approved',
     ]);
 
 
     User::create([
-        'name' => 'Staff Member',
+        'name' => 'Suzette',
         'username' => 'staff01',
         'email' => 'staff@example.com',
         'password' => Hash::make('password123'),
         'role' => 'staff',
+        'status' => 'approved',
     ]);
 
   
@@ -35,6 +37,7 @@ class UserSeeder extends Seeder
         'email' => 'client@example.com',
         'password' => Hash::make('password123'),
         'role' => 'client',
+        'status' => 'pending',
     ]);
     }
 }

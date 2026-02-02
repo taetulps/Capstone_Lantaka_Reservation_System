@@ -25,7 +25,7 @@
             <h1 class="main-heading">Lantaka Room and Venue Reservation System</h1>
 
             <!-- Subtitle -->
-            <p class="subtitle"> &lt; Lantaka Online Room & Venue Reservation System /&gt; </p>
+            <p class="subtitle">Lantaka Online Room & Venue Reservation System</p>
 
             <!-- Login Form -->
             <form class="login-form" method="POST" action="{{ route('login.post') }}">
