@@ -44,6 +44,12 @@ Route::middleware(['auth'])->group(function () {
             return view('employee_room_venue');
         })->name('employee_room_venue');
     });
-
-   
 });
+
+Route::get('/client_room_venue', function () {
+    return view('client_room_venue');
+})->name('client_room_venue');
+
+Route::get('/client_room_venue_viewing', function () {
+    return view('client_room_venue_viewing');
+})->name('client_room_venue_viewing');

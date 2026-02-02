@@ -1,8 +1,17 @@
+a{
+  text-decoration: none;
+}
+
 /* Header Styles */
 .header {
   padding: 20px 40px;
   position: relative;
-  z-index: 100;
+}
+@font-face {
+  font-family: "Matura Script";
+  src: url("/fonts/Matura_Script.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
 }
 
 .header-container {
@@ -78,6 +87,10 @@
 
 .nav-link:hover {
   opacity: 0.8;
+}
+.nav-link.active {
+  color: #F9C917;
+  text-decoration: underline;
 }
 
 @media (max-width: 768px) {

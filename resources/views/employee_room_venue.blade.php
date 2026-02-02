@@ -42,7 +42,7 @@
             </a>
             <a href="{{route('employee_room_venue')}}" class="nav-item active">
                 <span class="icon">🏛️</span>
-                <span>Rooms / Venue</span>
+                <span>Rooms / Venues</span>
             </a>
             <a href="#" class="nav-item">
                 <span class="icon">📋</span>
@@ -72,7 +72,7 @@
 
       <!-- Content Section -->
       <div class="content">
-        <h1 class="page-title">Rooms/Venues</h1>
+        <h1 class="page-title">Room / Venue</h1>
 
         <!-- Top Controls -->
         <div class="controls-section">
