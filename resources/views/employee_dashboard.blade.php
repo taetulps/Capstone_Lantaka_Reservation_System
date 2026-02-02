@@ -46,7 +46,7 @@
                 <span class="icon">👤</span>
                 <span>Accounts</span>
             </a>
-            <a href="#" class="nav-item">
+            <a href="{{route('employee_room_venue')}}" class="nav-item">
                 <span class="icon">🏛️</span>
                 <span>Rooms / Venue</span>
             </a>

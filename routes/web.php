@@ -41,6 +41,9 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/employee_accounts', function () {
             return view('employee_accounts');
         })->name('employee_accounts');
+        Route::get('/employee_room_venue', function () {
+            return view('employee_room_venue');
+        })->name('employee_room_venue');
     });
 
     // You can add Client-only protected routes here later
