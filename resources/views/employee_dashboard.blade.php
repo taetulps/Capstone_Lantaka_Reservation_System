@@ -69,8 +69,9 @@
                 <div class="user-profile">
                     <div class="user-avatar">👤</div>
                     <div class="user-info">
-                        <div class="user-greeting">Welcome, Jane !</div>
-                        <div class="user-role">Administrator</div>
+                        <p class="user-name">Welcome, {{ Auth::user()->name }}!</p>
+                        
+                        <p class="user-role">{{ ucfirst(Auth::user()->role) }}</p>
                     </div>
                 </div>
             </div>

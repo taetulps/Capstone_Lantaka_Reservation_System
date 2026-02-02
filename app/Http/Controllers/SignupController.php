@@ -19,6 +19,8 @@ class SignupController extends Controller
             'email' => 'required|email|unique:users',
             'password' => 'required|min:8|same:confirmPassword',
             'validId' => 'required|image|max:2048',
+            'phone' => ['required', 'regex:/^0[0-9]{10}$/'],
+            
         ]);
 
         // Handle File Upload

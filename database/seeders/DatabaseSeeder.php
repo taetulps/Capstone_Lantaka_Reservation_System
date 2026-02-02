@@ -15,7 +15,7 @@ class DatabaseSeeder extends Seeder
     public function run()
     {
        $this->call([
-        UserSeeder::class, // This tells Laravel to run your UserSeeder
+        UserSeeder::class, // run UserSeeder
         ]);
     }
 }
