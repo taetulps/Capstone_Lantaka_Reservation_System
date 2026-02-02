@@ -16,9 +16,7 @@ Route::post('/login', [LoginController::class, 'login'])->name('login.post');
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
 // Signup Routes
-Route::get('/signup', function () {
-    return view('signup');
-})->name('signup');
+Route::get('/signup', [SignupController::class, 'showSignupForm'])->name('signup');
 Route::post('/signup', [SignupController::class, 'store'])->name('register.post'); // Handle form submission
 
 
@@ -36,9 +34,7 @@ Route::middleware(['auth'])->group(function () {
             return view('employee_reservations');
         })->name('employee_reservations');
 
-        Route::get('/employee_accounts', function () {
-            return view('employee_accounts');
-        })->name('employee_accounts');
+        Route::get('/employee_accounts', [AccountController::class, 'index'])->name('employee_accounts');
 
         Route::get('/employee_room_venue', function () {
             return view('employee_room_venue');

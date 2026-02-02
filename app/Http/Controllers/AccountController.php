@@ -9,13 +9,15 @@ class AccountController extends Controller
 {
     public function index(Request $request)
     {
-        // Get the filter from the URL (e.g., ?status=pending)
         $status = $request->query('status');
+        $role = $request->query('role');
 
         $query = User::query();
 
-        // If a tab is clicked, filter the results
-        if ($status) {
+        if ($role === 'employee') {
+            // Case-insensitive check for admin and staff
+            $query->whereIn('role', ['admin', 'staff', 'Admin', 'Staff']);
+        } elseif ($status) {
             $query->where('status', $status);
         }
 

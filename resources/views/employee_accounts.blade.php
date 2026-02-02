@@ -7,24 +7,19 @@
   <link rel="stylesheet" href="{{asset('css/employee_accounts.css')}}">
   <link rel="stylesheet" href="{{asset('css/employee_side_nav.css')}}">
   <link rel="stylesheet" href="{{asset('css/employee_top_nav.css')}}">
-
 </head>
 <body>
   <div class="container">
     <aside class="sidebar">
-        <div class="logo">
-            <div class="logo-icon">
-              <img src="{{ asset('images/adzu_logo.png') }}" class="logo-image">
-            </div>
-            <div class="logo-text">
-                <div class="logo-subtitle">Ateneo de Zamboanga University</div>
-                <div class="logo-title">Lantaka Room and Venue Reservation System
-                </div>
-            </div>
+      <div class="sidebar-logo">
+        <div class="logo-circle">🎓</div>
+        <div class="logo-text">
+          <p class="logo-title">Ateneo de Zamboanga University</p>
+          <p class="logo-subtitle">Lantaka Room and Venue Reservation System</p>
         </div>
       </div>
       <nav class="nav-menu">
-            <a href="{{route('employee_dashboard')}}" class="nav-item active">
+            <a href="{{route('employee_dashboard')}}" class="nav-item">
                 <span class="icon">📈</span>
                 <span>Dashboard</span>
             </a>
@@ -40,7 +35,7 @@
                 <span class="icon">👤</span>
                 <span>Accounts</span>
             </a>
-            <a href="{{route('employee_room_venue')}}" class="nav-item">
+            <a href="#" class="nav-item">
                 <span class="icon">🏛️</span>
                 <span>Rooms / Venue</span>
             </a>
@@ -59,8 +54,8 @@
           <div class="user-profile">
             <span class="user-avatar">👤</span>
             <div class="user-info">
-              <p class="user-name">Welcome, Jane!</p>
-              <p class="user-role">Administrator</p>
+              <p class="user-name">Welcome, {{ Auth::user()->name }}!</p>
+              <p class="user-role">{{ ucfirst(Auth::user()->role) }}</p>
             </div>
           </div>
         </div>
@@ -70,10 +65,11 @@
         <h1 class="page-title">Accounts</h1>
 
         <div class="search-container">
-          <input type="text" class="search-input" placeholder="Search">
+          <form action="{{ route('employee_accounts') }}" method="GET">
+            <input type="text" name="search" class="search-input" placeholder="Search by name or email" value="{{ request('search') }}">
+          </form>
         </div>
 
-        <!-- Tabs -->
         <div class="tabs">
           <a href="{{ route('employee_accounts') }}" class="tab-btn {{ !request('status') && !request('role') ? 'active' : '' }}">All</a>
           
