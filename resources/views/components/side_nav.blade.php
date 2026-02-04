@@ -1,0 +1,38 @@
+<link rel="stylesheet" href="{{ asset('css/employee_side_nav.css') }}">
+       <div class="logo">
+            <div class="logo-icon">
+              <img src="{{ asset('images/adzu_logo.png') }}" class="logo-image">
+            </div>
+            <div class="logo-text">
+                <div class="logo-subtitle">Ateneo de Zamboanga University</div>
+                <div class="logo-title">Lantaka Room and Venue Reservation System
+                </div>
+            </div>
+        </div>
+        
+        <nav class="nav-menu">
+            <a href="{{route('employee_dashboard')}}" class="nav-item {{ request()->routeIs('employee_dashboard') ? 'active' : '' }}">
+                <span class="icon">📈</span>
+                <span>Dashboard</span>
+            </a>
+            <a href="{{route('employee_reservations')}}" class="nav-item {{ request()->routeIs('employee_reservations') ? 'active' : '' }}">
+                <span class="icon">📅</span>
+                <span>Reservation</span>
+            </a>
+            <a href="#" class="nav-item">
+                <span class="icon">👥</span>
+                <span>Guest</span>
+            </a>
+            <a href="{{route('employee_accounts')}}" class="nav-item {{ request()->routeIs('employee_accounts') ? 'active' : '' }}">
+                <span class="icon">👤</span>
+                <span>Accounts</span>
+            </a>
+            <a href="{{route('employee_room_venue')}}" class="nav-item {{ request()->routeIs('employee_room_venue') ? 'active' : '' }}">
+                <span class="icon">🏛️</span>
+                <span>Rooms / Venue</span>
+            </a>
+            <a href="#" class="nav-item">
+                <span class="icon">📋</span>
+                <span>Event Logs</span>
+            </a>
+        </nav>

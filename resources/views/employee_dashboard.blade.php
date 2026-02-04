@@ -5,10 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lantaka Dashboard</title>
     <link rel="stylesheet" href="{{asset('css/employee_dashboard.css')}}">
-    <link rel="stylesheet" href="{{ asset('css/employee_side_nav.css') }}
-    ">
-    <link rel="stylesheet" href="{{ asset('css/employee_top_nav.css') }}">
-
+ 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -18,63 +15,14 @@
 <body>
     <!-- Sidebar -->
     <aside class="sidebar">
-        <div class="logo">
-            <div class="logo-icon">
-              <img src="{{ asset('images/adzu_logo.png') }}" class="logo-image">
-            </div>
-            <div class="logo-text">
-                <div class="logo-subtitle">Ateneo de Zamboanga University</div>
-                <div class="logo-title">Lantaka Room and Venue Reservation System
-                </div>
-            </div>
-        </div>
-        
-        <nav class="nav-menu">
-            <a href="{{route('employee_dashboard')}}" class="nav-item active">
-                <span class="icon">📈</span>
-                <span>Dashboard</span>
-            </a>
-            <a href="{{route('employee_reservations')}}" class="nav-item">
-                <span class="icon">📅</span>
-                <span>Reservation</span>
-            </a>
-            <a href="#" class="nav-item">
-                <span class="icon">👥</span>
-                <span>Guest</span>
-            </a>
-            <a href="{{route('employee_accounts')}}" class="nav-item">
-                <span class="icon">👤</span>
-                <span>Accounts</span>
-            </a>
-            <a href="{{route('employee_room_venue')}}" class="nav-item">
-                <span class="icon">🏛️</span>
-                <span>Rooms / Venue</span>
-            </a>
-            <a href="#" class="nav-item">
-                <span class="icon">📋</span>
-                <span>Event Logs</span>
-            </a>
-        </nav>
+        <x-side_nav />
     </aside>
 
     <!-- Main Content -->
     <main class="main-container">
         <!-- Header -->
         <header class="header">
-            <div class="header-left">
-                <button class="menu-toggle">☰</button>
-            </div>
-            <div class="header-right">
-                <button class="icon-btn">🔔</button>
-                <div class="user-profile">
-                    <div class="user-avatar">👤</div>
-                    <div class="user-info">
-                        <p class="user-name">Welcome, {{ Auth::user()->name }}!</p>
-                        
-                        <p class="user-role">{{ ucfirst(Auth::user()->role) }}</p>
-                    </div>
-                </div>
-            </div>
+            <x-top_nav />
         </header>
 
         <!-- Content Area -->
@@ -192,5 +140,6 @@
             <button class="export-btn">Export</button>
         </div>
     </main>
-</body>
+    <script type="module" src="{{'resources/views/side_nav.blade.php'}}"></script>
+</body> 
 </html>

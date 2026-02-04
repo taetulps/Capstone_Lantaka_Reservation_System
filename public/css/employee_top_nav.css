@@ -8,6 +8,7 @@
   align-items: center;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   height: 60px;
+  z-index: 200;
 }
 
 .header-left {
@@ -47,6 +48,14 @@
   display: flex;
   align-items: center;
   gap: 12px;
+  padding: 5px 10px;
+  border: 1px rgba(0, 0, 0, 0.06) solid;
+}
+
+.user-profile:hover{
+  background-color: gray;
+  border-radius: 10px;
+  cursor: pointer;
 }
 
 .user-avatar {
@@ -72,7 +81,97 @@
   font-weight: 600;
 }
 
+.user-name {
+  font-size: 13px;
+  font-weight: 600;
+  margin: 0;
+}
+
 .user-role {
-  font-size: 12px;
+  font-size: 11px;
   color: rgba(255, 255, 255, 0.7);
+  margin: 0;
+}
+
+/* User Modal */
+.user-profile-modal {
+  display: none;
+  position: absolute;
+  top: 70px;
+  right: 25px;
+  background-color: rgb(255, 255, 255);
+  border-radius: 10px;
+  padding: 10px;
+  min-width: 215px;
+  box-shadow: 0px 3px 10px 5px #888888;
+  z-index: 1000;
+}
+
+.user-profile-modal.show {
+  display: block;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.modal-link {
+  display: block;
+  text-decoration: none;
+}
+
+.modal-form {
+  display: flex;
+}
+
+/* Buttons */
+.btn-view-account,
+.btn-logout {
+  width: 100%;
+  padding: 16px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-view-account {
+  background-color: rgb(210, 210, 210);
+  color: black;
+  margin-bottom: 12px;
+}
+
+.btn-view-account:hover {
+  background-color: #d0d0d0;
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-light);
+}
+
+.btn-view-account:active {
+  transform: translateY(0);
+}
+
+.btn-logout {
+  background-color: rgb(255, 65, 65);
+  color: var(--text-dark);
+  font-weight: 700;
+}
+
+.btn-logout:hover {
+  background-color: #ff2c2c;
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-light);
+}
+
+.btn-logout:active {
+  transform: translateY(0);
 }

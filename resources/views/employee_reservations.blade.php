@@ -5,8 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Reservation - Lantaka System</title>
   <link rel="stylesheet" href="{{ asset('css/employee_reservations.css') }}">
-  <link rel="stylesheet" href="{{ asset('css/employee_side_nav.css') }}">
-  <link rel="stylesheet" href="{{ asset('css/employee_top_nav.css') }}">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -16,43 +14,7 @@
 
     <!-- Sidebar -->
     <aside class="sidebar">
-        <div class="logo">
-            <div class="logo-icon">
-              <img src="{{ asset('images/adzu_logo.png') }}" class="logo-image">
-            </div>
-            <div class="logo-text">
-                <div class="logo-subtitle">Ateneo de Zamboanga University</div>
-                <div class="logo-title">Lantaka Room and Venue Reservation System
-                </div>
-            </div>
-        </div>
-        
-        <nav class="nav-menu">
-            <a href="{{route('employee_dashboard')}}" class="nav-item">
-                <span class="icon">📈</span>
-                <span>Dashboard</span>
-            </a>
-            <a href="{{route('employee_reservations')}}" class="nav-item active">
-                <span class="icon">📅</span>
-                <span>Reservation</span>
-            </a>
-            <a href="#" class="nav-item">
-                <span class="icon">👥</span>
-                <span>Guest</span>
-            </a>
-            <a href="{{route('employee_accounts')}}" class="nav-item">
-                <span class="icon">👤</span>
-                <span>Accounts</span>
-            </a>
-            <a href="{{route('employee_room_venue')}}" class="nav-item">
-                <span class="icon">🏛️</span>
-                <span>Rooms / Venue</span>
-            </a>
-            <a href="#" class="nav-item">
-                <span class="icon">📋</span>
-                <span>Event Logs</span>
-            </a>
-        </nav>
+      <x-side_nav />
     </aside>
 
     <div class="container">
@@ -61,19 +23,7 @@
     <main class="main-content">
       <!-- Top Header -->
       <header class="header">
-            <div class="header-left">
-                <button class="menu-toggle">☰</button>
-            </div>
-            <div class="header-right">
-                <button class="icon-btn">🔔</button>
-                <div class="user-profile">
-                    <div class="user-avatar">👤</div>
-                    <div class="user-info">
-                        <div class="user-greeting">Welcome, Jane !</div>
-                        <div class="user-role">Administrator</div>
-                    </div>
-                </div>
-            </div>
+         <x-top_nav/>
         </header>
 
       <!-- Page Content -->
