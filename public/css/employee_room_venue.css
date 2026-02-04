@@ -452,3 +452,259 @@ body {
     display: none;
   }
 }
+
+/* Add Room Venue Modal CSS*/
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background-color: #f5f5f5;
+}
+
+/* Modal Backdrop */
+.modal-backdrop {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.modal-backdrop.show{
+  display: flex;
+}
+
+/* Modal Container */
+.modal {
+  background: white;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 750px;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Close Button */
+.modal-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 32px;
+  height: 32px;
+  background: none;
+  border: none;
+  font-size: 28px;
+  color: #999;
+  cursor: pointer;
+  transition: color 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-close:hover {
+  color: #333;
+}
+
+/* Modal Header */
+.modal-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #000;
+  padding: 24px 24px 0;
+  margin-bottom: 16px;
+}
+
+/* Tabs */
+.modal-tabs {
+  display: flex;
+  border-bottom: 1px solid #e0e0e0;
+  padding: 0 24px;
+  gap: 0;
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 12px 16px;
+  border: none;
+  background: none;
+  color: #999;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  transition: all 0.2s ease;
+  text-align: center;
+}
+
+.tab-btn:hover {
+  color: #666;
+}
+
+.tab-active {
+  color: #2c3e8f;
+  border-bottom-color: #2c3e8f;
+}
+
+/* Modal Content */
+.modal-content {
+  padding: 24px;
+}
+
+/* Form Grid */
+.form-grid {
+  display: none;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.form-grid.active{
+  display: grid;
+}
+
+/* Form Column */
+.form-column {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Form Group */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-group label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #000;
+}
+
+/* Form Inputs */
+.form-input,
+.form-textarea {
+  padding: 12px 14px;
+  border: 1px solid #d0d0d0;
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: inherit;
+  transition: border-color 0.2s ease;
+}
+
+.form-input:focus,
+.form-textarea:focus {
+  outline: none;
+  border-color: #2c3e8f;
+  box-shadow: 0 0 0 3px rgba(44, 62, 143, 0.1);
+}
+
+.form-input::placeholder,
+.form-textarea::placeholder {
+  color: #999;
+}
+
+/* Textarea */
+.form-textarea {
+  min-height: 140px;
+  resize: vertical;
+}
+
+/* Form Row (for side-by-side fields) */
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+/* Modal Actions */
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+}
+
+/* Buttons */
+.btn-primary,
+.btn-secondary,
+.btn-success {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+}
+
+/* Primary Button (Blue) */
+.btn-primary {
+  background-color: #5b9bd5;
+  color: white;
+  flex: 1;
+  min-width: 150px;
+}
+
+.btn-primary:hover {
+  background-color: #4a8bc2;
+}
+
+.btn-primary:active {
+  transform: scale(0.98);
+}
+
+.btn-primary.create{
+  width: 10px;
+}
+
+/* Secondary Button (White with border) */
+.btn-secondary {
+  background-color: white;
+  color: #333;
+  border: 1px solid #d0d0d0;
+}
+
+.btn-secondary:hover {
+  background-color: #f9f9f9;
+  border-color: #999;
+}
+
+/* Success Button (Yellow) */
+.btn-success {
+  background-color: #ffd700;
+  color: #000;
+  font-weight: 700;
+}
+
+.btn-success:hover {
+  background-color: #ffcc00;
+}
+
+.btn-success:active {
+  transform: scale(0.98);
+}

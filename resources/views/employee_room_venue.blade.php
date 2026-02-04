@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Rooms / Venue - Lantaka</title>
   <link rel="stylesheet" href="{{asset('css/employee_room_venue.css')}}">
+
   <link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@200;300;400;500;600;700;800;900&family=Arsenal:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
 </head>
 <body>
@@ -40,8 +41,8 @@
             </select>
           </div>
           <div class="button-section">
-            <button class="btn btn-secondary">Food Menu</button>
-            <button class="btn btn-primary">Add Room/Venue</button>
+            <button class="btn btn-secondary" >Food Menu</button>
+            <button class="btn btn-primary" id="add_room_venue_button">Add Room/Venue</button>
           </div>
         </div>
 
@@ -80,7 +81,13 @@
           </section>
           </div>
       </div>
+
     </main>
   </div>
-</body>
+
+  <!-- Add Room Venue Modal -->
+  
+      <!-- Modal Content -->
+      <x-add_room_venue/>
+  </body>
 </html>
