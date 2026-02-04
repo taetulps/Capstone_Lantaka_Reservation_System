@@ -26,6 +26,13 @@
 
             <!-- Subtitle -->
             <p class="subtitle">Lantaka Online Room & Venue Reservation System</p>
+            
+            <!-- Error Message -->
+            @if(session('error'))
+                <div class="alert-error" style="background: #f8d7da; color: #721c24; padding: 10px; border-radius: 5px; margin-bottom: 15px; border: 1px solid #f5c6cb;">
+                    ⚠️ {{ session('error') }}
+                </div>
+            @endif
 
             <!-- Login Form -->
             <form class="login-form" method="POST" action="{{ route('login.post') }}">

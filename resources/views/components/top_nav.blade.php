@@ -17,7 +17,8 @@
                   <a href="#" class="modal-link">
                     <button class="btn-view-account">View your account</button>
                   </a>
-                  <form class="modal-form">
+                  <form class="modal-form" action="{{ route('logout') }}" method="POST">
+                    @csrf
                     <button type="submit" class="btn-logout">Logout</button>
                   </form>
                 </div>
