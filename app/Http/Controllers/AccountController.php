@@ -15,7 +15,6 @@ class AccountController extends Controller
         $query = User::query();
 
         if ($role === 'employee') {
-            // Case-insensitive check for admin and staff
             $query->whereIn('role', ['admin', 'staff', 'Admin', 'Staff']);
         } elseif ($status) {
             $query->where('status', $status);

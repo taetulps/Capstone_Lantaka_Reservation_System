@@ -55,14 +55,22 @@
             <section class="rooms-section">
               <h2 class="section-title">Room</h2>
               <div class="rooms-grid">
-                <div class="room-card active">Room 101</div>
-                <div class="room-card">Room 106</div>
-                <div class="room-card">Room 102</div>
-                <div class="room-card">Room 107</div>
-                <div class="room-card">Room 103</div>
-                <div class="room-card">Room 108</div>
-                <div class="room-card">Room 104</div>
-                <div class="room-card">Room 105</div>
+                @foreach($rooms as $room)
+                  <div class="room-card {{ strtolower($room->status) }}">
+                    {{ $room->room_number }}
+                    
+                    <input type="hidden" class="room-details" 
+                          data-name="{{ $room->room_number }}" 
+                          data-type="{{ $room->room_type }}" 
+                          data-capacity="{{ $room->capacity }}" 
+                          data-price="{{ $room->price }}"
+                          data-status="{{ $room->status }}">
+                  </div>
+                @endforeach
+
+                @if($rooms->isEmpty())
+                  <p style="color: #666; font-style: italic;">No rooms added yet.</p>
+                @endif
               </div>
             </section>
 
@@ -70,10 +78,16 @@
             <section class="venues-section">
               <h2 class="section-title">Venue</h2>
               <div class="venue-grid">
-                  <div class="venue-card active">Capiz Hall</div>
-                  <div class="venue-card unavailable">Hall A</div>
-                  <div class="venue-card occupied">Hall B</div>
-                </div>
+                  @foreach($venues as $venue)
+                    <div class="venue-card {{ strtolower($venue->status) }}">
+                      {{ $venue->name }}
+                    </div>
+                  @endforeach
+
+                  @if($venues->isEmpty())
+                    <p style="color: #666; font-style: italic;">No venues added yet.</p>
+                  @endif
+              </div>
             </section>
           </div> 
           <section class="description-show">

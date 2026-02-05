@@ -38,7 +38,9 @@ class LoginController extends Controller
                 return redirect()->route('employee_dashboard');
             }
             //if client dashboard exists, redirect there
-
+            if ($user->role === 'client') {
+                return redirect()->route('client_room_venue');
+            }
             return redirect()->route('index');
         }
 

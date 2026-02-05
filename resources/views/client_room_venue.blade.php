@@ -61,9 +61,7 @@
 
     <!-- Accommodation Cards -->
     <section class="accommodations">
-      <!-- Single Bed Room -->
-        <x-client_room_venue_viewing/>
-   
+      <x-client_room_venue_viewing :accommodations="$all_accommodations"/>
     </section>
   </main>
 </body>

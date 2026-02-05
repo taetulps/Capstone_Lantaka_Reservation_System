@@ -1,125 +1,140 @@
 @vite('resources/js/add_room_venue.js')
+
 <div class="modal-backdrop">
-    <!-- Modal Container -->
-    <div class="modal">
-      <!-- Close Button -->
-      <button class="modal-close">&times;</button>
+  <div class="modal">
+    <button class="modal-close">&times;</button>
 
-      <!-- Modal Header -->
-      <h2 class="modal-title">Create Room</h2>
+    <h2 class="modal-title">Create <span id="title-category">Room</span></h2>
 
-      <!-- Tabs -->
-      <div class="modal-tabs">
-        <button class="tab-btn tab-active" id="room-option">Room</button>
-        <button class="tab-btn" id="venue-option">Venue</button>
-      </div>
+    <div class="modal-tabs">
+      <button type="button" class="tab-btn tab-active" id="room-option" onclick="setCategory('Room')">Room</button>
+      <button type="button" class="tab-btn" id="venue-option" onclick="setCategory('Venue')">Venue</button>
+    </div>
 
-      <!-- Modal Main -->
-      <div class="modal-content">
-        <form>
-          <!-- ROOM CONTENT FORM -->
-          <div class="form-grid active" id="room-form">
-            <!-- Left Column -->
-            <div class="form-column">
-              <!-- Room Name -->
-              <div class="form-group">
-                <label for="roomName">Room Name</label>
-                <input type="text" id="roomName" placeholder="Enter Room Name" class="form-input">
-              </div>
+    <div class="modal-content">
+      <form action="{{ route('room_venue.store') }}" method="POST">
+        @csrf 
+        
+        <input type="hidden" name="category" id="category_input" value="Room">
 
-              <!-- Room Type -->
-              <div class="form-group">
-                <label for="roomType">Room Type</label>
-                <input type="text" id="roomType" placeholder="Enter Room Type" class="form-input">
-              </div>
-
-              <!-- Pricing -->
-              <div class="form-group">
-                <label for="pricing">Internal Pricing</label>
-                <input type="number" id="internal-pricing" placeholder="₱ 0" class="form-input">
-                <label for="pricing">External Pricing</label>
-                <input type="number" id="external-pricing" placeholder="₱ 0" class="form-input">
-              </div>
-              <div class="form-row">
-                <div class="form-group">
-                  <label for="status">Status</label>
-                  <select id="status" class="form-input">
-                    <option>Available</option>
-                    <option>Unavailable</option>
-                  </select>
-                </div>
-                <div class="form-group">
-                  <label for="capacity">Capacity</label>
-                  <input type="number" id="capacity" placeholder="Enter Capacity" class="form-input">
-                </div>
-              </div>
-            </div>
+        <div class="form-grid active" id="room-form">
+          <div class="form-column">
             
-         
-
-            <!-- Right Column -->
-            <div class="form-column">
-              <!-- Description -->
-              <div class="form-group">
-                <label for="description">Description for Room Type</label>
-                <textarea id="description" placeholder="Room Description" class="form-textarea"></textarea>
-              </div>
-            </div>
-          </div>
-        </form>
-  <!-- VENUE CONTENT FORM -->
-        <form>
-          <div class="form-grid" id="venue-form">
-            <!-- Left Column -->
-            <div class="form-column">
-              <!-- Room Name -->
-              <div class="form-group">
-                <label for="roomName">Venue Name</label>
-                <input type="text" id="venueName" placeholder="Enter Venue Name" class="form-input">
-              </div>
-
-              <!-- Pricing -->
-              <div class="form-group">
-                <label for="pricing">Internal Pricing</label>
-                <input type="number" id="internal-pricing" placeholder="₱ 0" class="form-input">
-                <label for="pricing">External Pricing</label>
-                <input type="number" id="external-pricing" placeholder="₱ 0" class="form-input">
-              </div>
-
-              <!-- Status & Capacity Row -->
-              <div class="form-row">
-                <div class="form-group">
-                  <label for="status">Status</label>
-                  <select id="status" class="form-input">
-                    <option>Available</option>
-                    <option>Unavailable</option>
-                  </select>
-                </div>
-                <div class="form-group">
-                  <label for="capacity">Capacity</label>
-                  <input type="number" id="capacity" placeholder="Enter Capacity" class="form-input">
-                </div>
-              </div>
+            <div class="form-group">
+              <label>Room Name (Number)</label>
+              <input type="text" name="name" placeholder="e.g. 101" class="form-input">
             </div>
 
-            <!-- Right Column -->
-            <div class="form-column">
-              <!-- Description -->
+            <div class="form-group">
+              <label>Room Type</label>
+              <input type="text" name="type" placeholder="e.g. Deluxe" class="form-input">
+            </div>
+
+            <div class="form-group">
+                <label>Internal Pricing</label>
+                <input type="number" name="internal_price" placeholder="₱ 0" class="form-input">
+                
+                <label>External Pricing</label>
+                <input type="number" name="external_price" placeholder="₱ 0" class="form-input">
+            </div>
+
+            <div class="form-row">
               <div class="form-group">
-                <label for="description">Description for Venue Type</label>
-                <textarea id="description" placeholder="Venue Description" class="form-textarea"></textarea>
+                <label>Status</label>
+                <select name="status" class="form-input">
+                  <option value="Available">Available</option>
+                  <option value="Unavailable">Unavailable</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Capacity</label>
+                <input type="number" name="capacity" placeholder="Enter Capacity" class="form-input">
               </div>
             </div>
           </div>
 
-          <!-- Action Buttons -->
-          <div class="modal-actions">
-            <button type="button" class="btn-primary create" id="create-reservation">Create Room Reservation</button>
-            <button type="button" class="btn-secondary" id="close-modal">CANCEL</button>
-            <button type="submit" class="btn-success" id="save-what">SAVE ROOM</button>
+          <div class="form-column">
+             <div class="form-group">
+                <label>Description</label>
+                <textarea name="description" placeholder="Room Description" class="form-textarea"></textarea>
+              </div>
           </div>
-        </form>
-      </div>
+        </div>
+        
+        <div class="form-grid" id="venue-form" style="display: none;">
+           <div class="form-column">
+            
+            <div class="form-group">
+              <label>Venue Name</label>
+              <input type="text" name="name" placeholder="e.g. Grand Hall" class="form-input" disabled>
+            </div>
 
+            <div class="form-group">
+                <label>Internal Pricing</label>
+                <input type="number" name="internal_price" placeholder="₱ 0" class="form-input" disabled>
+                
+                <label>External Pricing</label>
+                <input type="number" name="external_price" placeholder="₱ 0" class="form-input" disabled>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Status</label>
+                <select name="status" class="form-input" disabled>
+                  <option value="Available">Available</option>
+                  <option value="Unavailable">Unavailable</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Capacity</label>
+                <input type="number" name="capacity" placeholder="Enter Capacity" class="form-input" disabled>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-column">
+             <div class="form-group">
+                <label>Description</label>
+                <textarea name="description" placeholder="Venue Description" class="form-textarea" disabled></textarea>
+              </div>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" id="close-modal">CANCEL</button>
+          <button type="submit" class="btn-success">SAVE</button>
+        </div>
+      </form>
     </div>
   </div>
+</div>
+
+<script>
+  function setCategory(cat) {
+    document.getElementById('category_input').value = cat;
+    document.getElementById('title-category').innerText = cat;
+
+    const roomForm = document.getElementById('room-form');
+    const venueForm = document.getElementById('venue-form');
+    
+    // Select all inputs inside both forms
+    const roomInputs = roomForm.querySelectorAll('input, select, textarea');
+    const venueInputs = venueForm.querySelectorAll('input, select, textarea');
+
+    if(cat === 'Room') {
+        roomForm.style.display = 'flex';
+        venueForm.style.display = 'none';
+        roomInputs.forEach(el => el.disabled = false);
+        venueInputs.forEach(el => el.disabled = true);
+        document.getElementById('room-option').classList.add('tab-active');
+        document.getElementById('venue-option').classList.remove('tab-active');
+    } else {
+        roomForm.style.display = 'none';
+        venueForm.style.display = 'flex';
+        venueInputs.forEach(el => el.disabled = false);
+        roomInputs.forEach(el => el.disabled = true);
+        document.getElementById('venue-option').classList.add('tab-active');
+        document.getElementById('room-option').classList.remove('tab-active');
+    }
+  }
+</script>
