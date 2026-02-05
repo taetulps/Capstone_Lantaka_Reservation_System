@@ -9,7 +9,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@200;300;400;500;600;700;800;900&family=Arsenal:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
 
-  @vite('resources/js/reservations_filter.js')
+  @vite('resources/js/employee_reservations.js')
 </head>
 <body>
 
@@ -144,6 +144,8 @@
           </table>
         </div>
       </div>
+      <x-modal_e_reservations/>
+
     </main>
   </div>
 </body>

@@ -12,6 +12,15 @@ Route::get('/', function () {
 })->name('index');
 
 Route::get('/client_room_venue', [RoomVenueController::class, 'index'])->name('client_room_venue');
+
+Route::get('/client_my_bookings', function () {
+    return view('client_my_bookings');
+})->name('client_my_bookings');
+
+Route::get('/client_my_reservations', function () {
+    return view('client_my_reservations');
+})->name('client_my_reservations');
+
 // Add this under your other public routes
 Route::get('/view/{category}/{id}', [App\Http\Controllers\RoomVenueController::class, 'show'])->name('client.show');
 
@@ -20,6 +29,8 @@ Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [LoginController::class, 'login'])->name('login.post');
 
 Route::get('/signup', [SignupController::class, 'showSignupForm'])->name('signup');
+Route::post('/signup', [SignupController::class, 'store'])->name('register.post');
+
 Route::post('/signup', [SignupController::class, 'store'])->name('register.post');
 
 
@@ -49,3 +60,8 @@ Route::middleware(['auth'])->group(function () {
 
 });
   
+// TEST ONLY DO NOT TOUCH (CALENDAR)
+Route::get('/test_client_room_venue_viewing', function () {
+    return view('test_client_room_venue_viewing');
+})->name('test_client_room_venue_viewing');
+// TEST ONLY DO NOT TOUCH (CALENDAR)

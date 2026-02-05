@@ -81,6 +81,7 @@ a{
   text-decoration: none;
   font-size: 14px;
   font-weight: 500;
+  font-family: "Alexandria", sans-serif;
   transition: opacity 0.3s ease;
   letter-spacing: 0.3px;
 }
@@ -91,6 +92,69 @@ a{
 .nav-link.active {
   color: #F9C917;
   text-decoration: underline;
+}
+
+.icon-btn {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 20px;
+  cursor: pointer;
+  transition: opacity 0.3s;
+}
+
+.icon-btn:hover {
+  opacity: 0.8;
+}
+
+.user-profile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 5px 10px;
+  border: 1px rgba(0, 0, 0, 0.06) solid;
+}
+
+.user-profile:hover{
+  background-color: gray;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.user-avatar {
+  width: 40px;
+  height: 40px;
+  background-color: #fdfdfd;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  color: #1a1a1a;
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.user-greeting {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.user-name {
+  color: white;
+  font-size: 13px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.user-role {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0;
 }
 
 @media (max-width: 768px) {
@@ -151,4 +215,67 @@ a{
   .tagline {
       font-size: 10px;
   }
+}
+
+/* User Profile Modal*/
+.user-profile-modal {
+  display: none;
+  position: absolute;
+  top: 90px;
+  right: 139px;
+  background-color: rgb(255, 255, 255);
+  border-radius: 10px;
+  padding: 10px;
+  min-width: 80px;
+  box-shadow: 0px 3px 10px 5px #888888;
+  z-index: 1000;
+}
+
+.user-profile-modal.show {
+  display: block;
+}
+
+/* Buttons */
+.btn-view-account,
+.btn-logout {
+  width: 100%;
+  padding: 16px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-view-account {
+  background-color: rgb(210, 210, 210);
+  color: black;
+  margin-bottom: 12px;
+}
+
+.btn-view-account:hover {
+  background-color: #d0d0d0;
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-light);
+}
+
+.btn-view-account:active {
+  transform: translateY(0);
+}
+
+.btn-logout {
+  background-color: rgb(255, 65, 65);
+  color: var(--text-dark);
+  font-weight: 700;
+}
+
+.btn-logout:hover {
+  background-color: #ff2c2c;
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-light);
+}
+
+.btn-logout:active {
+  transform: translateY(0);
 }

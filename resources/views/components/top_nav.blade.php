@@ -1,4 +1,6 @@
 <link rel="stylesheet" href="{{ asset('css/employee_top_nav.css') }}">     
+@vite(['resources/js/top_nav.js'])
+
             <div class="header-left">
                 <button class="menu-toggle">☰</button>
             </div>
@@ -23,25 +25,4 @@
                   </form>
                 </div>
             </div>
-
-            <script>
-              const openBtn = document.getElementById('open-modal');
-              const modal = document.querySelector('.user-profile-modal');
-
-              function openModal(){
-                modal.classList.toggle('show')
-              }
-
-              openBtn.addEventListener("click", openModal);  
-              
-              document.body.addEventListener('click', (e) => {
-                const clickedInsideModal = modal.contains(e.target);
-                const clickedOpenBtn = openBtn.contains(e.target);
-
-                if (!clickedInsideModal && !clickedOpenBtn) {
-                  modal.classList.remove('show');
-                }
-              });
-
-            </script>
       

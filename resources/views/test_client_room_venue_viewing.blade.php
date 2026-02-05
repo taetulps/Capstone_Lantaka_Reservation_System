@@ -78,7 +78,30 @@
 
       <div class="right-section">
         <div class="calendar-container">
-          <!-- Ilagay dito ang Calendar -->
+          <div class="calendar-header">
+            <h3>{{ now()->format('F Y') }}</h3>
+            <div class="calendar-nav">
+              <button class="calendar-btn prev">‹</button>
+              <button class="calendar-btn next">›</button>
+            </div>
+          </div>
+
+          <div class="calendar">
+            <div class="calendar-weekdays">
+              <div class="weekday">Mo</div><div class="weekday">Tu</div><div class="weekday">We</div>
+              <div class="weekday">Th</div><div class="weekday">Fr</div><div class="weekday">Sa</div><div class="weekday">Su</div>
+            </div>
+            <div class="calendar-days">
+              <div class="day">1</div><div class="day">2</div><div class="day">3</div><div class="day">4</div>
+              <div class="day">5</div><div class="day">6</div><div class="day">7</div><div class="day">8</div>
+              <div class="day">9</div><div class="day">10</div><div class="day">11</div><div class="day">12</div>
+              <div class="day unavailable">13</div><div class="day">14</div><div class="day">15</div><div class="day">16</div>
+              <div class="day">17</div><div class="day">18</div><div class="day selected">19</div><div class="day">20</div>
+              <div class="day">21</div><div class="day">22</div><div class="day">23</div><div class="day">24</div>
+              <div class="day">25</div><div class="day">26</div><div class="day">27</div><div class="day">28</div>
+              <div class="day">29</div><div class="day">30</div>
+            </div>
+          </div>
         </div>
 
         <div class="booking-section">
