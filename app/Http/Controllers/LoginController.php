@@ -6,7 +6,9 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth; // Important: This allows you to use the Auth system
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash; // Needed for password checking
+use App\Models\User;
 
 class LoginController extends Controller
 {
@@ -23,30 +25,42 @@ class LoginController extends Controller
      */
     public function login(Request $request)
     {
-        $credentials = $request->validate([
+        // 1. Validate Input
+        $request->validate([
             'username' => ['required'],
             'password' => ['required'],
         ]);
 
-        if (Auth::attempt($credentials)) {
-            $request->session()->regenerate();
+        // 2. Find the user by username manually
+        $user = User::where('username', $request->username)->first();
 
-            $user = Auth::user();
-
-            // Check if the role matches exactly what is in your database
-            if ($user->role === 'admin' || $user->role === 'staff') {
-                return redirect()->route('employee_dashboard');
-            }
-            //if client dashboard exists, redirect there
-            if ($user->role === 'client') {
-                return redirect()->route('client_room_venue');
-            }
-            return redirect()->route('index');
+        // 3. CHECK: Does the username exist?
+        if (!$user) {
+            return back()->withErrors([
+                'username' => 'This username does not exist.', // <--- Message for wrong username
+            ])->onlyInput('username');
         }
 
-        return back()->withErrors([
-            'username' => 'The provided credentials do not match our records.',
-        ]);
+        // 4. CHECK: Is the password correct?
+        if (!Hash::check($request->password, $user->password)) {
+            return back()->withErrors([
+                'password' => 'Incorrect password.', // <--- Message for wrong password
+            ])->onlyInput('username');
+        }
+
+        // 5. If both pass, log the user in manually
+        Auth::login($user);
+        $request->session()->regenerate();
+
+        // 6. Redirect based on role (Your existing logic)
+        if ($user->role === 'admin' || $user->role === 'staff') {
+            return redirect()->route('employee_dashboard');
+        }
+        if ($user->role === 'client') {
+            return redirect()->route('client_room_venue');
+        }
+        
+        return redirect()->route('index');
     }
 
     /**
