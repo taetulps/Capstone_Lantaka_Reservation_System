@@ -59,11 +59,12 @@
 
     <section class="accommodations">
       
-      <div class="accommodations-grid">
-        
         @if(isset($all_accommodations) && $all_accommodations->isNotEmpty())
             
             @foreach($all_accommodations as $item)
+            <a href="{{ route('client.show', ['category' => $item->category, 'id' => $item->id]) }}" 
+            class="book-btn">
+            <div class="accommodations-grid">
                 <div class="card">
                     <div class="card-image">
                         <img src="{{ $item->image ? asset('storage/' . $item->image) : asset('images/adzu_logo.png') }}" 
@@ -81,21 +82,21 @@
                             </div>
                         </div>
 
-                        <a href="{{ route('client.show', ['category' => $item->category, 'id' => $item->id]) }}" 
-                           class="book-btn">
-                            View Details
-                        </a>
+                       
+                           
+                        
                     </div>
                 </div>
+                </div>
                 @endforeach
-
+                </a>
         @else
             <p style="grid-column: 1 / -1; text-align: center;">No rooms or venues found.</p>
         @endif
-
-      </div>
-
+        
+      
     </section>
+
   </main>
 </body>
 </html>
