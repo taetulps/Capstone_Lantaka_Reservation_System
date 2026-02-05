@@ -4,15 +4,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Book Now - Lantaka Room and Venue Reservation Portal</title>
+  
   <link rel="stylesheet" href="{{asset('css/client_room_venue.css')}}">
   <link rel="stylesheet" href="{{asset('css/nav.css')}}">
   <link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@700;800&family=Arsenal:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+
 </head>
 <body>
-  <!-- Header -->
   <header class="header">
         <div class="header-container">
-
             <div class="logo-section">
                 <img src="{{ asset('images/adzu_logo.png') }}" class="logo">
                 <div class="header-text">
@@ -23,20 +23,18 @@
             </div>
             
             <nav class="nav">
-                <a href="{{ route(name: 'client_room_venue') }}" class="nav-link active">Accommodation</a>
+                <a href="{{ route('client_room_venue') }}" class="nav-link active">Accommodation</a>
                 <a href="{{ route('login') }}" class="nav-link">Login</a></nav>
         </div>
     </header>
 
-  <!-- Main Content -->
   <main class="main">
-    <!-- Hero Section -->
+    
     <section class="hero">
       <h2 class="hero-title">Purposeful spaces.</h2>
       <p class="hero-subtitle">Where Faith, Fellowship, and Formation Come Together.</p>
     </section>
 
-    <!-- Filters Section -->
     <section class="filters-section">
       <div class="filter-tabs">
         <button class="tab-btn active">All</button>
@@ -59,9 +57,44 @@
       </div>
     </section>
 
-    <!-- Accommodation Cards -->
     <section class="accommodations">
-      <x-client_room_venue_card :accommodations="$all_accommodations"/>
+      
+      <div class="accommodations-grid">
+        
+        @if(isset($all_accommodations) && $all_accommodations->isNotEmpty())
+            
+            @foreach($all_accommodations as $item)
+                <div class="card">
+                    <div class="card-image">
+                        <img src="{{ $item->image ? asset('storage/' . $item->image) : asset('images/adzu_logo.png') }}" 
+                             alt="{{ $item->display_name }}">
+                    </div>
+
+                    <div class="card-content">
+                        <div>
+                            <p class="card-type">{{ $item->category }}</p>
+                            <h3 class="card-title">{{ $item->display_name }}</h3>
+                            
+                            <div class="card-details">
+                                <span class="detail-item">👤 {{ $item->capacity }} Guests</span>
+                                <span class="detail-item">₱ {{ number_format($item->external_price, 2) }}</span>
+                            </div>
+                        </div>
+
+                        <a href="{{ route('client.show', ['category' => $item->category, 'id' => $item->id]) }}" 
+                           class="book-btn">
+                            View Details
+                        </a>
+                    </div>
+                </div>
+                @endforeach
+
+        @else
+            <p style="grid-column: 1 / -1; text-align: center;">No rooms or venues found.</p>
+        @endif
+
+      </div>
+
     </section>
   </main>
 </body>
