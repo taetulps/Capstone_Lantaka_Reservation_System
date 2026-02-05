@@ -61,7 +61,7 @@
 
     <!-- Accommodation Cards -->
     <section class="accommodations">
-      <x-client_room_venue_viewing :accommodations="$all_accommodations"/>
+      <x-client_room_venue_card :accommodations="$all_accommodations"/>
     </section>
   </main>
 </body>
