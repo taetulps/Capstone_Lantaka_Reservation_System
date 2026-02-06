@@ -7,6 +7,8 @@
   <link rel="stylesheet" href="{{ asset('css/client_room_venue_viewing.css') }}">
   <link rel="stylesheet" href="{{ asset('css/nav.css') }}">
   <link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@700;800&family=Arsenal:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 </head>
 <body>
 
@@ -78,16 +80,26 @@
 
       <div class="right-section">
         <div class="calendar-container">
-          <!-- Ilagay dito ang Calendar -->
+          <h3>Select Dates</h3>
+          <input type="text" id="calendar-input" placeholder="Check-in  →  Check-out" 
+                 style="width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; margin-top: 10px;">
         </div>
 
         <div class="booking-section">
-          <form action="#" method="GET" class="booking-form"> 
+          <form action="{{ route('checkout') }}" method="GET" class="booking-form"> 
+              
+              <input type="hidden" name="accommodation_id" value="{{ $data->id }}">
+
+              <input type="hidden" name="type" value="{{ stripos($category, 'room') !== false ? 'room' : 'venue' }}">
+              
+              <input type="hidden" name="check_in" id="check_in" required>
+              <input type="hidden" name="check_out" id="check_out" required>
+
               <label for="pax-input" class="pax-label">Number of Pax</label>
-              <input type="number" id="pax-input" class="pax-input" 
+              <input type="number" name="pax" id="pax-input" class="pax-input" 
                      placeholder="Enter No. of Pax" 
                      min="1" 
-                     max="{{ $data->capacity }}">
+                     max="{{ $data->capacity }}" required>
               
               <button type="submit" class="proceed-button">PROCEED</button>
           </form>
@@ -95,5 +107,21 @@
       </div>
     </div>
   </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  <script>
+      flatpickr("#calendar-input", {
+          mode: "range",            
+          minDate: "today",          
+          dateFormat: "Y-m-d",       
+          onChange: function(selectedDates, dateStr, instance) {
+              if (selectedDates.length === 2) {
+                  document.getElementById('check_in').value = instance.formatDate(selectedDates[0], "Y-m-d");
+                  document.getElementById('check_out').value = instance.formatDate(selectedDates[1], "Y-m-d");
+              }
+          }
+      });
+  </script>
+
 </body>
 </html>

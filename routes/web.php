@@ -5,6 +5,7 @@ use App\Http\Controllers\LoginController;
 use App\Http\Controllers\SignupController; 
 use App\Http\Controllers\AccountController; 
 use App\Http\Controllers\RoomVenueController;
+use App\Http\Controllers\ReservationController;
 
 /* --- 1. Public Routes --- */
 Route::get('/', function () {
@@ -38,6 +39,14 @@ Route::post('/signup', [SignupController::class, 'store'])->name('register.post'
 Route::middleware(['auth'])->group(function () {
 
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+    // 1. The Checkout Page (calculates price)
+    Route::get('/checkout', [ReservationController::class, 'checkout'])->name('checkout');
+    
+    // 2. The Action to Save the Reservation
+    Route::post('/reservation/store', [ReservationController::class, 'store'])->name('reservation.store');
+    
+    // 3. My Reservations (Shows database data instead of static view)
+    Route::get('/client_my_reservations', [ReservationController::class, 'index'])->name('client_my_reservations');
 
     Route::middleware(['role:admin,staff'])->group(function () {
         
@@ -47,12 +56,12 @@ Route::middleware(['auth'])->group(function () {
 
         Route::get('/employee_accounts', [AccountController::class, 'index'])->name('employee_accounts');
 
-        Route::get('/employee_reservations', function () {
-            return view('employee_reservations');
-        })->name('employee_reservations');
+        //  Now shows real reservations from the database
+        Route::get('/employee_reservations', [ReservationController::class, 'adminIndex'])
+             ->name('employee_reservations');
 
-        Route::get('/employee_room_venue', [App\Http\Controllers\RoomVenueController::class, 'adminIndex'])
-        ->name('employee_room_venue');
+        Route::get('/employee_room_venue', [RoomVenueController::class, 'adminIndex'])
+             ->name('employee_room_venue');
     });
 
     Route::post('/employee_room_venue/store', [RoomVenueController::class, 'store'])->name('room_venue.store');

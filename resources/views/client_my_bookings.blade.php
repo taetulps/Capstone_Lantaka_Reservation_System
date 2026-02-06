@@ -4,83 +4,83 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Checkout - Lantaka Reservation System</title>
-    <link rel="stylesheet" href="{{asset('css/client_my_bookings.css')  }}">
+    <link rel="stylesheet" href="{{ asset('css/client_my_bookings.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@200;300;400;500;600;700;800;900&family=Arsenal:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
     @vite('resources/js/my_booking.js')
 </head>
 <body>
-    <!-- Header -->
     <x-header/>
 
-    <!-- Main Content -->
     <main class="main-content">
-        <!-- Back Button -->
-        <h1 class="page-title">My Bookings</h1>
+        <div style="margin-bottom: 20px;">
+             <a href="javascript:history.back()" style="text-decoration: none; color: #333; font-weight: bold;">
+                ← Back
+            </a>
+        </div>
+        
+        <h1 class="page-title">Checkout</h1>
 
         <div class="checkout-container">
-            <!-- Left Section - Cart Items -->
             <section class="cart-items">
-                <!-- Cart Item 1 -->
+                
                 <div class="cart-item">
-                    <div class="item-image">
-                        <img src="/images/checkout-20page-20-28booking-20cart-29-20-281-29.jpg" alt="Hall A">
+                    <div class="item-image">                    
+                        <img src="{{ (isset($img) && $img) ? asset('storage/' . $img) : asset('images/adzu_logo.png') }}" 
+                             alt="{{ $name ?? 'Item' }}">
                     </div>
                     <div class="item-details">
                         <div class="item-header">
-                            <h3 class="item-name">Hall A</h3>
-                            <p class="item-price">₱ 15,000</p>
+                            <h3 class="item-name">{{ $name ?? 'Unknown Item' }}</h3>
+                            <p class="item-price">
+                                ₱ {{ number_format($price ?? 0, 2) }}
+                            </p>
                         </div>
-                        <p class="item-type">Venue</p>
-                        <p class="item-guests">👥 37 Guests</p>
-                        <p class="item-dates">Check-in November 19, 2025 • Check-out November 19, 2025</p>
-                        <div class="item-inclusion">
-                            <p class="inclusion-label">✓ Food Inclusion</p>
-                            <p class="inclusion-detail">Food Reservation ID 00032</p>
-                            <p class="inclusion-amount">Food Total Amount ₱ 5,500.00</p>
-                        </div>
+                        <p class="item-type">{{ ucfirst($type ?? 'Accommodation') }}</p>
+                                       
+                        <p class="item-guests">👥 {{ request('pax', 1) }} Guests</p>
+                        
+                        <p class="item-dates">
+                            Check-in {{ isset($checkIn) ? $checkIn->format('F d, Y') : 'N/A' }} • 
+                            Check-out {{ isset($checkOut) ? $checkOut->format('F d, Y') : 'N/A' }}
+                            <br>
+                            <small>({{ $days ?? 1 }} Night{{ ($days ?? 1) > 1 ? 's' : '' }})</small>
+                        </p>
                     </div>
                 </div>
 
-                <!-- Cart Item 2 -->
-                <div class="cart-item">
-                    <div class="item-image">
-                        <img src="/images/checkout-20page-20-28booking-20cart-29-20-281-29.jpg" alt="Double Bed">
-                    </div>
-                    <div class="item-details">
-                        <div class="item-header">
-                            <h3 class="item-name">Double Bed</h3>
-                            <p class="item-price">₱ 3,000</p>
-                        </div>
-                        <p class="item-type">Room</p>
-                        <p class="item-guests">👥 2 Guests</p>
-                        <p class="item-dates">Check-in November 19, 2025 • Check-out November 19, 2025</p>
-                    </div>
-                </div>
             </section>
 
-            <!-- Right Section - Checkout Summary -->
             <aside class="checkout-summary">
                 <h2 class="summary-title">Checkout Summary</h2>
                 
-                <div class="summary-items">
-                    <div class="summary-item">
-                        <span class="item-label">Hall A</span>
-                        <span class="item-amount">₱ 15,000.00</span>
+                <form action="{{ route('reservation.store') }}" method="POST">
+                    @csrf
+                    
+                    <input type="hidden" name="type" value="{{ $type ?? 'room' }}">
+                                   
+                    <input type="hidden" name="id" value="{{ $data->id ?? $data->Room_ID ?? $data->Venue_ID ?? 0 }}">                    
+                    
+                    <input type="hidden" name="check_in" value="{{ request('check_in') }}">
+                    <input type="hidden" name="check_out" value="{{ request('check_out') }}">
+                    <input type="hidden" name="pax" value="{{ request('pax', 1) }}">
+                    <input type="hidden" name="total_amount" value="{{ $totalPrice ?? 0 }}">
+
+                    <div class="summary-items">
+                        <div class="summary-item">
+                            <span class="item-label">{{ $name ?? 'Item' }} (x{{ $days ?? 1 }} nights)</span>
+                            <span class="item-amount">₱ {{ number_format($totalPrice ?? 0, 2) }}</span>
+                        </div>
                     </div>
-                    <div class="summary-item">
-                        <span class="item-label">Food</span>
-                        <span class="item-amount">₱ 5,500.00</span>
+
+                    <div class="summary-divider"></div>
+
+                    <div class="total-section">
+                        <span class="total-label">Total Payable</span>
+                        <span class="total-amount">₱ {{ number_format($totalPrice ?? 0, 2) }}</span>
                     </div>
-                </div>
 
-                <div class="summary-divider"></div>
-
-                <div class="total-section">
-                    <span class="total-label">Total Payable</span>
-                    <span class="total-amount">₱ 20,500.00</span>
-                </div>
-
-                <button class="confirm-btn">CONFIRM RESERVATION</button>
+                    <button type="submit" class="confirm-btn">CONFIRM RESERVATION</button>
+                </form>
             </aside>
         </div>
     </main>
