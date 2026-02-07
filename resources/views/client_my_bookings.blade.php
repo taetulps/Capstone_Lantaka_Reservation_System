@@ -22,32 +22,31 @@
 
         <div class="checkout-container">
             <section class="cart-items">
-                
-                <div class="cart-item">
-                    <div class="item-image">                    
-                        <img src="{{ (isset($img) && $img) ? asset('storage/' . $img) : asset('images/adzu_logo.png') }}" 
-                             alt="{{ $name ?? 'Item' }}">
-                    </div>
-                    <div class="item-details">
-                        <div class="item-header">
-                            <h3 class="item-name">{{ $name ?? 'Unknown Item' }}</h3>
-                            <p class="item-price">
-                                ₱ {{ number_format($price ?? 0, 2) }}
+                    <div class="cart-item">
+                        <div class="item-image">                    
+                            <img src="{{ (isset($img) && $img) ? asset('storage/' . $img) : asset('images/adzu_logo.png') }}" 
+                                alt="{{ $name ?? 'Item' }}">
+                        </div>
+                        <div class="item-details">
+                            <div class="item-header">
+                                <h3 class="item-name">{{ $name ?? 'Unknown Item' }}</h3>
+                                <p class="item-price">
+                                    ₱ {{ number_format($price ?? 0, 2) }}
+                                </p>
+                            </div>
+                            <p class="item-type">{{ ucfirst($type ?? 'Accommodation') }}</p>
+                                        
+                            <p class="item-guests">👥 {{ request('pax', 1) }} Guests</p>
+                            
+                            <p class="item-dates">
+                                Check-in {{ isset($checkIn) ? $checkIn->format('F d, Y') : 'N/A' }} • 
+                                Check-out {{ isset($checkOut) ? $checkOut->format('F d, Y') : 'N/A' }}
+                                <br>
+                                <small>({{ $days ?? 1 }} Night{{ ($days ?? 1) > 1 ? 's' : '' }})</small>
                             </p>
                         </div>
-                        <p class="item-type">{{ ucfirst($type ?? 'Accommodation') }}</p>
-                                       
-                        <p class="item-guests">👥 {{ request('pax', 1) }} Guests</p>
-                        
-                        <p class="item-dates">
-                            Check-in {{ isset($checkIn) ? $checkIn->format('F d, Y') : 'N/A' }} • 
-                            Check-out {{ isset($checkOut) ? $checkOut->format('F d, Y') : 'N/A' }}
-                            <br>
-                            <small>({{ $days ?? 1 }} Night{{ ($days ?? 1) > 1 ? 's' : '' }})</small>
-                        </p>
                     </div>
-                </div>
-
+                
             </section>
 
             <aside class="checkout-summary">
