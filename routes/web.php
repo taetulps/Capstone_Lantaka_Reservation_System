@@ -23,7 +23,7 @@ Route::get('/client_my_reservations', function () {
 })->name('client_my_reservations');
 
 // Add this under your other public routes
-Route::get('/view/{category}/{id}', [App\Http\Controllers\RoomVenueController::class, 'show'])->name('client.show');
+Route::get('/checkout/{category}/{id}', [App\Http\Controllers\RoomVenueController::class, 'show'])->name('client.show');
 
 /* --- 2. Login & Signup --- */
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
@@ -40,6 +40,7 @@ Route::post('/signup', [SignupController::class, 'store'])->name('register.post'
 Route::middleware(['auth'])->group(function () {
 
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+
     // 1. The Checkout Page (calculates price)
     Route::get('/checkout', [ReservationController::class, 'checkout'])->name('checkout');
     
