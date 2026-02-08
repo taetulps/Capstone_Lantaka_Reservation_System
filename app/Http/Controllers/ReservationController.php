@@ -15,66 +15,117 @@ class ReservationController extends Controller
     // 1. Show Checkout Page (Calculates Price)
     public function checkout(Request $request)
     {
-        // 1. Validate that we receive the TYPE (room or venue)
-        $request->validate([
-            'accommodation_id' => 'required',
-            'type' => 'required|in:room,venue', // <--- ADD THIS
-            'check_in' => 'required|date',
-            'check_out' => 'required|date|after_or_equal:check_in',
-            'pax' => 'required|integer|min:1'
-        ]);
+        // 1. Get the current list of bookings from session (or an empty array if none exist)
+        $allBookings = session('pending_bookings', []);
 
-        $checkIn = Carbon::parse($request->check_in);
-        $checkOut = Carbon::parse($request->check_out);
-        $days = $checkIn->diffInDays($checkOut) ?: 1; 
-
-        // 2. Strict Checking based on Type
-        if ($request->type === 'room') {
-            $data = Room::findOrFail($request->accommodation_id);
-            $type = 'room';
-            // CHANGE THIS LINE:
-            $name = $data->room_number; 
-            $price = $data->price; // Matches your $fillable 'price'
-            $img = $data->image;   // Matches your $fillable 'image'
-        } else {
-            // FETCH VENUE
-            $data = Venue::findOrFail($request->accommodation_id);
-            $type = 'venue';
-            $name = $data->Venue_Name ?? $data->name ?? 'Venue';
-            $price = $data->Venue_Pricing ?? $data->price ?? 0;
-            $img = $data->Venue_Image ?? $data->image ?? null;
+        // 2. If coming from the "Proceed" button, add the new selection to the list
+        if ($request->has('accommodation_id')) {
+            $newEntry = $request->all();
+            
+            // Use the ID and Type as a unique key to prevent duplicate entries of the SAME room
+            $uniqueKey = $newEntry['type'] . '_' . $newEntry['accommodation_id'];
+            $allBookings[$uniqueKey] = $newEntry;
+            
+            session(['pending_bookings' => $allBookings]);
         }
 
-        $totalPrice = $price * $days;
+        // 3. If the list is empty, redirect back
+        if (empty($allBookings)) {
+            return redirect()->route('client_room_venue')->with('info', 'Your tray is empty.');
+        }
 
-        return view('client_my_bookings', compact(
-            'data', 'type', 'name', 'img', 'price', 
-            'checkIn', 'checkOut', 'days', 'totalPrice', 'request'
-        ));
-}
+        // 4. We now need to fetch details for ALL items in the list
+        $processedItems = [];
+        $grandTotal = 0;
+
+        foreach ($allBookings as $key => $item) {
+            $checkIn = \Carbon\Carbon::parse($item['check_in']);
+            $checkOut = \Carbon\Carbon::parse($item['check_out']);
+            $days = $checkIn->diffInDays($checkOut) ?: 1;
+
+            if ($item['type'] === 'room') {
+                $model = \App\Models\Room::find($item['accommodation_id']);
+                $name = $model->room_number;
+                $price = $model->price;
+                $img = $model->image;
+            } else {
+                $model = \App\Models\Venue::find($item['accommodation_id']);
+                $name = $model->Venue_Name ?? $model->name;
+                $price = $model->Venue_Pricing ?? $model->price;
+                $img = $model->Venue_Image ?? $model->image;
+            }
+
+            if ($model) {
+                $total = $price * $days;
+                $grandTotal += $total;
+                
+                $processedItems[] = [
+                    'key' => $key,
+                    'id' => $model->id,
+                    'name' => $name,
+                    'type' => $item['type'],
+                    'price' => $price,
+                    'img' => $img,
+                    'check_in' => $checkIn->format('F d, Y'), // For display
+                    'check_out' => $checkOut->format('F d, Y'), // For display
+                    'check_in_raw' => $checkIn->format('Y-m-d'), // For JavaScript/Database
+                    'check_out_raw' => $checkOut->format('Y-m-d'), // For JavaScript/Database
+                    'days' => $days,
+                    'pax' => $item['pax'],
+                    'total' => $total
+                ];
+            }
+        }
+
+        return view('client_my_bookings', compact('processedItems', 'grandTotal'));
+    }
 
     // 2. Store the Reservation (Confirm Button)
     public function store(Request $request)
     {
+        // This stops the code and tells you exactly what is missing
         $request->validate([
-        'id' => 'required',
-        'total_amount' => 'required',
-        'type' => 'required' // Ensure type is passed
+            'id' => 'required',
+            'type' => 'required',
+            'check_in' => 'required|date',
+            'check_out' => 'required|date',
+            'pax' => 'required|integer',
+            'total_amount' => 'required|numeric',
         ]);
 
-        Reservation::create([
-            'user_id' => Auth::id(),
+        // If validation passes, it proceeds here
+        $reservation = Reservation::create([
+            'user_id' => auth()->id(),
             'accommodation_id' => $request->id,
-            'type' => $request->type, // <--- SAVE THE TYPE HERE
+            'type' => $request->type,
             'check_in' => $request->check_in,
             'check_out' => $request->check_out,
             'pax' => $request->pax,
             'total_amount' => $request->total_amount,
-            'status' => 'Pending'
+            'status' => 'pending'
         ]);
 
-        return redirect()->route('client_my_reservations')
-                     ->with('success', 'Reservation submitted successfully!');
+        // Session cleanup logic
+        $uniqueKey = $request->type . '_' . $request->id;
+        $allBookings = session('pending_bookings', []);
+        if (isset($allBookings[$uniqueKey])) {
+            unset($allBookings[$uniqueKey]);
+            session(['pending_bookings' => $allBookings]);
+        }
+
+        return redirect()->route('client_my_reservations')->with('success', 'Reservation confirmed!');
+    }
+
+    public function showMyBookings()
+    {
+        $booking = session('pending_booking');
+
+        if (!$booking) {
+            return redirect()->route('client_room_venue')->with('error', 'No active booking found.');
+        }
+
+        // This re-uses your existing calculation logic to show the page
+        // (Essentially move your 'checkout' logic here)
     }
 
     // 3. Client: My Reservations Page

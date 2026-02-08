@@ -86,7 +86,7 @@
         </div>
 
         <div class="booking-section">
-          <form action="{{ route('checkout') }}" method="GET" class="booking-form"> 
+         <form action="{{ route('checkout') }}" method="GET" class="booking-form"> 
               
               <input type="hidden" name="accommodation_id" value="{{ $data->id }}">
 

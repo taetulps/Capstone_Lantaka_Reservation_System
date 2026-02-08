@@ -13,10 +13,10 @@ Route::get('/', function () {
 })->name('index');
 
 Route::get('/client_room_venue', [RoomVenueController::class, 'index'])->name('client_room_venue');
+Route::get('/view/{category}/{id}', [RoomVenueController::class, 'show'])->name('client.show');
 
-Route::get('/client_my_bookings', function () {
-    return view('client_my_bookings');
-})->name('client_my_bookings');
+
+Route::get('/client_my_bookings', [ReservationController::class, 'checkout'])->name('client_my_bookings');
 
 Route::get('/client_my_reservations', function () {
     return view('client_my_reservations');
@@ -33,6 +33,7 @@ Route::get('/signup', [SignupController::class, 'showSignupForm'])->name('signup
 Route::post('/signup', [SignupController::class, 'store'])->name('register.post');
 
 Route::post('/signup', [SignupController::class, 'store'])->name('register.post');
+
 
 
 /* --- 3. Protected Routes (SECURE) --- */

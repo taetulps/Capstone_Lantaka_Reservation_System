@@ -13,14 +13,13 @@ class Reservation extends Model
     protected $fillable = [
         'user_id',
         'accommodation_id',
-        'type',             
+        'type',
         'check_in',
         'check_out',
         'pax',
         'total_amount',
         'status'
     ];
-
     // -- RELATIONSHIPS --
 
     // Link to the User who made the booking

@@ -95,7 +95,6 @@
                 </td>
             </tr>
           @endforelse
-          {{-- LOOP ENDS HERE --}}
         </tbody>
       </table>
     </div>
