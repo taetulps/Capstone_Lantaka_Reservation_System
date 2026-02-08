@@ -22,19 +22,19 @@
 
         <div class="checkout-container">
             <section class="cart-items">
-                @foreach($processedItems as $item)
+                @forelse($processedItems as $item)
                     <div class="cart-item" 
-                    onclick="selectItem(
-                        '{{ $item['name'] }}', 
-                        '{{ $item['total'] }}', 
-                        '{{ $item['id'] }}', 
-                        '{{ $item['type'] }}', 
-                        '{{ $item['check_in_raw'] }}', 
-                        '{{ $item['check_out_raw'] }}', 
-                        '{{ $item['pax'] }}'
-                    )" 
-                    style="cursor: pointer; margin-bottom: 15px;"> 
-                      
+                        onclick="selectItem(
+                            '{{ $item['name'] }}', 
+                            '{{ $item['total'] }}', 
+                            '{{ $item['id'] }}', 
+                            '{{ $item['type'] }}', 
+                            '{{ $item['check_in_raw'] }}', 
+                            '{{ $item['check_out_raw'] }}', 
+                            '{{ $item['pax'] }}'
+                        )" 
+                        style="cursor: pointer; margin-bottom: 15px;"> 
+                        
                         <div class="item-image">                    
                             <img src="{{ $item['img'] ? asset('storage/' . $item['img']) : asset('images/adzu_logo.png') }}" alt="Item">
                         </div>
@@ -52,7 +52,16 @@
                             </p>
                         </div>
                     </div>
-                @endforeach
+                @empty
+                    <div class="empty-tray-container" style="text-align: center; padding: 50px; background: #f9f9f9; border-radius: 15px; border: 2px dashed #ddd;">
+                        <div style="font-size: 50px; margin-bottom: 10px;">🛒</div>
+                        <h3 style="color: #555; font-family: 'Alexandria', sans-serif;">empty</h3>
+                        <p style="color: #6e5757; font-family: 'Arsenal', sans-serif;">You haven't selected any accommodations yet.</p>
+                        <a href="{{ route('client_room_venue') }}" style="display: inline-block; margin-top: 15px; padding: 10px 20px; background: #333; color: white; text-decoration: none; border-radius: 5px;">
+                            Find a Room or Venue
+                        </a>
+                    </div>
+                @endforelse
             </section>
 
             <aside class="checkout-summary">
@@ -64,7 +73,6 @@
                 <div id="summary-details" style="display: none;">
                     <form action="{{ route('reservation.store') }}" method="POST">
                         @csrf
-                        {{-- These are the "hidden boxes" that the JS fills up --}}
                         <input type="hidden" name="id" id="form-id">
                         <input type="hidden" name="type" id="form-type">
                         <input type="hidden" name="check_in" id="form-check-in">

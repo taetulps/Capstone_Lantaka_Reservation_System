@@ -29,12 +29,6 @@ class ReservationController extends Controller
             session(['pending_bookings' => $allBookings]);
         }
 
-        // 3. If the list is empty, redirect back
-        if (empty($allBookings)) {
-            return redirect()->route('client_room_venue')->with('info', 'Your tray is empty.');
-        }
-
-        // 4. We now need to fetch details for ALL items in the list
         $processedItems = [];
         $grandTotal = 0;
 
@@ -83,7 +77,6 @@ class ReservationController extends Controller
     // 2. Store the Reservation (Confirm Button)
     public function store(Request $request)
     {
-        // This stops the code and tells you exactly what is missing
         $request->validate([
             'id' => 'required',
             'type' => 'required',
@@ -93,7 +86,6 @@ class ReservationController extends Controller
             'total_amount' => 'required|numeric',
         ]);
 
-        // If validation passes, it proceeds here
         $reservation = Reservation::create([
             'user_id' => auth()->id(),
             'accommodation_id' => $request->id,
@@ -105,7 +97,6 @@ class ReservationController extends Controller
             'status' => 'pending'
         ]);
 
-        // Session cleanup logic
         $uniqueKey = $request->type . '_' . $request->id;
         $allBookings = session('pending_bookings', []);
         if (isset($allBookings[$uniqueKey])) {
@@ -123,9 +114,6 @@ class ReservationController extends Controller
         if (!$booking) {
             return redirect()->route('client_room_venue')->with('error', 'No active booking found.');
         }
-
-        // This re-uses your existing calculation logic to show the page
-        // (Essentially move your 'checkout' logic here)
     }
 
     // 3. Client: My Reservations Page
