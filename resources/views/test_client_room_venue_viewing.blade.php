@@ -28,6 +28,7 @@
       
 
       <div class="right-section">
+        
         <x-booking_calendar/>
 
         <div class="booking-section">

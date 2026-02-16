@@ -1,0 +1,81 @@
+import dayjs from 'dayjs'
+/*console.log(dayjs().month())
+console.log(dayjs())
+console.log(dayjs().daysInMonth())
+*/
+var MainCalendar = dayjs()
+
+const calendar = document.querySelector('.calendar')
+const calendarDays = document.querySelector('.calendar-days')
+const day = document.querySelector('.day')
+
+calendarDays.addEventListener('click',(e)=>{
+  const select = e.target.closest('day');
+  if(!select) return;
+
+  var test =  select.classList.toggle('selected')
+  console.log(test)
+})
+
+
+var monthNow = MainCalendar.month()
+var dayNow = MainCalendar.day()
+const header = document.querySelector('.month')
+header.innerHTML = MainCalendar.format  ('MMMM YYYY')
+
+const dayBoxRender = 35;
+const dayNum = dayjs().day();
+
+
+for(var i = 0; i < dayBoxRender; i++){
+  var monthStart = " "
+  var dayStart = MainCalendar.startOf("month").day(i).format('D')
+  if(parseInt(dayStart) === 1){
+    monthStart = MainCalendar.month(monthNow).format("MMM")
+  }
+  calendarDays.innerHTML+= `<div class="day">${monthStart + ' ' + MainCalendar.startOf("month").day(i).format('D')}</div>`
+  
+  
+}
+
+nextMonth.addEventListener('click',()=>{
+  monthNow++
+  var newMonth = MainCalendar.month(monthNow)
+
+  header.innerHTML = MainCalendar.month(monthNow).format('MMMM YYYY')
+  
+    calendarDays.innerHTML = ``
+
+    for(var i = 0; i < dayBoxRender; i++){
+      var monthStart = " "
+      var dayStart = MainCalendar.startOf("month").day(i).format('D')
+      if(parseInt(dayStart) === 1){
+        monthStart = MainCalendar.month(monthNow).format("MMM")
+      }
+      calendarDays.innerHTML+= `<div class="day">${monthStart + ' ' + MainCalendar.startOf("month").day(i).format('D')}</div>`
+      
+    }
+})
+
+
+prevMonth.addEventListener('click',()=>{
+  monthNow--
+  var newMonth = MainCalendar.month(monthNow)
+
+  header.innerHTML = MainCalendar.month(monthNow).format('MMMM YYYY')
+
+    calendarDays.innerHTML = ``
+
+    for(var i = 0; i < dayBoxRender; i++){
+      calendarDays.innerHTML+= `<div class="day">${MainCalendar.month(monthNow).startOf("month").day(i).format('D')}</div>`
+    }
+
+    console.log(newMonth)
+
+})
+
+
+
+
+
+

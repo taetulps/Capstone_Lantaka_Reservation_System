@@ -1,17 +1,18 @@
 const openBtn = document.getElementById('open-modal');
 const modal = document.querySelector('.user-profile-modal');
-  function openModal(){
-    modal.classList.toggle('show')
+
+if (openBtn && modal) {
+  function toggleModal() {
+    modal.classList.toggle('show');
   }
 
-  openBtn.addEventListener("click", openModal);  
+  openBtn.addEventListener('click', (e) => {
+    toggleModal();
+  });
 
-  document.body.addEventListener('click', (e) => {
-    const clickedInsideModal = modal.contains(e.target);
-    const clickedOpenBtn = openBtn.contains(e.target);
-
-    if (!clickedInsideModal && !clickedOpenBtn) {
+  document.addEventListener('click', (e) => {
+    if (!modal.contains(e.target) && !openBtn.contains(e.target)) {
       modal.classList.remove('show');
     }
   });
-             
+}

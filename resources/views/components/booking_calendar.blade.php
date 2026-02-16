@@ -1,42 +1,46 @@
-<html lang='en'>
-  <head>
-    <meta charset='utf-8' />
-    <link rel="stylesheet" href="{{ asset('css/booking_calendar.css') }}">
-    @vite(['resources/js/booking_calendar.js'])
-  </head>
-  <body>
-  <div class="date-picker-container">
-    <div class="date-picker-header">
-      <h2>Select Date Range</h2>
-    </div>
+<link rel="stylesheet" href="{{ asset('css/booking_calendar.css') }}">
+@vite(['resources/js/booking_calendar.js'])
 
-    <div class="calendar-wrapper">
-    <div class="calendar-container">
-          <div class="calendar-header">
-            <h3 class="month"></h3>
-            <div class="calendar-nav">
-              <button class="calendar-btn prev" id="prevMonth">‹</button>
-              <button class="calendar-btn next" id="nextMonth">›</button>
-            </div>
-          </div>
-
-          <div class="calendar">
-            <div class="calendar-weekdays">
-              <div class="weekday">Mon</div>
-              <div class="weekday">Tue</div>
-              <div class="weekday">Wed</div>
-              <div class="weekday">Thu</div>
-              <div class="weekday">Fri</div>
-              <div class="weekday">Sat</div>
-              <div class="weekday">Sun</div>
-            </div>
-
-            <div class="calendar-days">
+  <div class="calendar-container">
+    <!-- Date Selection Display -->
     
 
-            </div>
-          </div>
+    <!-- Hidden Input Fields for Laravel -->
+    <input type="hidden" id="checkinDate" value="">
+    <input type="hidden" id="checkoutDate" value="">
+
+    <!-- Calendar -->
+    <div class="calendar-header">
+      <button id="prevMonth" class="nav-btn prev-btn">‹</button>
+      <h2 class="month">November 2025</h2>
+      <button id="nextMonth" class="nav-btn next-btn">›</button>
     </div>
+
+    <div class="calendar-weekdays">
+      <div class="weekday">Mo</div>
+      <div class="weekday">Tu</div>
+      <div class="weekday">We</div>
+      <div class="weekday">Th</div>
+      <div class="weekday">Fr</div>
+      <div class="weekday">Sa</div>
+      <div class="weekday">Su</div>
+    </div>
+
+    <div class="calendar-days">
+        <!-- days render-->
+    </div>
+    <br>
+    <div class="date-display-section">
+      <div class="date-box">
+        <label>Check-in Date</label>
+        <span id="checkinDisplay" class="date-value">-</span>
+      </div>
+      <div class="date-box">
+        <label>Check-out Date</label>
+        <span id="checkoutDisplay" class="date-value">-</span>
+      </div>
+      <p id="dateError" class="date-error" style="display:none;"></p>
+
+    </div>
+
   </div>
-  </body>
-</html>

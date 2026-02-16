@@ -140,6 +140,5 @@
             <button class="export-btn">Export</button>
         </div>
     </main>
-    <script type="module" src="{{'resources/views/side_nav.blade.php'}}"></script>
 </body> 
 </html>
