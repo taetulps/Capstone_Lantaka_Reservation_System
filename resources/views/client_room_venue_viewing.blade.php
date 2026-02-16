@@ -80,6 +80,8 @@
 
       <div class="right-section">
         <div class="calendar-container">
+        <x-booking_calendar/>
+
           <h3>Select Dates</h3>
           <input type="text" id="calendar-input" placeholder="Check-in  →  Check-out" 
                  style="width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; margin-top: 10px;">

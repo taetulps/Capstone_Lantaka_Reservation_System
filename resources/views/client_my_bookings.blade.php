@@ -21,6 +21,7 @@
         <h1 class="page-title">Checkout</h1>
 
         <div class="checkout-container">
+
             <section class="cart-items">
                 @forelse($processedItems as $item)
                     <div class="cart-item" 
