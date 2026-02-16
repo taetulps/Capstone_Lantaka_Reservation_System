@@ -19,10 +19,7 @@ let rangeStart = null // "YYYY-MM-DD"
 let rangeEnd = null   // "YYYY-MM-DD"
 
 // OCCUPIED DATES (array of ISO date strings)
-let occupiedDates = [
-  // '2025-11-17',
-  // '2025-11-25',
-]
+let occupiedDates = window.serverOccupiedDates || [];
 
 // --- helpers ---
 const iso = (d) => d.format('YYYY-MM-DD')
@@ -106,8 +103,8 @@ function updateDateDisplay() {
   // logs only when complete range
   if (rangeStart && rangeEnd) {
     const rangeOfDates = getDatesBetweenInclusive(rangeStart, rangeEnd)
-    console.log('DATES IN RANGE (incl):' + rangeOfDates )
-    
+    console.log('DATES IN RANGE (incl):' + rangeOfDates)
+
   }
 }
 
@@ -117,6 +114,9 @@ function calendarRender() {
 
   // Start the 35-cell grid on the Monday of the week containing the 1st
   const gridStart = view.subtract(mondayIndex(view), 'day')
+
+  // 🔥 NEW: Get today's date format for comparison
+  const todayStr = dayjs().format('YYYY-MM-DD')
 
   let html = ''
 
@@ -129,9 +129,12 @@ function calendarRender() {
     const otherMonth = cellDate.month() !== view.month()
 
     let cls = 'day'
-    
+
     if (otherMonth) cls += ' other-month'
     if (isOccupied(dateStr)) cls += ' occupied'
+
+    // 🔥 NEW: Check if the date string is before today's date string
+    if (dateStr < todayStr) cls += ' past-date'
 
     if (dateStr === rangeStart) cls += ' range-start'
     if (dateStr === rangeEnd) cls += ' range-end'
@@ -146,7 +149,9 @@ function calendarRender() {
 // Click to pick range
 calendarDays.addEventListener('click', (e) => {
   const cell = e.target.closest('.day')
-  if (!cell || cell.classList.contains('other-month') || cell.classList.contains('occupied')) return
+
+  // 🔥 NEW: Added "cell.classList.contains('past-date')" so it ignores clicks on past dates
+  if (!cell || cell.classList.contains('other-month') || cell.classList.contains('occupied') || cell.classList.contains('past-date')) return
 
   clearError()
 

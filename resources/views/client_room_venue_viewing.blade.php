@@ -8,8 +8,7 @@
   <link rel="stylesheet" href="{{ asset('css/nav.css') }}">
   <link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@700;800&family=Arsenal:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
   
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-</head>
+  </head>
 <body>
 
   <x-header/>
@@ -80,18 +79,17 @@
 
       <div class="right-section">
         <div class="calendar-container">
-        <x-booking_calendar/>
+          <x-booking_calendar :occupiedDates="json_encode($occupiedDates)" />
 
+          {{--
           <h3>Select Dates</h3>
           <input type="text" id="calendar-input" placeholder="Check-in  →  Check-out" 
                  style="width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; margin-top: 10px;">
-        </div>
-
-        <div class="booking-section">
-         <form action="{{ route('checkout') }}" method="GET" class="booking-form"> 
+          --}}
+        </div> <div class="booking-section">
+          <form action="{{ route('checkout') }}" method="GET" class="booking-form" id="bookingForm"> 
               
               <input type="hidden" name="accommodation_id" value="{{ $data->id }}">
-
               <input type="hidden" name="type" value="{{ stripos($category, 'room') !== false ? 'room' : 'venue' }}">
               
               <input type="hidden" name="check_in" id="check_in" required>
@@ -110,19 +108,28 @@
     </div>
   </main>
 
-  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script>
-      flatpickr("#calendar-input", {
-          mode: "range",            
-          minDate: "today",          
-          dateFormat: "Y-m-d",       
-          onChange: function(selectedDates, dateStr, instance) {
-              if (selectedDates.length === 2) {
-                  document.getElementById('check_in').value = instance.formatDate(selectedDates[0], "Y-m-d");
-                  document.getElementById('check_out').value = instance.formatDate(selectedDates[1], "Y-m-d");
-              }
-          }
-      });
+    // Listen for when the user clicks "PROCEED"
+    document.getElementById('bookingForm').addEventListener('submit', function(e) {
+        
+        // 1. Grab the dates from your new custom calendar component
+        const calendarCheckIn = document.getElementById('checkinDate');
+        const calendarCheckOut = document.getElementById('checkoutDate');
+
+        // 2. Make sure the calendar actually exists on the page
+        if (calendarCheckIn && calendarCheckOut) {
+            
+            // 3. Assign the custom calendar dates to your form's hidden inputs
+            document.getElementById('check_in').value = calendarCheckIn.value;
+            document.getElementById('check_out').value = calendarCheckOut.value;
+
+            // 4. Validate that both dates are selected before going to checkout
+            if (!calendarCheckIn.value || !calendarCheckOut.value) {
+                e.preventDefault(); // Stops the page from redirecting
+                alert('Please select both a check-in and check-out date from the calendar before proceeding.');
+            }
+        }
+    });
   </script>
 
 </body>

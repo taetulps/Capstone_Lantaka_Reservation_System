@@ -194,11 +194,21 @@
   background-color: #c5d9f3;
 }
 
-.date-error{
-  color:#d32f2f;
+.date-error {
+  color: #d32f2f;
   font-size: 0.9rem;
   margin-top: 8px;
 }
+
+.calendar-days .disabled {
+  color: #ff4800;
+  /* Greys out the text */
+  pointer-events: none;
+  /* Stops the user from clicking it */
+  cursor: not-allowed;
+  background-color: transparent;
+}
+
 
 /* Responsive Design */
 @media (max-width: 600px) {

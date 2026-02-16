@@ -1,4 +1,5 @@
 <link rel="stylesheet" href="{{ asset('css/booking_calendar.css') }}">
+@props(['occupiedDates' => '[]'])
 @vite(['resources/js/booking_calendar.js'])
 
   <div class="calendar-container">
@@ -44,3 +45,7 @@
     </div>
 
   </div>
+  <script>
+    // Inject the Laravel data into a global JS variable
+    window.serverOccupiedDates = {!! $occupiedDates !!};
+  </script>

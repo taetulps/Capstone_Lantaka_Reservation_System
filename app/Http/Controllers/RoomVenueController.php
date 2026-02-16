@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use App\Models\Room;
 use App\Models\Venue;
 use Illuminate\Support\Facades\Auth; // Needed to get the logged-in user
+use App\Models\Reservation;
+use Carbon\CarbonPeriod;
 
 class RoomVenueController extends Controller
 {
@@ -94,7 +96,26 @@ class RoomVenueController extends Controller
             $data->display_name = $data->name;
         }
 
-        // 2. Pass the data to the view
-        return view('client_room_venue_viewing', compact('data', 'category'));
+        // 2. Fetch occupied dates from the Reservations table
+        // We use strtolower($category) because your DB saves it as 'room' or 'venue' (lowercase)
+        $reservations = Reservation::where('accommodation_id', $id)
+            ->where('type', strtolower($category))
+            // ->where('status', 'Approved') // OPTIONAL: Uncomment this if you only want to block 'Approved' bookings, not 'Pending' ones
+            ->get(['check_in', 'check_out']);
+
+        $occupiedDates = [];
+        foreach ($reservations as $res) {
+            // CarbonPeriod automatically gets every single day between check-in and check-out
+            $period = CarbonPeriod::create($res->check_in, $res->check_out);
+            foreach ($period as $date) {
+                $occupiedDates[] = $date->format('Y-m-d'); // Format for Day.js
+            }
+        }
+        
+        // Remove duplicate dates just in case, and reset array keys
+        $occupiedDates = array_values(array_unique($occupiedDates));
+
+        // 3. Pass the data AND the occupiedDates to the view
+        return view('client_room_venue_viewing', compact('data', 'category', 'occupiedDates'));
     }
 }
