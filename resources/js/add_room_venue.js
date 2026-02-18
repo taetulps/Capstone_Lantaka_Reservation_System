@@ -21,46 +21,34 @@ function openModal(){
   });
 
 /* Room - Venue Switch */
-const roomOption = document.getElementById('room-option');
-const venueOption = document.getElementById('venue-option');
-const roomForm = document.getElementById('room-form')
-const venueForm = document.getElementById('venue-form')
-const createWhatTitle = document.querySelector('.modal-title');
-const createWhat = document.getElementById('create-reservation');
-const saveWhat = document.getElementById('save-what');
+function activate(type) {
+  // reset tabs
+  roomOption.classList.remove('tab-active')
+  venueOption.classList.remove('tab-active')
 
-roomOption.addEventListener('click', ()=>{
+  // reset forms
+  roomForm.classList.remove('active')
+  venueForm.classList.remove('active')
 
-  createWhatTitle.textContent = "Create Room"
+  if (type === 'room') {
+    roomOption.classList.add('tab-active')
+    roomForm.classList.add('active')
 
-  roomOption.classList.add('tab-active');
-  venueOption.classList.remove('tab-active');
+    createWhatTitle.textContent = "Create Room"
+    createWhat.textContent = "Create a Room Reservation"
+    saveWhat.textContent = "Save Room"
+  } else {
+    venueOption.classList.add('tab-active')
+    venueForm.classList.add('active')
 
-  roomForm.classList.add("active")
-  venueForm.classList.remove("active")
+    createWhatTitle.textContent = "Create Venue"
+    createWhat.textContent = "Create a Venue Reservation"
+    saveWhat.textContent = "Save Venue"
+  }
 
-  createWhat.textContent = "Create a Room Reservation"
-  saveWhat.textContent = "Save Room"
+  console.log('roomForm active:', roomForm.classList.contains('active'))
+  console.log('venueForm active:', venueForm.classList.contains('active'))
+}
 
-
-});
-
-venueOption.addEventListener('click', ()=>{
-
-  createWhatTitle.textContent = "Create Venue"
-
-  venueOption.classList.add('tab-active');
-  roomOption.classList.remove('tab-active');
-
-  venueForm.classList.add("active")
-  roomForm.classList.remove("active")
-
-  createWhat.textContent = "Create a Venue Reservation"
-  saveWhat.textContent = "Save Venue"
-
-});
-
-/* Create a what? */
-
-
-
+roomOption.addEventListener('click', () => activate('room'))
+venueOption.addEventListener('click', () => activate('venue'))

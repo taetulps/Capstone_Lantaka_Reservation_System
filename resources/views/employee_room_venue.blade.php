@@ -7,6 +7,8 @@
   <link rel="stylesheet" href="{{asset('css/employee_room_venue.css')}}">
 
   <link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@200;300;400;500;600;700;800;900&family=Arsenal:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+
+
 </head>
 <body>
   <div class="container">
@@ -100,8 +102,10 @@
   </div>
 
   <!-- Add Room Venue Modal -->
-  
       <!-- Modal Content -->
       <x-add_room_venue/>
-  </body>
+      <x-employee_rv_viewing_modal/>
+
+
+</body>
 </html>
