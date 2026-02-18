@@ -22,6 +22,10 @@ Route::get('/client_my_reservations', function () {
     return view('client_my_reservations');
 })->name('client_my_reservations');
 
+Route::get('/client_food_option', function () {
+    return view('client_food_option');
+})->name('client_food_option');
+
 // Add this under your other public routes
 Route::get('/checkout/{category}/{id}', [App\Http\Controllers\RoomVenueController::class, 'show'])->name('client.show');
 
