@@ -1,0 +1,254 @@
+:root {
+  --primary-blue: #2c3e7f;
+  --light-blue: #a8c5f0;
+  --white: #ffffff;
+  --gray-light: #f9f9f9;
+  --gray-dark: #666666;
+  --border-color: #e0e0e0;
+  --yellow: #ffc107;
+}
+
+/* Modal Overlay */
+.addfood-overlay{
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+}
+
+.addfood-overlay.active{
+  display: flex;
+}
+
+/* Modal */
+.addfood-modal{
+  display: none;
+  position: relative; /* inside overlay center */
+  width: 90%;
+  max-width: 550px;
+}
+
+.addfood-modal.active{
+  display: flex;
+  animation: addfoodSlideIn 0.3s ease-out;
+}
+
+@keyframes addfoodSlideIn{
+  from{
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+  to{
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Modal Content */
+.addfood-content{
+  width: 100%;
+  background-color: var(--white);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  padding: 32px;
+}
+
+/* Modal Header */
+.addfood-header{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 16px;
+}
+
+.addfood-header h2{
+  font-size: 24px;
+  font-weight: 700;
+  color: #000000;
+}
+
+.addfood-close{
+  background: none;
+  border: none;
+  font-size: 28px;
+  color: #ff6b6b;
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease;
+}
+
+.addfood-close:hover{
+  color: #ff5252;
+}
+
+/* Form */
+.addfood-form{
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.addfood-row{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.addfood-group{
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.addfood-group label{
+  font-size: 14px;
+  font-weight: 600;
+  color: #000000;
+}
+
+.addfood-group input,
+.addfood-group select{
+  padding: 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  font-size: 14px;
+  transition: border-color 0.2s ease;
+}
+
+.addfood-group input:focus,
+.addfood-group select:focus{
+  outline: none;
+  border-color: var(--primary-blue);
+  box-shadow: 0 0 0 3px rgba(44, 62, 143, 0.1);
+}
+
+/* Price Input */
+.addfood-price{
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.addfood-price .addfood-currency{
+  position: absolute;
+  left: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--gray-dark);
+}
+
+.addfood-price input{
+  padding-left: 32px;
+  width: 100%;
+}
+
+/* Radio Group */
+.addfood-radio{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.addfood-radio-label{
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  padding: 10px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.addfood-radio-label:hover{
+  border-color: var(--primary-blue);
+  background-color: var(--gray-light);
+}
+
+.addfood-radio-label input[type="radio"]{
+  cursor: pointer;
+  width: 18px;
+  height: 18px;
+}
+
+.addfood-radio-label input[type="radio"]:checked + span{
+  color: var(--primary-blue);
+  font-weight: 600;
+}
+
+.addfood-radio-label span{
+  font-size: 14px;
+  color: var(--gray-dark);
+}
+
+/* Submit Button */
+.addfood-submit{
+  padding: 12px 24px;
+  background-color: var(--primary-blue);
+  color: var(--white);
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  margin-top: 8px;
+}
+
+.addfood-submit:hover{
+  background-color: var(--light-blue);
+}
+
+.addfood-submit:active{
+  transform: scale(0.98);
+}
+
+/* Optional Trigger Button (only if you still use it) */
+.addfood-trigger{
+  padding: 12px 24px;
+  background-color: var(--light-blue);
+  color: var(--white);
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  margin: 20px;
+  transition: background-color 0.2s ease;
+}
+
+.addfood-trigger:hover{
+  background-color: var(--primary-blue);
+}
+
+/* Responsive */
+@media (max-width: 600px){
+  .addfood-content{
+    padding: 24px;
+  }
+
+  .addfood-row{
+    grid-template-columns: 1fr;
+  }
+
+  .addfood-radio{
+    grid-template-columns: 1fr;
+  }
+
+  .addfood-header h2{
+    font-size: 20px;
+  }
+}
