@@ -10,7 +10,6 @@
 <body>
   <!-- Header -->
 
-  <x-header/>
 
   <!-- Main Content -->
   <main class="main-content">

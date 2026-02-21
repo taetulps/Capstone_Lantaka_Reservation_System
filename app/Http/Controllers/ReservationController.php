@@ -71,7 +71,7 @@ class ReservationController extends Controller
             }
         }
 
-        return view('client_my_bookings', compact('processedItems', 'grandTotal'));
+        return view('client.my_bookings', compact('processedItems', 'grandTotal'));
     }
 
     // 2. Store the Reservation (Confirm Button)
@@ -104,7 +104,7 @@ class ReservationController extends Controller
             session(['pending_bookings' => $allBookings]);
         }
 
-        return redirect()->route('client_my_reservations')->with('success', 'Reservation confirmed!');
+        return redirect()->route('client.my_reservations')->with('success', 'Reservation confirmed!');
     }
 
     public function showMyBookings()
@@ -112,7 +112,7 @@ class ReservationController extends Controller
         $booking = session('pending_booking');
 
         if (!$booking) {
-            return redirect()->route('client_room_venue')->with('error', 'No active booking found.');
+            return redirect()->route('client.room_venue')->with('error', 'No active booking found.');
         }
     }
 
@@ -125,7 +125,7 @@ class ReservationController extends Controller
                         ->orderBy('created_at', 'desc')
                         ->get();
 
-        return view('client_my_reservations', compact('reservations'));
+        return view('client.my_reservations', compact('reservations'));
     }
 
     // 4. Admin Page
@@ -135,6 +135,6 @@ class ReservationController extends Controller
                         ->orderBy('created_at', 'desc')
                         ->get();
 
-        return view('employee_reservations', compact('reservations'));
+        return view('employee.reservations', compact('reservations'));
     }
 }

@@ -17,18 +17,20 @@
       <button id="nextMonth" class="nav-btn next-btn">›</button>
     </div>
 
-    <div class="calendar-weekdays">
-      <div class="weekday">Mo</div>
-      <div class="weekday">Tu</div>
-      <div class="weekday">We</div>
-      <div class="weekday">Th</div>
-      <div class="weekday">Fr</div>
-      <div class="weekday">Sa</div>
-      <div class="weekday">Su</div>
-    </div>
+    <div class="calendar-main">
+      <div class="calendar-weekdays">
+        <div class="weekday">Mo</div>
+        <div class="weekday">Tu</div>
+        <div class="weekday">We</div>
+        <div class="weekday">Th</div>
+        <div class="weekday">Fr</div>
+        <div class="weekday">Sa</div>
+        <div class="weekday">Su</div>
+      </div>
 
-    <div class="calendar-days">
-        <!-- days render-->
+      <div class="calendar-days">
+          <!-- days render-->
+      </div>
     </div>
     <br>
     <div class="date-display-section">
@@ -36,6 +38,7 @@
         <label>Check-in Date</label>
         <span id="checkinDisplay" class="date-value">-</span>
       </div>
+      ͢
       <div class="date-box">
         <label>Check-out Date</label>
         <span id="checkoutDisplay" class="date-value">-</span>

@@ -1,8 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+@extends('layouts.employee')
   <title>Rooms / Venue - Lantaka</title>
   <link rel="stylesheet" href="{{asset('css/employee_room_venue.css')}}">
   
@@ -11,20 +7,7 @@
   @vite('resources/js/employee_add_food.js')
   <link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@200;300;400;500;600;700;800;900&family=Arsenal:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
 
-</head>
-<body>
-  <div class="container">
-    <aside class="sidebar">
-      <x-side_nav />
-    </aside>
-
-    <!-- Main Content -->
-    <main class="main-content">
-      <!-- Header -->
-      <header class="header">
-            <x-top_nav/>
-        </header>
-
+@section('content')
       <!-- Content Section -->
       <div class="content">
         <h1 class="page-title">Room / Venue</h1>
@@ -99,15 +82,10 @@
           </section>
           </div>
       </div>
-
-    </main>
-  </div>
-
   <!-- Add Room Venue Modal -->
       <!-- Modal Content -->
       <x-add_room_venue/>
       <x-employee_rv_viewing_modal/>
       <x-employee_food/>
 
-</body>
-</html>
+@endsection

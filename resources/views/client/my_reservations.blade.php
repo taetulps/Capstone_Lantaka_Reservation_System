@@ -1,17 +1,10 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+@extends('layouts.client')
   <title>My Reservations - Lantaka Portal</title>
   <link rel="stylesheet" href="{{asset('css/client_my_reservations.css') }}">
   <link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@200;300;400;500;600;700;800;900&family=Arsenal:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
   @vite('resources/js/client_my_reservations.js')
-</head>
-<body>
-  <x-header/>
-    
-  <main class="main-content">
+
+@section('content')   
   <h1 class="page-title">My Reservations</h1>
 
     <div class="search-filters">
@@ -98,8 +91,6 @@
         </tbody>
       </table>
     </div>
-  </main>
   
   <x-my_reservations_modal/>
-</body>
-</html>
+@endsection

@@ -17,7 +17,7 @@ class LoginController extends Controller
      */
     public function showLoginForm()
     {
-        return view('login'); // This matches your login.blade.php
+        return view('pages/login'); // This matches your login.blade.php
     }
 
     /**
@@ -54,10 +54,10 @@ class LoginController extends Controller
 
         // 6. Redirect based on role (Your existing logic)
         if ($user->role === 'admin' || $user->role === 'staff') {
-            return redirect()->route('employee_dashboard');
+            return redirect()->route('employee.dashboard');
         }
         if ($user->role === 'client') {
-            return redirect()->route('client_room_venue');
+            return redirect()->route('client.room_venue');
         }
         
         return redirect()->route('index');

@@ -1,5 +1,6 @@
 <link rel="stylesheet" href="{{ asset('css/employee_side_nav.css') }}">
-       <div class="logo">
+
+<div class="logo">
             <div class="logo-icon">
               <img src="{{ asset('images/adzu_logo.png') }}" class="logo-image">
             </div>
@@ -11,23 +12,23 @@
         </div>
         
         <nav class="nav-menu">
-            <a href="{{route('employee_dashboard')}}" class="nav-item {{ request()->routeIs('employee_dashboard') ? 'active' : '' }}">
+            <a href="{{route('employee.dashboard')}}" class="nav-item {{ request()->routeIs('employee.dashboard') ? 'active' : '' }}">
                 <span class="icon">📈</span>
                 <span>Dashboard</span>
             </a>
-            <a href="{{route('employee_reservations')}}" class="nav-item {{ request()->routeIs('employee_reservations') ? 'active' : '' }}">
+            <a href="{{route('employee.reservations')}}" class="nav-item {{ request()->routeIs('employee.reservations') ? 'active' : '' }}">
                 <span class="icon">📅</span>
                 <span>Reservation</span>
             </a>
-            <a href="#" class="nav-item">
+            <a href="{{route('employee.guest')}}" class="nav-item {{ request()->routeIs('employee.guest') ? 'active' : '' }}">
                 <span class="icon">👥</span>
                 <span>Guest</span>
             </a>
-            <a href="{{route('employee_accounts')}}" class="nav-item {{ request()->routeIs('employee_accounts') ? 'active' : '' }}">
+            <a href="{{route('employee.accounts')}}" class="nav-item {{ request()->routeIs('employee.accounts') ? 'active' : '' }}">
                 <span class="icon">👤</span>
                 <span>Accounts</span>
             </a>
-            <a href="{{route('employee_room_venue')}}" class="nav-item {{ request()->routeIs('employee_room_venue') ? 'active' : '' }}">
+            <a href="{{route('employee.room_venue')}}" class="nav-item {{ request()->routeIs('employee.room_venue') ? 'active' : '' }}">
                 <span class="icon">🏛️</span>
                 <span>Rooms / Venue</span>
             </a>

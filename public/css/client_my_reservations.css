@@ -15,37 +15,6 @@
   --status-declined: #fca5a5;
 }
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-html{
-  width: 100%;
-  height: 100%;
-}
-body {
-  font-family: "Alexandria", sans-serif;
-  background-image: url('/images/index_background.png');
-  background-size: cover;
-  background-position: center;
-  background-attachment: fixed;
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  height: 100%;
-}
-
-/* Main Content */
-.main-content {
-  z-index: 100;
-  width: 100%;
-  height: 100%;
-  margin: 0;
-  padding: 25px 145px;
-  background-color: #F3F5EB;
-}
-
 .page-title{
   margin-bottom: 20px;
   font-size: 30px;

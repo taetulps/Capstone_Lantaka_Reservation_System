@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lantaka Room and Venue Reservation Portal</title>
-    <link rel="stylesheet" href="{{ asset('css/nav.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/header.css') }}">
     <link rel="stylesheet" href="{{ asset('css/index.css') }}">
 
     <!-- Fonts -->
@@ -28,7 +28,7 @@
             </div>
             
             <nav class="nav">
-                <a href="{{ route('client_room_venue') }}"class="nav-link">Accommodation</a>
+                <a href="{{ route('client.room_venue') }}"class="nav-link">Accommodation</a>
                 <a href="{{ route('login') }}" class="nav-link">Login</a></nav>
         </div>
     </header>
@@ -39,7 +39,7 @@
             <p class="welcome-text">WELCOME TO</p>
             <h2 class="hero-title">LANTAKA CAMPUS</h2>
             <p class="hero-subtitle">The Ateneo de Zamboanga University Spirituality, Formation, and Training Center<br>Since 2019</p>
-            <form method="GET" action="{{ route('client_room_venue') }}">
+            <form method="GET" action="{{ route('client.room_venue') }}">
             <button type="submit" class="explore-btn">EXPLORE</button>
             </form>
             

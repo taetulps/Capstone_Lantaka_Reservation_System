@@ -22,6 +22,6 @@ class AccountController extends Controller
 
         $users = $query->orderBy('created_at', 'desc')->get();
 
-        return view('employee_accounts', compact('users'));
+        return view('employee.accounts', compact('users'));
     }
 }
