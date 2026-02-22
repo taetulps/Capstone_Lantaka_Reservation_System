@@ -1,29 +1,10 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+@extends('layouts.employee')
   <title>Reservation - Lantaka System</title>
   <link rel="stylesheet" href="{{ asset('css/employee_reservations.css') }}">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@200;300;400;500;600;700;800;900&family=Arsenal:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
-
   @vite('resources/js/employee_reservations.js')
-</head>
-<body>
 
-    <aside class="sidebar">
-      <x-side_nav />
-    </aside>
-
-    <div class="container">
-
+@section('content')
     <main class="main-content">
-      <header class="header">
-         <x-top_nav/>
-        </header>
-
       <div class="page-content">
         <h1 class="page-title">Reservation</h1>
 
@@ -141,6 +122,4 @@
       <x-modal_e_reservations/>
 
     </main>
-  </div>
-</body>
-</html>
+@endsection

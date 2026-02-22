@@ -72,18 +72,15 @@ class RoomVenueController extends Controller
         $all_accommodations = $rooms->concat($venues);
 
         // 4. Send to View 
-        return view('client_room_venue', compact('all_accommodations'));
+        return view('client.room_venue', compact('all_accommodations'));
     }
     public function adminIndex()
     {
         $rooms = Room::all();
         $venues = Venue::all();
 
-        // 1. Fetch the food and group it!
-        $foods = \App\Models\Food::all()->groupBy('food_category');
-
-        // 2. Make sure 'foods' is inside this compact() list!
-        return view('employee_room_venue', compact('rooms', 'venues', 'foods'));
+        // Send distinct lists because the Admin View has separate sections for Room vs Venue
+        return view('employee.room_venue', compact('rooms', 'venues'));
     }
         public function show($category, $id)
     {
@@ -117,7 +114,7 @@ class RoomVenueController extends Controller
         $occupiedDates = array_values(array_unique($occupiedDates));
 
         // 3. Pass the data AND the occupiedDates to the view
-        return view('client_room_venue_viewing', compact('data', 'category', 'occupiedDates'));
+        return view('client.room_venue_viewing', compact('data', 'category', 'occupiedDates'));
     }
     public function prepareBooking(\Illuminate\Http\Request $request)
     {

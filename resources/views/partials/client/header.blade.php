@@ -1,7 +1,6 @@
-<link rel="stylesheet" href="{{asset('css/nav.css')}}">
+<link rel="stylesheet" href="{{asset('css/header.css')}}">
 @vite(['resources/js/top_nav.js'])
 
-<header class="header">
     <div class="header-container">
         <a href="{{ url('/') }}">
             <div class="logo-section">
@@ -15,8 +14,8 @@
         </a>
 
         <nav class="nav">
-            <a href="{{ route('client_room_venue') }}" 
-               class="nav-link nav-item {{ request()->routeIs('client_room_venue') ? 'active' : '' }}">
+            <a href="{{ route('client.room_venue') }}" 
+               class="nav-link nav-item {{ request()->routeIs('client.room_venue') ? 'active' : '' }}">
                Accommodation
             </a>
 
@@ -25,13 +24,13 @@
             @endguest
 
             @auth
-                <a href="{{ route('client_my_bookings') }}" 
-                   class="nav-link nav-item {{ request()->routeIs('client_my_bookings') ? 'active' : '' }}">
+                <a href="{{ route('client.my_bookings') }}" 
+                   class="nav-link nav-item {{ request()->routeIs('client.my_bookings') ? 'active' : '' }}">
                    My Booking
                 </a>
                 
-                <a href="{{ route('client_my_reservations') }}" 
-                   class="nav-link nav-item {{ request()->routeIs('client_my_reservations') ? 'active' : '' }}">
+                <a href="{{ route('client.my_reservations') }}" 
+                   class="nav-link nav-item {{ request()->routeIs('client.my_reservations') ? 'active' : '' }}">
                    My Reservations
                 </a>
 
@@ -57,4 +56,3 @@
 
         </nav>
     </div>
-</header>

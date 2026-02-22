@@ -1,21 +1,12 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+@extends('layouts.client')
   <title>{{ $data->display_name }} - Lantaka Portal</title>
   <link rel="stylesheet" href="{{ asset('css/client_room_venue_viewing.css') }}">
   <link rel="stylesheet" href="{{ asset('css/nav.css') }}">
   <link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@700;800&family=Arsenal:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
   
-  </head>
-<body>
-
-  <x-header/>
-
-  <main class="container">
+@section('content')
     <div class="back-section">
-      <a href="{{ route('client_room_venue') }}">
+      <a href="{{ route('client.room_venue') }}">
       <button class="back-button">
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
           <path d="M15 10H5M5 10L10 15M5 10L10 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -106,8 +97,6 @@
         </div>
       </div>
     </div>
-  </main>
-
   <script>
     // Listen for when the user clicks "PROCEED"
     document.getElementById('bookingForm').addEventListener('submit', function(e) {
@@ -131,6 +120,4 @@
         }
     });
   </script>
-
-</body>
-</html>
+@endsection

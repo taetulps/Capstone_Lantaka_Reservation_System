@@ -1,42 +1,28 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+@extends('layouts.employee')
+
   <title>Accounts - Lantaka Room and Venue Reservation System</title>
   <link rel="stylesheet" href="{{asset('css/employee_accounts.css')}}">
-  <link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@200;300;400;500;600;700;800;900&family=Arsenal:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
-</head>
-<body>
-  <div class="container">
-  <aside class="sidebar">
-      <x-side_nav/>
-    </aside>
-
-    <main class="main-content">
-      <header class="header">
-        <x-top_nav/>
-      </header>
-
+ 
+  @section('content')
       <div class="page-content">
         <h1 class="page-title">Accounts</h1>
 
         <div class="search-container">
-          <form action="{{ route('employee_accounts') }}" method="GET">
+          <form action="{{ route('employee.accounts') }}" method="GET">
             <input type="text" name="search" class="search-input" placeholder="Search by name or email" value="{{ request('search') }}">
           </form>
         </div>
 
         <div class="tabs">
-          <a href="{{ route('employee_accounts') }}" class="tab-btn {{ !request('status') && !request('role') ? 'active' : '' }}">All</a>
+          <a href="{{ route('employee.accounts') }}" class="tab-btn {{ !request('status') && !request('role') ? 'active' : '' }}">All</a>
           
-          <a href="{{ route('employee_accounts', ['role' => 'employee']) }}" class="tab-btn {{ request('role') == 'employee' ? 'active' : '' }}">Employee Accounts</a>
+          <a href="{{ route('employee.accounts', ['role' => 'employee']) }}" class="tab-btn {{ request('role') == 'employee' ? 'active' : '' }}">Employee Accounts</a>
           
-          <a href="{{ route('employee_accounts', ['status' => 'approved']) }}" class="tab-btn {{ request('status') == 'approved' ? 'active' : '' }}">Approved Client Account</a>
+          <a href="{{ route('employee.accounts', ['status' => 'approved']) }}" class="tab-btn {{ request('status') == 'approved' ? 'active' : '' }}">Approved Client Account</a>
           
-          <a href="{{ route('employee_accounts', ['status' => 'declined']) }}" class="tab-btn {{ request('status') == 'declined' ? 'active' : '' }}">Declined Client Account</a>
+          <a href="{{ route('employee.accounts', ['status' => 'declined']) }}" class="tab-btn {{ request('status') == 'declined' ? 'active' : '' }}">Declined Client Account</a>
           
-          <a href="{{ route('employee_accounts', ['status' => 'pending']) }}" class="tab-btn {{ request('status') == 'pending' ? 'active' : '' }}">Pending Client Account</a>
+          <a href="{{ route('employee.accounts', ['status' => 'pending']) }}" class="tab-btn {{ request('status') == 'pending' ? 'active' : '' }}">Pending Client Account</a>
         </div>
 
         <div class="table-container">
@@ -91,7 +77,4 @@
           </table>
         </div>
       </div>
-    </main>
-  </div>
-</body>
-</html>
+    @endsection

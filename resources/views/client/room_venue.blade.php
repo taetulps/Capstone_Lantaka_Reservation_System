@@ -1,18 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+@extends('layouts.client')
   <title>Book Now - Lantaka Room and Venue Reservation Portal</title>
-  
   <link rel="stylesheet" href="{{asset('css/client_room_venue.css')}}">
   <link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@700;800&family=Arsenal:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
 
-</head>
-<body>
-  <x-header/>
-  <main class="main">
-    
+@section('content')
     <section class="hero">
       <h2 class="hero-title">Purposeful spaces.</h2>
       <p class="hero-subtitle">Where Faith, Fellowship, and Formation Come Together.</p>
@@ -73,10 +64,5 @@
         @else
             <p style="grid-column: 1 / -1; text-align: center;">No rooms or venues found.</p>
         @endif
-        
-      
     </section>
-
-  </main>
-</body>
-</html>
+@endsection

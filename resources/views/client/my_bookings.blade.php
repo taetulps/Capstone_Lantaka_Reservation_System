@@ -1,22 +1,11 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+@extends('layouts.client')
     <title>Checkout - Lantaka Reservation System</title>
     <link rel="stylesheet" href="{{ asset('css/client_my_bookings.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@200;300;400;500;600;700;800;900&family=Arsenal:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
     @vite('resources/js/my_booking.js')
-</head>
-<body>
-    <x-header/>
 
-    <main class="main-content">
-        <div style="margin-bottom: 20px;">
-             <a href="javascript:history.back()" style="text-decoration: none; color: #333; font-weight: bold;">
-                ← Back
-            </a>
-        </div>
+
+@section('content')
         
         <h1 class="page-title">Checkout</h1>
 
@@ -58,7 +47,7 @@
                         <div style="font-size: 50px; margin-bottom: 10px;">🛒</div>
                         <h3 style="color: #555; font-family: 'Alexandria', sans-serif;">empty</h3>
                         <p style="color: #6e5757; font-family: 'Arsenal', sans-serif;">You haven't selected any accommodations yet.</p>
-                        <a href="{{ route('client_room_venue') }}" style="display: inline-block; margin-top: 15px; padding: 10px 20px; background: #333; color: white; text-decoration: none; border-radius: 5px;">
+                        <a href="{{ route('client.room_venue') }}" style="display: inline-block; margin-top: 15px; padding: 10px 20px; background: #333; color: white; text-decoration: none; border-radius: 5px;">
                             Find a Room or Venue
                         </a>
                     </div>
@@ -119,5 +108,4 @@
         document.getElementById('form-total-amount').value = total;
     }
     </script>
-</body>
-</html>
+@endsection

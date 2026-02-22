@@ -1,34 +1,14 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lantaka Dashboard</title>
+@extends('layouts.employee')
+
     <link rel="stylesheet" href="{{asset('css/employee_dashboard.css')}}">
- 
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@200;300;400;500;600;700;800;900&family=Arsenal:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
 
-  </head>
-<body>
-    <!-- Sidebar -->
-    <aside class="sidebar">
-        <x-side_nav />
-    </aside>
-
+@section('content')
     <!-- Main Content -->
-    <main class="main-container">
         <!-- Header -->
-        <header class="header">
-            <x-top_nav />
-        </header>
 
         <!-- Content Area -->
         <div class="content">
             <h1 class="page-title">Dashboard</h1>
-
             <!-- Stat Cards -->
             <div class="stats-grid">
                 <div class="stat-card">
@@ -139,6 +119,5 @@
             <!-- Export Button -->
             <button class="export-btn">Export</button>
         </div>
-    </main>
-</body> 
-</html>
+@endsection
+    

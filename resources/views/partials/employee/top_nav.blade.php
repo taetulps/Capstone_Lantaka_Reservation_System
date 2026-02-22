@@ -1,6 +1,5 @@
 <link rel="stylesheet" href="{{ asset('css/employee_top_nav.css') }}">     
 @vite(['resources/js/top_nav.js'])
-
             <div class="header-left">
                 <button class="menu-toggle">☰</button>
             </div>
@@ -25,4 +24,3 @@
                   </form>
                 </div>
             </div>
-      
