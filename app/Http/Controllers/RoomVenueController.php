@@ -8,6 +8,7 @@ use App\Models\Venue;
 use Illuminate\Support\Facades\Auth; // Needed to get the logged-in user
 use App\Models\Reservation;
 use Carbon\CarbonPeriod;
+use App\Models\Food;
 
 class RoomVenueController extends Controller
 {
@@ -75,14 +76,14 @@ class RoomVenueController extends Controller
     }
     public function adminIndex()
     {
-        // Fetch all rooms sorted by newest first
         $rooms = Room::all();
-        
-        // Fetch all venues
         $venues = Venue::all();
 
-        // Send distinct lists because the Admin View has separate sections for Room vs Venue
-        return view('employee_room_venue', compact('rooms', 'venues'));
+        // 1. Fetch the food and group it!
+        $foods = \App\Models\Food::all()->groupBy('food_category');
+
+        // 2. Make sure 'foods' is inside this compact() list!
+        return view('employee_room_venue', compact('rooms', 'venues', 'foods'));
     }
         public function show($category, $id)
     {
@@ -117,5 +118,25 @@ class RoomVenueController extends Controller
 
         // 3. Pass the data AND the occupiedDates to the view
         return view('client_room_venue_viewing', compact('data', 'category', 'occupiedDates'));
+    }
+    public function prepareBooking(\Illuminate\Http\Request $request)
+    {
+        // Grab all the data the user just submitted (dates, pax, accommodation_id, type)
+        $bookingData = $request->all();
+
+        // 1. If it's a Room, skip food and go straight to Checkout
+        if ($request->type === 'room') {
+            return redirect()->route('checkout', $bookingData);
+        }
+
+        // 2. If it's a Venue, fetch the food and go to the Food Options page
+        if ($request->type === 'venue') {
+            
+            // ⭐ FETCH THE AVAILABLE FOOD HERE
+            $foods = Food::where('status', 'available')->get()->groupBy('food_category');
+
+            // ⭐ PASS BOTH bookingData AND foods TO THE VIEW
+            return view('client_food_option', compact('bookingData', 'foods'));
+        }
     }
 }

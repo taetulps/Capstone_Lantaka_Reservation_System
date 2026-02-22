@@ -1,10 +1,8 @@
 @vite('resources/js/employee_add_food.js')
 <link rel="stylesheet" href="{{ asset('css/employee_add_food.css') }}">
 
-<!-- ADD FOOD MODAL OVERLAY -->
 <div id="addFoodOverlay" class="addfood-overlay">
 
-  <!-- ADD FOOD MODAL -->
   <div id="addFoodModal" class="addfood-modal">
     <div class="addfood-content">
 
@@ -13,60 +11,73 @@
         <button class="addfood-close" id="addFoodClose">&times;</button>
       </div>
 
-      <form class="addfood-form">
-        <!-- Food Name and Status -->
+      @if ($errors->any())
+        <div style="background-color: #ffe6e6; color: red; padding: 10px; border-radius: 5px; margin-bottom: 15px;">
+          <ul style="margin: 0; padding-left: 20px;">
+            @foreach ($errors->all() as $error)
+              <li>{{ $error }}</li>
+            @endforeach
+          </ul>
+        </div>
+      @endif
+
+      @if (session('success'))
+        <div style="background-color: #e6ffe6; color: green; padding: 10px; border-radius: 5px; margin-bottom: 15px;">
+          {{ session('success') }}
+        </div>
+      @endif
+
+      <form action="{{ route('admin.food.store') }}" method="POST" class="addfood-form">
+        @csrf 
+
         <div class="addfood-row">
           <div class="addfood-group">
             <label for="addFoodName">Food Name</label>
-            <input type="text" id="addFoodName" placeholder="Rice" required>
+            <input type="text" id="addFoodName" name="name" placeholder="Rice" required>
           </div>
 
           <div class="addfood-group">
             <label for="addFoodStatus">Status</label>
-            <select id="addFoodStatus" required>
+            <select id="addFoodStatus" name="status" required>
               <option value="available">Available</option>
               <option value="unavailable">Unavailable</option>
             </select>
           </div>
         </div>
 
-        <!-- Food Type -->
         <div class="addfood-group">
           <label>Food Type</label>
           <div class="addfood-radio">
             <label class="addfood-radio-label">
-              <input type="radio" name="foodType" value="breakfast" checked>
+              <input type="radio" name="type" value="breakfast" checked>
               <span>Breakfast</span>
             </label>
             <label class="addfood-radio-label">
-              <input type="radio" name="foodType" value="snack">
+              <input type="radio" name="type" value="snack">
               <span>Snack</span>
             </label>
             <label class="addfood-radio-label">
-              <input type="radio" name="foodType" value="lunch">
+              <input type="radio" name="type" value="lunch">
               <span>Lunch</span>
             </label>
             <label class="addfood-radio-label">
-              <input type="radio" name="foodType" value="dinner">
+              <input type="radio" name="type" value="dinner">
               <span>Dinner</span>
             </label>
           </div>
         </div>
 
-        <!-- Pricing -->
         <div class="addfood-group">
           <label for="addFoodPrice">Pricing</label>
           <div class="addfood-price">
             <span class="addfood-currency">₱</span>
-            <input type="number" id="addFoodPrice" placeholder="500.00" step="0.01" required>
+            <input type="number" id="addFoodPrice" name="price" placeholder="500.00" step="0.01" required>
           </div>
         </div>
 
-        <!-- Submit Button -->
         <button type="submit" class="addfood-submit">Add Food</button>
       </form>
     </div>
   </div>
 
 </div>
-  

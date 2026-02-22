@@ -6,6 +6,7 @@ use App\Http\Controllers\SignupController;
 use App\Http\Controllers\AccountController; 
 use App\Http\Controllers\RoomVenueController;
 use App\Http\Controllers\ReservationController;
+use App\Http\Controllers\FoodController;
 
 /* --- 1. Public Routes --- */
 Route::get('/', function () {
@@ -15,19 +16,15 @@ Route::get('/', function () {
 Route::get('/client_room_venue', [RoomVenueController::class, 'index'])->name('client_room_venue');
 Route::get('/view/{category}/{id}', [RoomVenueController::class, 'show'])->name('client.show');
 
-
 Route::get('/client_my_bookings', [ReservationController::class, 'checkout'])->name('client_my_bookings');
 
-Route::get('/client_my_reservations', function () {
-    return view('client_my_reservations');
-})->name('client_my_reservations');
+// Note: Removed the duplicate static 'client_my_reservations' route here to prevent conflicts!
 
-Route::get('/client_food_option', function () {
-    return view('client_food_option');
-})->name('client_food_option');
+Route::get('/client/food-options', [FoodController::class, 'showFoodOptions'])->name('client.food.options');
 
-// Add this under your other public routes
-Route::get('/checkout/{category}/{id}', [App\Http\Controllers\RoomVenueController::class, 'show'])->name('client.show');
+Route::get('/booking/prepare', [RoomVenueController::class, 'prepareBooking'])->name('booking.prepare');
+
+Route::get('/checkout/{category}/{id}', [RoomVenueController::class, 'show'])->name('client.show');
 
 /* --- 2. Login & Signup --- */
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
@@ -35,9 +32,7 @@ Route::post('/login', [LoginController::class, 'login'])->name('login.post');
 
 Route::get('/signup', [SignupController::class, 'showSignupForm'])->name('signup');
 Route::post('/signup', [SignupController::class, 'store'])->name('register.post');
-
-Route::post('/signup', [SignupController::class, 'store'])->name('register.post');
-
+// Note: Removed the second duplicated signup route here.
 
 
 /* --- 3. Protected Routes (SECURE) --- */
@@ -57,21 +52,27 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['role:admin,staff'])->group(function () {
         
         Route::get('/employee_dashboard', function () {
-            return view('employee_dashboard');
+            // Fetch the food for the dashboard modal
+            $foods = \App\Models\Food::all()->groupBy('food_category');
+            return view('employee_dashboard', compact('foods'));
         })->name('employee_dashboard');
 
         Route::get('/employee_accounts', [AccountController::class, 'index'])->name('employee_accounts');
 
-        //  Now shows real reservations from the database
         Route::get('/employee_reservations', [ReservationController::class, 'adminIndex'])
              ->name('employee_reservations');
 
         Route::get('/employee_room_venue', [RoomVenueController::class, 'adminIndex'])
              ->name('employee_room_venue');
+             
+        // ⭐ ADDED THIS: Now Laravel knows how to open your Employee Food Menu
+        Route::get('/employee_food', [FoodController::class, 'showEmployeeFood'])->name('employee.food');
+        
+        // ⭐ MOVED THIS: Moved your Add Food route here so ONLY employees can add food to the database
+        Route::post('/admin/food/store', [FoodController::class, 'store'])->name('admin.food.store');
     });
 
     Route::post('/employee_room_venue/store', [RoomVenueController::class, 'store'])->name('room_venue.store');
-
 
 });
   

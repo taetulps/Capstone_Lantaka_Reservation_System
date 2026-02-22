@@ -107,7 +107,7 @@
       <!-- Modal Content -->
       <x-add_room_venue/>
       <x-employee_rv_viewing_modal/>
-      <x-employee_food/>
+      <x-employee_food :foods="$foods" />
 
 </body>
 </html>

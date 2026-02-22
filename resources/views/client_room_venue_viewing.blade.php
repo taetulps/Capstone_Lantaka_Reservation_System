@@ -87,7 +87,7 @@
                  style="width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; margin-top: 10px;">
           --}}
         </div> <div class="booking-section">
-          <form action="{{ route('checkout') }}" method="GET" class="booking-form" id="bookingForm"> 
+          <form action="{{ route('booking.prepare') }}" method="GET" class="booking-form" id="bookingForm">
               
               <input type="hidden" name="accommodation_id" value="{{ $data->id }}">
               <input type="hidden" name="type" value="{{ stripos($category, 'room') !== false ? 'room' : 'venue' }}">

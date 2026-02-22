@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
   foodOpenBtn?.addEventListener('click', openFoodModal)
   foodCloseBtn?.addEventListener('click', closeFoodModal)
   addFoodBtn?.addEventListener('click', closeFoodModal)
-  
+
   foodOverlay?.addEventListener('click', (e) => {
     if (e.target === foodOverlay) closeFoodModal()
   })
