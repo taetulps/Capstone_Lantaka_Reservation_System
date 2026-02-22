@@ -1,87 +1,43 @@
+<div class="modal-overlay" style="display: none;">
+  <div class="modal-container">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Reservation Details</h2>
+        <button class="close-btn">&times;</button>
+      </div>
 
-  <!-- Modal Overlay -->
-  <div class="modal-overlay">
-
-    <!-- Modal Container -->
-    <div class="modal-container">
-      <div class="modal-content">
-        <!-- Modal Header -->
-        <div class="modal-header">
-          <h2>Reservation Details</h2>
-          <button class="close-btn">&times;</button>
+      <div class="modal-body">
+        <div class="detail-section">
+          <p class="detail-label">Name:</p>
+          <p class="detail-value" id="modalName"></p>
         </div>
 
-        <!-- Modal Body -->
-        <div class="modal-body">
-          <!-- Room/Venue Section -->
-          <div class="detail-section">
-            <p class="detail-label">Name:</p>
-            <p class="detail-value">Jane</p>
-          </div>
+        <div class="detail-section">
+          <p class="detail-label">Last Name:</p>
+          <p class="detail-value" id="modalLastName"></p>
+        </div>
 
-          <!-- Number of Pax Section -->
-          <div class="detail-section">
-            <p class="detail-label">Last Name:</p>
-            <p class="detail-value">Doe</p>
-          </div>
+        <div class="detail-section">
+          <p class="detail-label">Check-in Date:</p>
+          <p class="detail-value" id="modalCheckIn"></p>
+        </div>
 
-          <!-- Check-in Date Section -->
-          <div class="detail-section">
-            <p class="detail-label">Check-in Date:</p>
-            <p class="detail-value">November 19, 2025</p>
-          </div>
+        <div class="detail-section">
+          <p class="detail-label">Check-out Date:</p>
+          <p class="detail-value" id="modalCheckOut"></p>
+        </div>
 
-          <!-- Check-out Date Section -->
-          <div class="detail-section">
-            <p class="detail-label">Check-out Date:</p>
-            <p class="detail-value">November 19, 2025</p>
-          </div>
+        <div class="detail-section">
+          <p class="detail-label" id="modalFoodIdLabel">Food ID:</p>
+          
+          <div id="modalFoodList"></div>
 
-          <!-- Food ID Section -->
-          <div class="detail-section">
-            <p class="detail-label">Food ID (00032):</p>
-            
-            <!-- Breakfast -->
-            <div class="food-category">
-              <p class="food-category-title">Breakfast</p>
-              <ul class="food-items">
-                <li>Rice Platter</li>
-                <li>Longanisa</li>
-                <li>Corned Beef</li>
-              </ul>
-            </div>
-
-            <!-- Snack 1 -->
-            <div class="food-category">
-              <p class="food-category-title">Snack</p>
-              <ul class="food-items">
-                <li>Enouymada</li>
-              </ul>
-            </div>
-
-            <!-- Lunch -->
-            <div class="food-category">
-              <p class="food-category-title">Lunch</p>
-              <ul class="food-items">
-                <li>Rice Platter</li>
-              </ul>
-            </div>
-
-            <!-- Snack 2 -->
-            <div class="food-category">
-              <p class="food-category-title">Snack</p>
-              <ul class="food-items">
-                <li>Sapin-Sapin</li>
-              </ul>
-            </div>
-
-            <div>
-              <button>Reject</button>
-              <button>Accept</button>
-            </div>
+          <div style="margin-top: 15px;">
+            <button class="reject-btn">Reject</button>
+            <button class="accept-btn">Accept</button>
           </div>
         </div>
       </div>
     </div>
   </div>
-
+</div>

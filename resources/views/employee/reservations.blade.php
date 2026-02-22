@@ -102,8 +102,29 @@
                     </td>
                     
                     <td class="action-cell">
-                      {{-- You can pass the ID here later for the modal --}}
-                      <button class="expand-btn" data-id="{{ $reservation->id }}">⤢</button>
+                      @php
+                        // Format the accommodation name to pass to JS
+                        $accName = $reservation->type == 'room' 
+                            ? 'Room: ' . ($reservation->room->room_number ?? 'N/A') 
+                            : 'Venue: ' . ($reservation->venue->Venue_Name ?? $reservation->venue->name ?? 'N/A');
+
+                        // Group the food items by category (Breakfast, Lunch, etc.)
+                        // Note: Make sure your Controller is eager loading the foods: Reservation::with('foods')->get()
+                        $foodItems = isset($reservation->foods) ? $reservation->foods->groupBy('food_category') : [];
+                      @endphp
+
+                      <button class="expand-btn" 
+                              data-info="{{ json_encode([
+                                  'id' => str_pad($reservation->id, 5, '0', STR_PAD_LEFT),
+                                  'name' => $reservation->user->name ?? 'Unknown',
+                                  'accommodation' => $accName,
+                                  'pax' => $reservation->pax,
+                                  'check_in' => \Carbon\Carbon::parse($reservation->check_in)->format('F d, Y'),
+                                  'check_out' => \Carbon\Carbon::parse($reservation->check_out)->format('F d, Y'),
+                                  'foods' => $reservation->foods
+                              ]) }}">
+                        ⤢
+                      </button>
                     </td>
                   </tr>
               @empty

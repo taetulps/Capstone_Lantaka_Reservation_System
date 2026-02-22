@@ -77,7 +77,23 @@
               </td>
               
               <td class="action-cell">
-                <button class="expand-button">⤡</button>
+                @php
+                    $accName = '';
+                    if($res->type === 'room' && $res->room) $accName = $res->room->room_number;
+                    elseif($res->type === 'venue' && $res->venue) $accName = $res->venue->Venue_Name ?? $res->venue->name;
+                @endphp
+
+                <button class="expand-button"
+                    data-info="{{ json_encode([
+                        'id' => str_pad($res->id, 5, '0', STR_PAD_LEFT),
+                        'accommodation' => $accName,
+                        'pax' => $res->pax,
+                        'check_in' => \Carbon\Carbon::parse($res->check_in)->format('F d, Y'),
+                        'check_out' => \Carbon\Carbon::parse($res->check_out)->format('F d, Y'),
+                        'foods' => $res->foods 
+                    ]) }}">
+                    ⤡
+                </button>
               </td>
             </tr>
           @empty

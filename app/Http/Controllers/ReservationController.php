@@ -86,6 +86,7 @@ class ReservationController extends Controller
             'total_amount' => 'required|numeric',
         ]);
 
+        // 1. Create the main reservation
         $reservation = Reservation::create([
             'user_id' => auth()->id(),
             'accommodation_id' => $request->id,
@@ -97,8 +98,34 @@ class ReservationController extends Controller
             'status' => 'pending'
         ]);
 
+        // 2. Retrieve the booking data from the session
         $uniqueKey = $request->type . '_' . $request->id;
         $allBookings = session('pending_bookings', []);
+        $bookingData = $allBookings[$uniqueKey] ?? null;
+
+        // --- THE FIX: Save the food to the pivot table ---
+        // Check if there is food associated with this specific booking in the session
+        if ($bookingData && !empty($bookingData['selected_foods'])) {
+            
+            // 1. Get the actual Food models for the IDs the client selected
+            $foods = \App\Models\Food::whereIn('food_id', $bookingData['selected_foods'])->get();
+            
+            $attachData = [];
+            
+            // 2. Loop through them to build an array with the extra 'total_price' column
+            foreach ($foods as $food) {
+                $attachData[$food->food_id] = [
+                    // Assuming catering is priced per head (Food Price x Number of Pax)
+                    // Note: If food is a flat rate, just remove the " * $request->pax"
+                    'total_price' => $food->food_price * $request->pax
+                ];
+            }
+
+            // 3. Attach the foods WITH their calculated total prices!
+            $reservation->foods()->attach($attachData);
+        }
+
+        // 3. Clear the session data
         if (isset($allBookings[$uniqueKey])) {
             unset($allBookings[$uniqueKey]);
             session(['pending_bookings' => $allBookings]);
@@ -106,7 +133,6 @@ class ReservationController extends Controller
 
         return redirect()->route('client.my_reservations')->with('success', 'Reservation confirmed!');
     }
-
     public function showMyBookings()
     {
         $booking = session('pending_booking');
@@ -119,9 +145,9 @@ class ReservationController extends Controller
     // 3. Client: My Reservations Page
     public function index()
     {
-        // --- FIX 3: Load 'room' and 'venue' separately for the list to work ---
+        // Added 'foods' here!
         $reservations = Reservation::where('user_id', Auth::id())
-                        ->with(['room', 'venue']) 
+                        ->with(['room', 'venue', 'foods']) 
                         ->orderBy('created_at', 'desc')
                         ->get();
 
@@ -131,7 +157,8 @@ class ReservationController extends Controller
     // 4. Admin Page
     public function adminIndex()
     {
-        $reservations = Reservation::with(['user', 'room', 'venue'])
+        // Add 'foods' to this list right here!
+        $reservations = Reservation::with(['user', 'room', 'venue', 'foods'])
                         ->orderBy('created_at', 'desc')
                         ->get();
 

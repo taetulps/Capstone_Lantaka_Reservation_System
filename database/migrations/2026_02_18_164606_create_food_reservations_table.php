@@ -11,19 +11,14 @@ return new class extends Migration
      *
      * @return void
      */
-    public function up()
+    public function foods()
     {
-        Schema::create('food_reservations', function (Blueprint $table) {
-            $table->id('food_reservation_id'); // Matches your ERD
-            $table->unsignedBigInteger('food_id');
-            $table->unsignedBigInteger('venue_reservation_id'); 
-            $table->unsignedBigInteger('client_id')->nullable();
-            $table->unsignedBigInteger('staff_id')->nullable();
-            $table->string('status', 20)->default('available');
-            $table->time('serving_time')->nullable();
-            $table->decimal('total_price', 10, 2);
-            $table->timestamps();
-        });
+        return $this->belongsToMany(
+            Food::class, 
+            'food_reservations',    // 1. The table name
+            'venue_reservation_id', // 2. The column pointing to the Reservation
+            'food_id'               // 3. The column pointing to the Food
+        );
     }
 
     /**

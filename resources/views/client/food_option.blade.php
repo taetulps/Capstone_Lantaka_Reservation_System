@@ -8,7 +8,8 @@
   @vite('resources/js/client_food_option.js')
 </head>
 <body>
-  <x-header/>
+  <!-- Header -->
+
 
   <main class="main-content">
     

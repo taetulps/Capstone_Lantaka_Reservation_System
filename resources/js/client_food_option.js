@@ -3,6 +3,34 @@ document.addEventListener('DOMContentLoaded', () => {
   const masterBtns = document.querySelectorAll('.food-toggle-section .toggle-btn')
   const mealSections = document.querySelectorAll('.meal-section')
 
+  // ---------- NEW VARIABLES FOR PRICING ----------
+  const displayTotalPrice = document.getElementById('displayTotalPrice')
+  const paxValueInput = document.getElementById('paxValue')
+  let pax = parseInt(paxValueInput?.value) || 1
+
+  // ---------- NEW FUNCTION: Calculate Total ----------
+  const calculateTotal = () => {
+    let grandTotal = 0; // Changed this to just be the grand total
+
+    // Loop through all currently selected items and add their flat price
+    document.querySelectorAll('.food-item.selected').forEach(item => {
+      const checkbox = item.querySelector('.food-checkbox');
+      if (checkbox) {
+        grandTotal += parseFloat(checkbox.getAttribute('data-price')) || 0;
+      }
+    });
+
+    // We completely removed the " * pax " multiplication here!
+
+    // Update the UI
+    if (displayTotalPrice) {
+      displayTotalPrice.textContent = '₱ ' + grandTotal.toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+    }
+  }
+
   // ---------- helpers ----------
   const setActiveBtn = (btn, wrap) => {
     wrap.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'))
@@ -25,8 +53,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     meal.querySelectorAll('.food-item').forEach(item => {
       item.classList.toggle('unavailable', !enabled)
-      if (!enabled) item.classList.remove('selected') // clear selections when disabled
+      if (!enabled) {
+        item.classList.remove('selected') // clear selections when disabled
+        // CRITICAL: Uncheck the hidden checkbox so it doesn't submit!
+        const checkbox = item.querySelector('.food-checkbox')
+        if (checkbox) checkbox.checked = false;
+      }
     })
+
+    // Recalculate the price in case we just disabled a section with selected food
+    calculateTotal();
   }
 
   function setAllMeals(enabled) {
@@ -34,30 +70,39 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ---------- DEFAULT STATE ----------
-  // 1) Include Food = YES by default
   if (masterWrap && masterBtns.length) {
     const yesBtn = [...masterBtns].find(b => b.textContent.trim().toLowerCase() === 'yes')
     if (yesBtn) setActiveBtn(yesBtn, masterWrap)
   }
 
-  // 2) All meals enabled by default
   setAllMeals(true)
 
-  // 3) All items selectable BUT NOT selected by default
   document.querySelectorAll('.food-item').forEach(item => {
     item.classList.remove('selected')
-    // make sure available at default (unless you want to keep some unavailable from backend)
     item.classList.remove('unavailable')
   })
 
   // ---------- MULTI-SELECT (per row) ----------
   document.querySelectorAll('.food-items').forEach(row => {
     row.addEventListener('click', (e) => {
+      // Prevent default label click so we can manually control the checkbox
+      e.preventDefault();
+
       const item = e.target.closest('.food-item')
       if (!item) return
       if (item.classList.contains('unavailable')) return
 
+      // Toggle visual class
       item.classList.toggle('selected')
+
+      // Toggle the actual hidden checkbox so it submits correctly
+      const checkbox = item.querySelector('.food-checkbox')
+      if (checkbox) {
+        checkbox.checked = item.classList.contains('selected');
+      }
+
+      // Update the price!
+      calculateTotal();
     })
   })
 
@@ -67,7 +112,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!pill) return
 
     pill.addEventListener('click', () => {
-      // if Include Food is NO, don't allow enabling rows
       if (!isMasterYes()) return
 
       const enabled = meal.dataset.enabled === '1'
@@ -84,17 +128,18 @@ document.addEventListener('DOMContentLoaded', () => {
       const yes = btn.textContent.trim().toLowerCase() === 'yes'
 
       if (!yes) {
-        // NO => disable everything + clear selections
         setAllMeals(false)
       } else {
-        // YES => enable everything (still NOT selected)
         setAllMeals(true)
       }
     })
   })
+
+  // Run calculation once on page load just to be safe
+  calculateTotal();
 })
 
-
+// ---------- DATE SELECTOR MODAL LOGIC ----------
 document.addEventListener('DOMContentLoaded', () => {
   const openBtn = document.querySelector('.date-select-btn')
 
@@ -114,7 +159,6 @@ document.addEventListener('DOMContentLoaded', () => {
     overlay.classList.add('show')
     overlay.setAttribute('aria-hidden', 'false')
 
-    // reset UI state (optional)
     errorEl && (errorEl.style.display = 'none')
   }
 
@@ -127,32 +171,25 @@ document.addEventListener('DOMContentLoaded', () => {
   openBtn?.addEventListener('click', openModal)
   closeBtn?.addEventListener('click', closeModal)
 
-  // close when clicking outside
   overlay?.addEventListener('click', (e) => {
     if (e.target === overlay) closeModal()
   })
 
-  // ESC close
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && overlay?.classList.contains('show')) closeModal()
   })
 
-  // pick a date box
   dateList?.addEventListener('click', (e) => {
     const chip = e.target.closest('.fooddate-chip')
     if (!chip) return
 
-    // UI selection
     dateList.querySelectorAll('.fooddate-chip').forEach(c => c.classList.remove('selected'))
     chip.classList.add('selected')
 
     selectedDate = chip.dataset.date || ''
     if (errorEl) errorEl.style.display = 'none'
-
-    console.log('Picked food date:', selectedDate)
   })
 
-  // confirm selection
   confirmBtn?.addEventListener('click', () => {
     if (!selectedDate) {
       if (errorEl) {
@@ -164,10 +201,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (hiddenInput) hiddenInput.value = selectedDate
 
-    // Optional: change button text so user sees selection
     if (openBtn) openBtn.textContent = `Food Date: ${selectedDate}`
 
-    console.log('CONFIRMED food date:', selectedDate)
     closeModal()
   })
 })

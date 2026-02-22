@@ -32,6 +32,11 @@ Route::get('client.room_venue', [RoomVenueController::class, 'index'])->name('cl
         ->group(function () {
 
             Route::get('/dashboard', action: fn() => view('employee.dashboard'))->name('dashboard');
+            Route::get('/employee_dashboard', function () {
+                // Fetch the food for the dashboard modal
+                $foods = \App\Models\Food::all()->groupBy('food_category');
+                return view('employee.dashboard', compact('foods'));
+            })->name('employee.dashboard');
             Route::get('/reservations', [ReservationController::class, 'adminIndex'])->name('reservations');
             Route::get('/guest', action: fn() => view('employee.guest'))->name('guest');
             Route::get('/accounts', [AccountController::class, 'index'])->name('accounts');
@@ -74,6 +79,8 @@ Route::middleware(['auth'])->group(function () {
 
   
     Route::post('/employee_room_venue/store', [RoomVenueController::class, 'store'])->name('room_venue.store');
+
+    Route::post('/employee/food/store', [FoodController::class, 'store'])->name('admin.food.store');
 
 });
   
