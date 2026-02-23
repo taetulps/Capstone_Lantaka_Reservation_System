@@ -68,81 +68,60 @@
               </tr>
             </thead>
             <tbody>
-              
-            <tr>
-              <td class="name-cell">
-                <span class="user-icon">👤</span>
-                <span>John Doe</span>
-              </td>
+              @forelse($reservations as $res)
+                <tr>
+                  <td class="name-cell">
+                    <span class="user-icon">👤</span>
+                    <span>{{ $res->user->name ?? $res->user->first_name ?? 'Unknown' }}</span>
+                  </td>
 
-              <td>Internal</td>
+                  <td>External</td>
 
-              <td>
-                Room: <strong>101</strong>
-              </td>
+                  <td>
+                    @if($res->type === 'room' && $res->room)
+                        Room: <strong>{{ $res->room->room_number }}</strong>
+                    @elseif($res->type === 'venue' && $res->venue)
+                        Venue: <strong>{{ $res->venue->Venue_Name ?? $res->venue->name }}</strong>
+                    @else
+                        <span style="color: #e74c3c;">Not Found</span>
+                    @endif
+                  </td>
 
-              <td>03/01/2026</td>
-              <td>03/03/2026</td>
-              <td>4</td>
+                  <td>{{ \Carbon\Carbon::parse($res->check_in)->format('m/d/Y') }}</td>
+                  <td>{{ \Carbon\Carbon::parse($res->check_out)->format('m/d/Y') }}</td>
+                  <td>{{ $res->pax }}</td>
 
-              <td>
-                <span class="badge pending-badge">Pending</span>
-              </td>
+                  <td>
+                    <span class="badge {{ strtolower($res->status) }}-badge">
+                        {{ ucfirst($res->status) }}
+                    </span>
+                  </td>
 
-              <td class="action-cell">
-                <button class="expand-btn" data-id="1">⤢</button>
-              </td>
-            </tr>
-
-            <tr>
-              <td class="name-cell">
-                <span class="user-icon">👤</span>
-                <span>Maria Santos</span>
-              </td>
-
-              <td>External</td>
-
-              <td>
-                Venue: <strong>Grand Ballroom</strong>
-              </td>
-
-              <td>03/05/2026</td>
-              <td>03/06/2026</td>
-              <td>120</td>
-
-              <td>
-                <span class="badge confirmed-badge">Confirmed</span>
-              </td>
-
-              <td class="action-cell">
-                <button class="expand-btn" data-id="2">⤢</button>
-              </td>
-            </tr>
-
-            <tr>
-              <td class="name-cell">
-                <span class="user-icon">👤</span>
-                <span>Alex Rivera</span>
-              </td>
-
-              <td>Internal</td>
-
-              <td>
-                Room: <strong>205</strong>
-              </td>
-
-              <td>03/10/2026</td>
-              <td>03/12/2026</td>
-              <td>2</td>
-
-              <td>
-                <span class="badge completed-badge">Completed</span>
-              </td>
-
-              <td class="action-cell">
-                <button class="expand-btn" data-id="3">⤢</button>
-              </td>
-            </tr>
+                  @php
+                      $accName = '';
+                      if($res->type === 'room' && $res->room) $accName = 'Room ' . $res->room->room_number;
+                      elseif($res->type === 'venue' && $res->venue) $accName = 'Venue: ' . ($res->venue->Venue_Name ?? $res->venue->name);
+                  @endphp
+                  
+                  <td class="action-cell">
+                    <button class="expand-btn" data-info="{{ json_encode([
+                        'id' => str_pad($res->id, 5, '0', STR_PAD_LEFT),
+                        'name' => $res->user->name ?? $res->user->first_name ?? 'Unknown',
+                        'accommodation' => $accName,
+                        'pax' => $res->pax,
+                        'check_in' => \Carbon\Carbon::parse($res->check_in)->format('F d, Y'),
+                        'check_out' => \Carbon\Carbon::parse($res->check_out)->format('F d, Y'),
+                        'foods' => $res->foods 
+                    ]) }}">
+                        ⤢
+                    </button>
+                  </td>
+                </tr>
+              @empty
+                <tr>
+                    <td colspan="8" style="text-align: center; padding: 20px;">No guest reservations found.</td>
+                </tr>
+              @endforelse
             </tbody>
           </table>
 

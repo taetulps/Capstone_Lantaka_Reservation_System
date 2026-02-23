@@ -164,4 +164,14 @@ class ReservationController extends Controller
 
         return view('employee.reservations', compact('reservations'));
     }
+    public function showGuests() // (Or whatever your method is named)
+    {
+        // 1. Fetch the reservations with their related data
+        $reservations = \App\Models\Reservation::with(['user', 'room', 'venue', 'foods'])
+                        ->orderBy('created_at', 'desc')
+                        ->get();
+
+        // 2. Pass the $reservations variable to the view
+        return view('employee.guest', compact('reservations'));
+    }
 }

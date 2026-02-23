@@ -38,7 +38,7 @@ Route::get('client.room_venue', [RoomVenueController::class, 'index'])->name('cl
                 return view('employee.dashboard', compact('foods'));
             })->name('employee.dashboard');
             Route::get('/reservations', [ReservationController::class, 'adminIndex'])->name('reservations');
-            Route::get('/guest', action: fn() => view('employee.guest'))->name('guest');
+            Route::get('/guest', [ReservationController::class, 'showGuests'])->name('guest');
             Route::get('/accounts', [AccountController::class, 'index'])->name('accounts');
             Route::get('/room_venue', [RoomVenueController::class, 'adminIndex'])->name('room_venue');
         });
