@@ -32,7 +32,7 @@
                 <span class="icon">🏛️</span>
                 <span>Rooms / Venue</span>
             </a>
-            <a href="#" class="nav-item">
+            <a href="{{route('employee.eventlogs')}}" class="nav-item {{ request()->routeIs('employee.eventlogs') ? 'active' : '' }}" class="nav-item">
                 <span class="icon">📋</span>
                 <span>Event Logs</span>
             </a>
