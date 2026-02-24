@@ -1,4 +1,4 @@
-@vite('resources/js/add_room_venue.js')
+@vite('resources/js/employee/add_room_venue.js')
 
 <div class="modal-backdrop">
   <div class="modal">
@@ -61,7 +61,7 @@
           </div>
         </div>
         
-        <div class="form-grid" id="venue-form" style="display: none;">
+        <div class="form-grid" id="venue-form">
            <div class="form-column">
             
             <div class="form-group">

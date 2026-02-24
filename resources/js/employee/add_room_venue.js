@@ -1,5 +1,4 @@
 document.addEventListener('DOMContentLoaded', () => {
-
   const modal = document.querySelector('.modal-backdrop');
   const addButton = document.getElementById('add_room_venue_button');
   const cancelButton = document.getElementById('close-modal');
@@ -9,22 +8,40 @@ document.addEventListener('DOMContentLoaded', () => {
   const venueOption = document.getElementById('venue-option');
   const roomForm = document.getElementById('room-form');
   const venueForm = document.getElementById('venue-form');
+
   const createWhatTitle = document.querySelector('.modal-title');
   const createWhat = document.getElementById('create-reservation');
   const saveWhat = document.getElementById('save-what');
 
-  function openModal(){
-    modal.classList.toggle('show');
-  }
+  if (!modal) return;
+
+  const openModal = () => {
+    modal.classList.add('show');
+    activate('room');
+  };
+
+  const closeModal = () => {
+    modal.classList.remove('show');
+  };
 
   addButton?.addEventListener('click', openModal);
-  cancelButton?.addEventListener('click', openModal);
-  closeButton?.addEventListener('click', openModal);
+  cancelButton?.addEventListener('click', closeModal);
+  closeButton?.addEventListener('click', closeModal);
+
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) closeModal();
+  });
+
+  // close on ESC
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeModal();
+  });
 
   function activate(type) {
+    if (!roomOption || !venueOption || !roomForm || !venueForm) return;
+
     roomOption.classList.remove('tab-active');
     venueOption.classList.remove('tab-active');
-
     roomForm.classList.remove('active');
     venueForm.classList.remove('active');
 
@@ -32,23 +49,19 @@ document.addEventListener('DOMContentLoaded', () => {
       roomOption.classList.add('tab-active');
       roomForm.classList.add('active');
 
-      createWhatTitle.textContent = "Create Room";
-      createWhat.textContent = "Create a Room Reservation";
-      saveWhat.textContent = "Save Room";
+      if (createWhatTitle) createWhatTitle.textContent = 'Create Room';
+      if (createWhat) createWhat.textContent = 'Create a Room Reservation';
+      if (saveWhat) saveWhat.textContent = 'Save Room';
     } else {
       venueOption.classList.add('tab-active');
       venueForm.classList.add('active');
 
-      createWhatTitle.textContent = "Create Venue";
-      createWhat.textContent = "Create a Venue Reservation";
-      saveWhat.textContent = "Save Venue";
+      if (createWhatTitle) createWhatTitle.textContent = 'Create Venue';
+      if (createWhat) createWhat.textContent = 'Create a Venue Reservation';
+      if (saveWhat) saveWhat.textContent = 'Save Venue';
     }
-
-    console.log('roomForm active:', roomForm.classList.contains('active'));
-    console.log('venueForm active:', venueForm.classList.contains('active'));
   }
 
   roomOption?.addEventListener('click', () => activate('room'));
   venueOption?.addEventListener('click', () => activate('venue'));
-
 });
