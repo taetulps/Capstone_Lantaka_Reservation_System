@@ -106,9 +106,12 @@
         </div>
 
         <!-- Submit Button -->
-        <button type="submit" class="submit-btn">Sign Up</button>
-        <p class="signup-text">
+         <div class="signup-bottom-section">
+         <button type="submit" class="submit-btn">Sign Up</button>
+          <p class="signup-text">
                 Already have an account? <a href="{{ route('login') }}" class="signup-link">Login</a>
+         </div>
+        
       </form>
     </div>
   </div>

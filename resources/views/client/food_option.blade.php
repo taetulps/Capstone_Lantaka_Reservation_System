@@ -1,16 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Food Reservation - Lantaka</title>
+@extends('layouts.client')
   <link rel="stylesheet" href="{{ asset('css/client_food_options.css') }}">
   @vite('resources/js/client_food_option.js')
-</head>
-<body>
-  <!-- Header -->
 
-
+@section('content')
   <main class="main-content">
     
     <form action="{{ route('checkout') }}" method="GET" id="foodReservationForm">
@@ -23,7 +15,9 @@
 
       <div class="back-section">
         <button type="button" class="back-btn" onclick="window.history.back();">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="15 18 9 12 15 6"></polyline></svg>
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <path d="M15 10H5M5 10L10 15M5 10L10 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
           <span>Back</span>
         </button>
       </div>
@@ -166,6 +160,4 @@
         </div>
       </div>
     </div>
-  </main>
-</body>
-</html>
+@endsection

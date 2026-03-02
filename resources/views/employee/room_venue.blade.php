@@ -79,9 +79,6 @@
               </div>
             </section>
           </div> 
-          <section class="description-show">
-            
-          </section>
           </div>
       </div>
   <!-- Add Room Venue Modal -->

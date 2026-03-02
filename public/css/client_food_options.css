@@ -17,18 +17,6 @@
   --disabled-gray: #ccc;
 }
 
-body {
-  font-family: "Alexandria", sans-serif;
-  background-image: url('/images/index_background.png');
-  background-size: cover;
-  background-position: center;
-  background-attachment: fixed;
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  height: 100%;
-}
-
 /* Header */
 
 /* Main Content */
@@ -37,7 +25,6 @@ body {
   width: 100%;
   height: 100%;
   margin: 0;
-  padding: 30px 145px;
   background-color: #F3F5EB;
 }
 
@@ -46,22 +33,23 @@ body {
 }
 
 .back-btn {
-  background: none;
-  border: none;
   display: flex;
   align-items: center;
   gap: 8px;
+  background: none;
+  border: 2px solid #1a1a1a;
+  border-radius: 50px;
+  padding: 8px 20px;
+  cursor: pointer;
   font-size: 16px;
   font-weight: 600;
-  color: var(--text-dark);
-  cursor: pointer;
-  padding: 8px 12px;
-  border-radius: 8px;
-  transition: background-color 0.3s ease;
+  color: #1a1a1a;
+  transition: all 0.3s ease;
 }
 
 .back-btn:hover {
-  background-color: var(--light-gray);
+  background-color: #1a1a1a;
+  color: white;
 }
 
 /* Reservation Card */
