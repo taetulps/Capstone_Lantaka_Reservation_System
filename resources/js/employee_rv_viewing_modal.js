@@ -1,35 +1,46 @@
-// resources/js/employee_rv_viewing_modal.js
-
 document.addEventListener('DOMContentLoaded', () => {
-  const overlay = document.getElementById('rvModalOverlay')
-  const modal = document.getElementById('rvEditModal')
 
-  const closeBtn = document.getElementById('rvCloseModal')
-  const cancelBtn = document.getElementById('rvCancelBtn')
+  const overlay = document.getElementById('rvModalOverlay');
+  const modal = document.getElementById('rvEditModal');
 
-  // 👉 CHANGE THIS selector to whatever should OPEN the modal
-  // Example: clicking a room card
-  const openTriggers = document.querySelectorAll('.room-card, .venue-card')
+  const closeBtn = document.getElementById('rvCloseModal');
+  const cancelBtn = document.getElementById('rvCancelBtn');
+  const createReservationBtn = document.getElementById('rvCreateReservation');
+
+  const openTriggers = document.querySelectorAll('.room-card, .venue-card');
+
+  if (!overlay || !modal) return;
 
   function openModal() {
-    overlay.classList.add('active')
-    modal.classList.add('active')
+    overlay.classList.add('active');
+    modal.classList.add('active');
   }
 
   function closeModal() {
-    overlay.classList.remove('active')
-    modal.classList.remove('active')
+    overlay.classList.remove('active');
+    modal.classList.remove('active');
   }
 
-  // open modal
+  // Open viewing modal
   openTriggers.forEach(el => {
-    el.addEventListener('click', openModal)
-  })
+    el.addEventListener('click', openModal);
+  });
 
-  // close buttons
-  closeBtn?.addEventListener('click', closeModal)
-  cancelBtn?.addEventListener('click', closeModal)
+  // Close viewing modal
+  closeBtn?.addEventListener('click', closeModal);
+  cancelBtn?.addEventListener('click', closeModal);
 
-  // click outside modal closes it
-  overlay?.addEventListener('click', closeModal)
-})
+  // Clicking outside closes
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) {
+      closeModal();
+    }
+  });
+
+  // If "Create Reservation" is clicked,
+  // just close this modal. The other JS will open CR modal.
+  createReservationBtn?.addEventListener('click', () => {
+    closeModal();
+  });
+
+});
