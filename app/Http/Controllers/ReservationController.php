@@ -173,16 +173,14 @@ class ReservationController extends Controller
         $query = Reservation::with(['user', 'room', 'venue', 'foods']);
 
         // 2. Apply Search and Dropdown Filters (Date, Type, etc.)
-        // We apply these FIRST so the card numbers reflect your search results
-        
-        if ($request->filled('search')) {
-<<<<<<< HEAD
-            $searchTerm = $request->search;
+        // We apply these FIRST so the card numbers reflect your search results\
+        $searchTerm = $request->search;
             $query->where(function($q) use ($searchTerm) {
                 $q->whereHas('user', fn($u) => $u->where('name', 'LIKE', "%{$searchTerm}%"))
                 ->orWhereHas('room', fn($r) => $r->where('room_number', 'LIKE', "%{$searchTerm}%"))
                 ->orWhereHas('venue', fn($v) => $v->where('name', 'LIKE', "%{$searchTerm}%"));
-=======
+        
+        if ($request->filled('search')) {
 
             $raw = trim($request->search);
             $normalized = mb_strtolower($raw);
@@ -221,7 +219,6 @@ class ReservationController extends Controller
         
                 }
         
->>>>>>> db3f70b232eb47f3c8f872a4dc10544a3d627f21
             });
         }
 
