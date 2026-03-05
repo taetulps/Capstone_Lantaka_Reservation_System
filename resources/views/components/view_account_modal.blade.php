@@ -10,12 +10,12 @@
         <div class="account-row">
           <div class="account-field">
             <label>Username</label>
-            <input type="text" value="LRS-Suzie">
+            <input type="text" id="view_username">
           </div>
           <div class="account-field">
             <label>Password</label>
             <div class="account-password">
-              <input type="password" value="password123">
+              <input type="password" placeholder="Leave blank to keep current">
               <span class="account-eye">👁‍🗨</span>
             </div>
           </div>
@@ -24,33 +24,33 @@
         <div class="account-row">
           <div class="account-field">
             <label>First Name</label>
-            <input type="text" value="Suzie">
+            <input type="text" id="view_fname">
           </div>
           <div class="account-field">
             <label>Last Name</label>
-            <input type="text" value="Ko">
+            <input type="text" id="view_lname">
           </div>
         </div>
 
         <div class="account-row">
           <div class="account-field">
             <label>Phone Number</label>
-            <input type="text" value="09972221124">
+            <input type="text" id="view_phone">
           </div>
           <div class="account-field">
             <label>Email</label>
-            <input type="text" value="anditooh22@gmail.com">
+            <input type="text" id="view_email">
           </div>
         </div>
 
         <div class="account-field full-width">
-          <label>ID</label>
-          <textarea></textarea>
+          <label>ID Info</label>
+          <textarea id="view_id_info"></textarea>
         </div>
 
-        <div class="account-buttons">
-          <button type="button" class="account-btn deactivate" onclick="closeAccountModal()">DEACTIVATE</button>
-          <button type="submit" class="account-btn save">SAVE</button>
+        <div class="approval-buttons">
+            <button type="button" class="approval-btn decline btn-decline">DEACTIVATE</button>
+            <button type="button" class="approval-btn accept btn-accept">SAVE</button>
         </div>
       </form>
     </div>

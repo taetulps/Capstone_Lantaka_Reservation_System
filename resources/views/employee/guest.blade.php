@@ -21,28 +21,28 @@
                   <a href="{{ request()->fullUrlWithQuery(['status' => 'confirmed']) }}" style="text-decoration: none; color: inherit;">
                       <div class="status-card pending {{ request('status') == 'confirmed' ? 'active' : '' }}">
                           <div class="status-label">Pending</div>
-                          <div class="status-number">{{ $reservations->where('status', 'confirmed')->count() }}</div>
+                          <div class="status-number">{{ $allForCounts->where('status', 'confirmed')->count() }}</div>
                       </div>
                   </a>
 
                   <a href="{{ request()->fullUrlWithQuery(['status' => 'checked-in']) }}" style="text-decoration: none; color: inherit;">
                       <div class="status-card confirmed {{ request('status') == 'checked-in' ? 'active' : '' }}">
                           <div class="status-label">Checked-in</div>
-                          <div class="status-number">{{ $reservations->whereIn('status', ['checked-in', 'approved'])->count() }}</div>
+                          <div class="status-number">{{ $allForCounts->where('status', ['checked-in', 'approved'])->count() }}</div>
                       </div>
                   </a>
 
                   <a href="{{ request()->fullUrlWithQuery(['status' => 'checked-out']) }}" style="text-decoration: none; color: inherit;">
                       <div class="status-card completed {{ request('status') == 'checked-out' ? 'active' : '' }}">
                           <div class="status-label">Checked-out</div>
-                          <div class="status-number">{{ $reservations->where('status', 'checked-out')->count() }}</div>
+                          <div class="status-number">{{ $allForCounts->where('status', 'checked-out')->count() }}</div>
                       </div>
                   </a>
 
                   <a href="{{ request()->fullUrlWithQuery(['status' => 'cancelled']) }}" style="text-decoration: none; color: inherit;">
                       <div class="status-card cancelled {{ request('status') == 'cancelled' ? 'active' : '' }}">
                           <div class="status-label">Cancelled</div>
-                          <div class="status-number">{{ $reservations->whereIn('status', ['cancelled', 'declined'])->count() }}</div>
+                          <div class="status-number">{{ $allForCounts->whereIn('status', ['cancelled', 'declined'])->count() }}</div>
                       </div>
                   </a>
               </div>

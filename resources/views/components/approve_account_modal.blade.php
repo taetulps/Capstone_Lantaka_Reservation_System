@@ -10,12 +10,12 @@
         <div class="approval-row">
           <div class="approval-field">
             <label>Username</label>
-            <input type="text" value="LRS-Suzie" readonly>
+            <input type="text" id="approve_username" readonly>
           </div>
           <div class="approval-field">
             <label>Password</label>
             <div class="approval-password">
-              <input type="password" value="password123" readonly>
+              <input type="password" value="********" readonly>
               <span class="approval-eye">👁‍🗨</span>
             </div>
           </div>
@@ -24,34 +24,37 @@
         <div class="approval-row">
           <div class="approval-field">
             <label>First Name</label>
-            <input type="text" value="Suzie" readonly>
+            <input type="text" id="approve_fname" readonly>
           </div>
           <div class="approval-field">
             <label>Last Name</label>
-            <input type="text" value="Ko" readonly>
+            <input type="text" id="approve_lname" readonly>
           </div>
         </div>
 
         <div class="approval-row">
           <div class="approval-field">
             <label>Phone Number</label>
-            <input type="text" value="09972221124" readonly>
+            <input type="text" id="approve_phone" readonly>
           </div>
           <div class="approval-field">
             <label>Email</label>
-            <input type="text" value="anditooh22@gmail.com" readonly>
+            <input type="text" id="approve_email" readonly>
           </div>
         </div>
 
         <div class="approval-field full-width">
-          <label>ID</label>
-          <textarea readonly></textarea>
+            <label>ID / Proof of Identity</label>
+            <div class="id-preview-container" style="border: 1px solid #ccc; padding: 10px; border-radius: 5px; margin-top: 5px; text-align: center;">
+                <img id="approve_id_image" src="" alt="Valid ID" style="max-width: 100%; max-height: 250px; display: none;">
+                <p id="approve_no_id" style="color: #999;">No image available</p>
+            </div>
         </div>
-
+        
         <div class="approval-buttons">
-          <button type="button" class="approval-btn decline">DECLINE</button>
-          <button type="button" class="approval-btn accept">ACCEPT</button>
+            <button type="button" class="approval-btn decline btn-decline">DECLINE</button>
+            <button type="button" class="approval-btn accept btn-accept">ACCEPT</button>
         </div>
       </form>
     </div>
-  </div>  
+  </div>

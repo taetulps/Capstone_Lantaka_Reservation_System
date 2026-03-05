@@ -19,21 +19,21 @@
               <a href="{{ request()->fullUrlWithQuery(['status' => 'pending']) }}" style="text-decoration: none; color: inherit;">
                 <div class="status-card pending {{ request('status') == 'pending' ? 'active' : '' }}">
                   <div class="status-label">Pending</div>
-                  <div class="status-number">{{ $reservations->where('status', 'pending')->count() }}</div>
+                  <div class="status-number">{{ $allForCounts->where('status', 'pending')->count() }}</div>
                 </div>
               </a>
               
               <a href="{{ request()->fullUrlWithQuery(['status' => 'confirmed']) }}" style="text-decoration: none; color: inherit;">
                 <div class="status-card confirmed {{ request('status') == 'confirmed' ? 'active' : '' }}">
                   <div class="status-label">Confirmed</div>
-                  <div class="status-number">{{ $reservations->where('status', 'confirmed')->count() }}</div>
+                  <div class="status-number">{{ $allForCounts->where('status', 'confirmed')->count() }}</div>
                 </div>
               </a>
 
               <a href="{{ request()->fullUrlWithQuery(['status' => 'completed']) }}" style="text-decoration: none; color: inherit;">
                 <div class="status-card completed {{ request('status') == 'completed' ? 'active' : '' }}">
                   <div class="status-label">Completed</div>
-                  <div class="status-number">{{ $reservations->where('status', 'completed')->count() }}</div>
+                  <div class="status-number">{{ $allForCounts->where('status', 'completed')->count() }}</div>
                 </div>
               </a>
 
@@ -42,7 +42,7 @@
                     <div class="status-label">Cancelled</div>
                     <div class="status-number">
                         {{-- Count cancelled, declined, and rejected together --}}
-                        {{ $reservations->whereIn('status', ['cancelled', 'declined', 'rejected'])->count() }}
+                        {{ $allForCounts->whereIn('status', ['cancelled', 'declined', 'rejected'])->count() }}
                     </div>
                 </div>
               </a>

@@ -65,9 +65,9 @@
                   <td>
 
                     @if($user->status == 'pending')
-                        <button class="action-btn-approve" title="Review Account">👁️</button>
+                        <button class="action-btn-approve" data-user="{{ json_encode($user) }}">👁️</button>
                     @else
-                        <button class="action-btn-view">✎</button>
+                        <button class="action-btn-view" data-user="{{ json_encode($user) }}">✎</button>
                     @endif
 
                   </td>

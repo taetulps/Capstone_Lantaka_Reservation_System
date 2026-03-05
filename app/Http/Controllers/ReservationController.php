@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\Room;   
 use App\Models\Venue;
 use Carbon\Carbon;
+use App\Mail\ReservationConfirmationMail;
+use Illuminate\Support\Facades\Mail;
 
 class ReservationController extends Controller
 {
@@ -98,13 +100,23 @@ class ReservationController extends Controller
             'status' => 'pending'
         ]);
 
+        try {
+        // Load relationships so the email can show the Room/Venue name
+        $reservation->load(['room', 'venue', 'user']);
+        
+        \Illuminate\Support\Facades\Mail::to(auth()->user()->email)
+            ->send(new \App\Mail\ReservationConfirmationMail($reservation));
+            
+        } catch (\Exception $e) {
+            // Log error so the checkout still finishes even if Gmail fails
+            \Log::error("Reservation Email Error: " . $e->getMessage());
+        }
+
         // 2. Retrieve the booking data from the session
         $uniqueKey = $request->type . '_' . $request->id;
         $allBookings = session('pending_bookings', []);
         $bookingData = $allBookings[$uniqueKey] ?? null;
 
-        // --- THE FIX: Save the food to the pivot table ---
-        // Check if there is food associated with this specific booking in the session
         if ($bookingData && !empty($bookingData['selected_foods'])) {
             
             // 1. Get the actual Food models for the IDs the client selected
@@ -115,8 +127,6 @@ class ReservationController extends Controller
             // 2. Loop through them to build an array with the extra 'total_price' column
             foreach ($foods as $food) {
                 $attachData[$food->food_id] = [
-                    // Assuming catering is priced per head (Food Price x Number of Pax)
-                    // Note: If food is a flat rate, just remove the " * $request->pax"
                     'total_price' => $food->food_price * $request->pax
                 ];
             }
@@ -158,146 +168,143 @@ class ReservationController extends Controller
     // 4. Admin Page
     public function adminIndex(Request $request)
     {
-        // 1. Start the query without getting the results yet
+        // 1. Start the base query
         $query = Reservation::with(['user', 'room', 'venue', 'foods']);
 
-        // 2. LOGIC: Search Bar (Searches User Name, Room Number, or Venue Name)
+        // 2. Apply Search and Dropdown Filters (Date, Type, etc.)
+        // We apply these FIRST so the card numbers reflect your search results
+        
         if ($request->filled('search')) {
             $searchTerm = $request->search;
-            
             $query->where(function($q) use ($searchTerm) {
-                $q->whereHas('user', function($userQuery) use ($searchTerm) {
-                    $userQuery->where('name', 'LIKE', "%{$searchTerm}%");
-                })
-                ->orWhereHas('room', function($roomQuery) use ($searchTerm) {
-                    $roomQuery->where('room_number', 'LIKE', "%{$searchTerm}%");
-                })
-                ->orWhereHas('venue', function($venueQuery) use ($searchTerm) {
-                    // THE PROBLEM IS RIGHT HERE:
-                    $venueQuery->where('name', 'LIKE', "%{$searchTerm}%") 
-                            ->orWhere('name', 'LIKE', "%{$searchTerm}%");
-                });
+                $q->whereHas('user', fn($u) => $u->where('name', 'LIKE', "%{$searchTerm}%"))
+                ->orWhereHas('room', fn($r) => $r->where('room_number', 'LIKE', "%{$searchTerm}%"))
+                ->orWhereHas('venue', fn($v) => $v->where('name', 'LIKE', "%{$searchTerm}%"));
             });
         }
 
-        // 3. LOGIC: Date Filter
         if ($request->filled('date')) {
             $now = \Carbon\Carbon::now();
-            if ($request->date === 'last_week') {
-                $query->where('created_at', '>=', $now->subWeek());
-            } elseif ($request->date === 'last_month') {
-                $query->where('created_at', '>=', $now->subMonth());
-            } elseif ($request->date === 'last_year') {
-                $query->where('created_at', '>=', $now->subYear());
-            }
+            if ($request->date === 'last_week') $query->where('created_at', '>=', $now->subWeek());
+            elseif ($request->date === 'last_month') $query->where('created_at', '>=', $now->subMonth());
+            elseif ($request->date === 'last_year') $query->where('created_at', '>=', $now->subYear());
         }
 
-        // 4. LOGIC: Accommodation Type Filter
+        if ($request->filled('client_type')) {
+            $query->whereHas('user', fn($q) => $q->where('usertype', $request->client_type));
+        }
+
         if ($request->filled('accommodation_type')) {
             $query->where('type', $request->accommodation_type);
         }
 
+        // --- STEP 3: SNAPSHOT FOR COUNTS ---
+        // This variable contains all items matching your filters above.
+        // Use this in your Blade file for the card numbers.
+        $allForCounts = $query->get();
+
+        // --- STEP 4: APPLY TABLE-SPECIFIC STATUS FILTER ---
         if ($request->filled('status')) {
-            $query->where('status', $request->status);
-        }
-        if ($request->get('status') === 'cancelled') {
-            // This ensures any of these database statuses show up when "Cancelled" is clicked
-            $query->whereIn('status', ['cancelled', 'declined', 'rejected']);
-        }
-
-        // 5. LOGIC: Client Type Filter (Assuming usertype is in your users table)
-        if ($request->filled('client_type')) {
-            $clientType = $request->client_type;
-            $query->whereHas('user', function($q) use ($clientType) {
-                $q->where('usertype', $clientType); 
-            });
+            $status = $request->status;
+            if ($status === 'cancelled') {
+                // Grouping cancelled, declined, and rejected for the "Cancelled" card/view
+                $query->whereIn('status', ['cancelled', 'declined', 'rejected']);
+            } else {
+                $query->where('status', $status);
+            }
         }
 
-        // 6. Finally, execute the query and get the results
+        // 5. Final execution for the Table rows
         $reservations = $query->orderBy('created_at', 'desc')->get();
 
-        return view('employee.reservations', compact('reservations'));
+        return view('employee.reservations', compact('reservations', 'allForCounts'));
     }
     public function showGuests(\Illuminate\Http\Request $request) 
     {
-        // 1. Define the base guest statuses you want to track
-        $validStatuses = ['confirmed', 'checked-in', 'checked-out', 'cancelled', 'declined', 'completed'];
+        // 1. Define the base guest statuses
+        $validStatuses = ['confirmed', 'checked-in', 'checked-out', 'cancelled', 'declined', 'completed', 'approved', 'rejected'];
 
         // 2. Start the query
         $query = \App\Models\Reservation::with(['user', 'room', 'venue', 'foods']);
 
-        // 3. LOGIC: Status Card Filtering
-        if ($request->filled('status')) {
-            $status = strtolower($request->status);
-            
-            // Handle grouped statuses for specific cards
-            if ($status === 'checked-in') {
-                $query->whereIn('status', ['checked-in', 'approved']);
-            } elseif ($status === 'cancelled') {
-                $query->whereIn('status', ['cancelled', 'declined']);
-            } else {
-                $query->where('status', $status);
-            }
-        } else {
-            // Default view: Show everything except 'pending' (which stays on the Reservations page)
-            $query->whereIn('status', $validStatuses);
-        }
-
-        // 4. SEARCH LOGIC (Existing)
+        // 3. APPLY GENERAL FILTERS FIRST (Affects both Table and Cards)
+        
+        // Search Logic
         if ($request->filled('search')) {
             $searchTerm = $request->search;
             $query->where(function($q) use ($searchTerm) {
-                $q->whereHas('user', function($userQ) use ($searchTerm) {
-                    $userQ->where('name', 'LIKE', "%{$searchTerm}%");
-                })
-                ->orWhereHas('room', function($roomQ) use ($searchTerm) {
-                    $roomQ->where('room_number', 'LIKE', "%{$searchTerm}%");
-                })
-                ->orWhereHas('venue', function($venueQ) use ($searchTerm) {
-                    $venueQ->where('name', 'LIKE', "%{$searchTerm}%"); 
-                });
+                $q->whereHas('user', fn($u) => $u->where('name', 'LIKE', "%{$searchTerm}%"))
+                ->orWhereHas('room', fn($r) => $r->where('room_number', 'LIKE', "%{$searchTerm}%"))
+                ->orWhereHas('venue', fn($v) => $v->where('name', 'LIKE', "%{$searchTerm}%"));
             });
         }
 
-        // 5. DATE LOGIC (Existing)
+        // Date Logic
         if ($request->filled('date')) {
             $now = \Carbon\Carbon::now();
-            if ($request->date === 'last_week') {
-                $query->where('created_at', '>=', $now->subDays(7));
-            } elseif ($request->date === 'last_month') {
-                $query->where('created_at', '>=', $now->subDays(30));
-            } elseif ($request->date === 'last_year') {
-                $query->where('created_at', '>=', $now->startOfYear());
-            }
+            if ($request->date === 'last_week') $query->where('created_at', '>=', $now->subDays(7));
+            elseif ($request->date === 'last_month') $query->where('created_at', '>=', $now->subDays(30));
+            elseif ($request->date === 'last_year') $query->where('created_at', '>=', $now->startOfYear());
         }
 
-        // 6. CLIENT & ACCOMMODATION TYPE LOGIC (Existing)
+        // Client & Accommodation Type Logic
         if ($request->filled('client_type')) {
-            $query->whereHas('user', function($q) use ($request) {
-                $q->where('usertype', $request->client_type);
-            });
+            $query->whereHas('user', fn($q) => $q->where('usertype', $request->client_type));
         }
 
         if ($request->filled('accommodation_type')) {
             $query->where('type', $request->accommodation_type);
         }
 
-        // 7. Execute and return
+        // --- CRITICAL SNAPSHOT: GET ALL MATCHING GUESTS FOR COUNTS ---
+        // We filter by $validStatuses here so 'pending' items never show up on the Guest page
+        $allForCounts = (clone $query)->whereIn('status', $validStatuses)->get();
+
+        // 4. APPLY STATUS CARD FILTERING (Affects ONLY the Table)
+        if ($request->filled('status')) {
+            $status = strtolower($request->status);
+            if ($status === 'checked-in') {
+                $query->whereIn('status', ['checked-in', 'approved']);
+            } elseif ($status === 'cancelled') {
+                $query->whereIn('status', ['cancelled', 'declined', 'rejected']);
+            } elseif ($status === 'checked-out') {
+                $query->whereIn('status', ['checked-out', 'completed']);
+            } else {
+                $query->where('status', $status);
+            }
+        } else {
+            // Default view: Show everything except 'pending'
+            $query->whereIn('status', $validStatuses);
+        }
+
+        // 5. Execute and return
         $reservations = $query->orderBy('created_at', 'desc')->get();
 
-        return view('employee.guest', compact('reservations'));
+        return view('employee.guest', compact('reservations', 'allForCounts'));
     }
     public function updateStatus(Request $request, $id)
     {
-        $reservation = Reservation::findOrFail($id);
+        // 1. Find the reservation and LOAD relationships
+        $reservation = Reservation::with(['user', 'room', 'venue'])->findOrFail($id);
 
-        // Force lowercase to ensure consistency with your Blade counts
         $newStatus = strtolower($request->status); 
 
+        // 2. Perform the update in the database
         $reservation->update([
             'status' => $newStatus
         ]);
 
-        return redirect()->back()->with('success', 'Reservation ' . $newStatus);
+        // 3. TRIGGER EMAIL ONLY IF STATUS IS 'CHECKED-OUT'
+        if ($newStatus === 'checked-out' || $newStatus === 'completed') {
+            try {
+                \Illuminate\Support\Facades\Mail::to($reservation->user->email)
+                    ->send(new \App\Mail\GuestCheckOutMail($reservation));
+            } catch (\Exception $e) {
+                // Log error so the admin isn't blocked if the email fails
+                \Log::error("Check-out Email Error: " . $e->getMessage());
+            }
+        }
+
+        return redirect()->back()->with('success', 'Guest ' . $newStatus . ' successfully.');
     }
 }
