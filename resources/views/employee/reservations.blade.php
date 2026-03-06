@@ -135,19 +135,24 @@
                             ? 'Room: ' . ($reservation->room->room_number ?? 'N/A') 
                             : 'Venue: ' . ($reservation->venue->Venue_Name ?? $reservation->venue->name ?? 'N/A');
 
+                        $price = $reservation->total_amount;
+
                         $foodItems = isset($reservation->foods) ? $reservation->foods->groupBy('food_category') : [];
+
                       @endphp
 
                       <button class="expand-btn"
                               data-info="{{ json_encode([
                                   'id' => str_pad($reservation->id, 5, '0', STR_PAD_LEFT),
-                                  'status' => strtolower($reservation->status), // Changed $res to $reservation
+                                  'status' => ucfirst($reservation->status), // Changed $res to $reservation
                                   'name' => $reservation->user->name ?? 'Unknown',
                                   'accommodation' => $accName,
+                                  'price' => $price,
                                   'pax' => $reservation->pax,
                                   'check_in' => \Carbon\Carbon::parse($reservation->check_in)->format('F d, Y'),
                                   'check_out' => \Carbon\Carbon::parse($reservation->check_out)->format('F d, Y'),
                                   'foods' => $reservation->foods
+
                               ]) }}">
                         ⤢
                       </button>

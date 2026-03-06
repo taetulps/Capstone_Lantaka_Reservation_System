@@ -135,21 +135,25 @@
                   </td>
 
                   @php
+                      $price=$res->total_amount;
                       $accName = '';
                       if($res->type === 'room' && $res->room) {
                           $accName = 'Room ' . $res->room->room_number;
                       } elseif($res->type === 'venue' && $res->venue) {
                           $accName = 'Venue: ' . $res->venue->name;
                       }
+
                   @endphp
                   
                   <td class="action-cell">
                       {{-- We are removing the Check-in form/button from here --}}
-                      <button class="expand-btn" data-info="{{ json_encode([
+                      <button class="expand-btn" data-info="{{
+                      json_encode([
                           'id' => $res->id,
-                          'status' => strtolower($res->status),
+                          'status' => ucfirst($res->status),
                           'name' => $res->user->name ?? $res->user->first_name ?? 'Unknown',
                           'accommodation' => $accName,
+                          'price' => $price,
                           'pax' => $res->pax,
                           'check_in' => \Carbon\Carbon::parse($res->check_in)->format('F d, Y'),
                           'check_out' => \Carbon\Carbon::parse($res->check_out)->format('F d, Y'),

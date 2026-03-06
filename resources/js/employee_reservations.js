@@ -2,68 +2,87 @@ document.addEventListener('DOMContentLoaded', () => {
   const expandButtons = document.querySelectorAll('.expand-btn');
   const modalOverlay = document.querySelector('.modal-overlay');
   const closeBtn = document.querySelector('.close-btn');
-  console.log("employee_reservations.js connection working")
+  const statusForm = document.getElementById('statusForm');
+  const statusInput = document.getElementById('statusInput');
+  
+  console.log("employee_reservations.js connection working");
+
+  // --- OPEN MODAL AND POPULATE DATA ---
   expandButtons.forEach(button => {
     button.addEventListener('click', function () {
       const rawData = this.getAttribute('data-info');
       const data = JSON.parse(rawData);
 
-      // --- 1. DYNAMICALLY UPDATE FORM ACTION ---
+      // 1. Update form action dynamically
       if (statusForm) {
         statusForm.action = `/employee/reservations/${Number(data.id)}/status`;
       }
 
-      // --- NEW: TOGGLE MODAL BUTTONS BASED ON STATUS ---
-      // We assume your data-info now includes: 'status' => strtolower($res->status)
-      // --- TOGGLE MODAL BUTTONS BASED ON STATUS ---
-      // --- TOGGLE MODAL BUTTONS ---
-      // 1. Get the status from the button data
+      // 2. Get current status and toggle appropriate action buttons
       const currentStatus = data.status ? data.status.toLowerCase().trim() : '';
-
-      // 2. Identify the groups
-      const groups = {
+      
+      const statusGroups = {
         'pending': document.getElementById('pendingActions'),
         'confirmed': document.getElementById('confirmedActions'),
-        'checked-in': document.getElementById('checkedInActions')
+        'checked-in': document.getElementById('checkedInActions'),
+        'checked-out': document.getElementById('cancelledActions'),
+        'cancelled': document.getElementById('cancelledActions')
       };
 
-      // 3. Hide all groups first
-      Object.values(groups).forEach(group => {
+      // Hide all action groups, then show only the one matching current status
+      Object.values(statusGroups).forEach(group => {
         if (group) group.style.display = 'none';
       });
 
-      // 4. Show only the one matching the current status
-      if (groups[currentStatus]) {
-        groups[currentStatus].style.display = 'flex';
-      } else {
-        // Fallback: If status is unknown, show Pending buttons so you aren't stuck
-        if (groups['pending']) groups['pending'].style.display = 'flex';
+      if (statusGroups[currentStatus]) {
+        statusGroups[currentStatus].style.display = 'flex';
+      } else if (statusGroups['pending']) {
+        statusGroups['pending'].style.display = 'flex';
       }
 
-      // THIS LINE MUST BE AT THE END
-      modalOverlay.style.display = 'flex';
-
-      // --- 2. SPLIT THE NAME ---
+      // 3. Populate form and summary fields
       let fullName = data.name || 'Unknown';
       let nameParts = fullName.trim().split(' ');
-      document.getElementById('modalName').textContent = nameParts[0];
-      document.getElementById('modalLastName').textContent = nameParts.length > 1 ? nameParts.slice(1).join(' ') : '';
+      document.getElementById('modalTitle').textContent = data.status + " Reservation";
+      document.getElementById('firstName').value = nameParts[0] || '';
+      document.getElementById('lastName').value = nameParts.length > 1 ? nameParts.slice(1).join(' ') : '';
+      document.getElementById('modalName').textContent = data.accommodation || 'N/A';
+      document.getElementById('modalLastName').textContent = data.pax || '1';
+      document.getElementById('modalCheckIn').textContent = data.check_in || '';
+      document.getElementById('modalCheckOut').textContent = data.check_out || '';
+      document.getElementById('accomodation-type').textContent = data.accommodation || '';
+      document.getElementById('unit-price').textContent = `₱` +  data.price || '';
+      document.getElementById('totalAmount').textContent = `₱` +  data.price|| '';
 
-      // --- 3. BASIC INFO ---
-      document.getElementById('modalCheckIn').textContent = data.check_in;
-      document.getElementById('modalCheckOut').textContent = data.check_out;
-      document.getElementById('modalFoodIdLabel').textContent = `Food ID (${data.id}):`;
 
-      // --- 4. HANDLE THE FOOD ---
+      // 4. Populate food list if available
       const foodListContainer = document.getElementById('modalFoodList');
-      // ... (Your existing food logic remains the same) ...
+      if (foodListContainer && data.food_items) {
+        foodListContainer.innerHTML = data.food_items;
+      }
 
-      foodListContainer.innerHTML = foodHtml;
+      // 5. Open modal
       modalOverlay.style.display = 'flex';
     });
   });
 
-  // Global submit function
+  // --- CLOSE MODAL ---
+  if (closeBtn) {
+    closeBtn.addEventListener('click', () => {
+      modalOverlay.style.display = 'none';
+    });
+  }
+
+  // Close modal when clicking overlay background
+  if (modalOverlay) {
+    modalOverlay.addEventListener('click', (e) => {
+      if (e.target === modalOverlay) {
+        modalOverlay.style.display = 'none';
+      }
+    });
+  }
+
+  // --- GLOBAL SUBMIT FUNCTION ---
   window.submitStatus = function (statusValue) {
     if (statusInput && statusForm) {
       statusInput.value = statusValue;
@@ -71,41 +90,19 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
-  if (closeBtn) {
-    closeBtn.addEventListener('click', () => {
-      modalOverlay.style.display = 'none';
+  // --- STATUS FILTER CARD TOGGLE ---
+  const statusCards = document.querySelector('.status-cards');
+  if (statusCards) {
+    statusCards.addEventListener('click', (e) => {
+      const activeCard = e.target.closest('.status-card');
+      if (!activeCard) return;
+
+      const isActive = activeCard.classList.contains('active');
+      statusCards.querySelectorAll('.status-card').forEach(card => card.classList.remove('active'));
+
+      if (!isActive) {
+        activeCard.classList.add('active');
+      }
     });
   }
-
-  /* FILTER UI  */
-  const statusCards = document.querySelector('.status-cards');
-
-  statusCards.addEventListener('click', (e) => {
-    const activeCard = e.target.closest('.status-card');
-    if (!activeCard) return;
-
-    const isActive = activeCard.classList.contains('active');
-
-    statusCards.querySelectorAll('.status-card').forEach(c => c.classList.remove('active'));
-
-    if (!isActive) activeCard.classList.add('active');
-
-  })
-
-  const modal = document.querySelector('.modal-overlay')
-  const modalBody = document.querySelector('.modal-body')
-  const moreDetailsBtn = document.querySelector('.expand-btn')
-  const closeBtnModal = document.querySelector(".close-btn")
-
-  closeBtnModal.addEventListener('click', () => {
-    modal.classList.remove('show')
-  })
-
-  modal.addEventListener('click', (e) => {
-    if (e.target === modal) modal.classList.remove('show')
-  })
-
-  moreDetailsBtn.addEventListener('click', () => {
-    modal.classList.add('show')
-  })
 });
