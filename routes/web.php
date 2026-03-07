@@ -46,8 +46,10 @@ Route::get('client.room_venue', [RoomVenueController::class, 'index'])->name('cl
             Route::get('/eventlogs', action: fn() => view('employee.eventlogs'))->name('eventlogs');
             Route::post('/reservations/{id}/status', [ReservationController::class, 'updateStatus'])->name('reservations.updateStatus');
             Route::post('/accounts/{id}/update-status', [AccountController::class, 'updateStatus'])->name('accounts.updateStatus');
+
+            Route::get('/SOA', action: fn() => view('employee.SOA'))->name('SOA');
+
         });
-    
         Route::prefix('client')
         ->name('client.')
         ->middleware(['auth'])
