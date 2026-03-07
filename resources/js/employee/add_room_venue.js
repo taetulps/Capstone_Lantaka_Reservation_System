@@ -40,25 +40,36 @@ document.addEventListener('DOMContentLoaded', () => {
   function activate(type) {
     if (!roomOption || !venueOption || !roomForm || !venueForm) return;
 
-    roomOption.classList.remove('tab-active');
-    venueOption.classList.remove('tab-active');
-    roomForm.classList.remove('active');
-    venueForm.classList.remove('active');
+    const roomInputs = roomForm.querySelectorAll('input, select, textarea');
+    const venueInputs = venueForm.querySelectorAll('input, select, textarea');
+    const categoryInput = document.getElementById('category_input');
 
     if (type === 'room') {
+      // 1. Visual Tabs
       roomOption.classList.add('tab-active');
-      roomForm.classList.add('active');
+      venueOption.classList.remove('tab-active');
+      roomForm.style.display = 'flex'; // Ensure it shows
+      venueForm.style.display = 'none';
+
+      // 2. Data Integrity: Enable Room, Disable Venue
+      roomInputs.forEach(i => i.disabled = false);
+      venueInputs.forEach(i => i.disabled = true);
+      if (categoryInput) categoryInput.value = 'Room';
 
       if (createWhatTitle) createWhatTitle.textContent = 'Create Room';
-      if (createWhat) createWhat.textContent = 'Create a Room Reservation';
-      if (saveWhat) saveWhat.textContent = 'Save Room';
     } else {
+      // 1. Visual Tabs
       venueOption.classList.add('tab-active');
-      venueForm.classList.add('active');
+      roomOption.classList.remove('tab-active');
+      venueForm.style.display = 'flex';
+      roomForm.style.display = 'none';
+
+      // 2. Data Integrity: Enable Venue, Disable Room
+      venueInputs.forEach(i => i.disabled = false);
+      roomInputs.forEach(i => i.disabled = true);
+      if (categoryInput) categoryInput.value = 'Venue';
 
       if (createWhatTitle) createWhatTitle.textContent = 'Create Venue';
-      if (createWhat) createWhat.textContent = 'Create a Venue Reservation';
-      if (saveWhat) saveWhat.textContent = 'Save Venue';
     }
   }
 

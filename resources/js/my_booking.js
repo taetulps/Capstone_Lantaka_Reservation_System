@@ -14,12 +14,15 @@ window.selectItem = function (name, total, id, type, checkIn, checkOut, pax, foo
       foodContainer.innerHTML = '<p style="font-weight: bold; margin: 10px 0 5px 0; font-size: 0.85em; color: #333;">Selected Foods:</p>';
 
       foods.forEach(food => {
-        let foodSubtotal = food.food_price * pax;
+        // Use the quantity from the JSON, NOT the pax variable
+        let qty = food.quantity || 1;
+        let foodSubtotal = parseFloat(food.food_price) * qty;
+
         foodContainer.innerHTML += `
-                    <div style="display: flex; justify-content: space-between; font-size: 0.8em; color: #666; margin-bottom: 4px; font-family: 'Arsenal', sans-serif;">
-                        <span>• ${food.food_name} (x${pax})</span>
-                        <span>₱ ${parseFloat(foodSubtotal).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
-                    </div>`;
+              <div style="display: flex; justify-content: space-between; font-size: 0.8em; color: #666; margin-bottom: 4px;">
+                  <span>• ${food.food_name} (x${qty})</span>
+                  <span>₱ ${foodSubtotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+              </div>`;
       });
     }
   } catch (e) {

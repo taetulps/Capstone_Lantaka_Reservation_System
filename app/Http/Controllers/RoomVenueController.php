@@ -12,44 +12,40 @@ use App\Models\Food;
 
 class RoomVenueController extends Controller
 {
-    public function store(Request $request)
+   public function store(Request $request)
     {
-        $request->validate([
-        'category'       => 'required',
-        'name'           => 'required|string',
-        'internal_price' => 'required|numeric',
-        'external_price' => 'required|numeric', // Validating external price
-        'capacity'       => 'required|integer',
-    ]);
-
-    if ($request->category === 'Room') {
-        Room::create([
-            'user_id'        => Auth::id(),
-            'room_number'    => $request->name,
-            'room_type'      => $request->type ?? 'Standard',
-            'capacity'       => $request->capacity,
-            
-            'price'          => $request->internal_price, // Saved to 'price'
-            'external_price' => $request->external_price, // Saved to 'external_price'
-
-            'status'         => 'Available',
-            'description'    => $request->description,
+        $validated = $request->validate([
+            'category'       => 'required|in:Room,Venue',
+            'name'           => 'required|string',
+            'internal_price' => 'required|numeric',
+            'external_price' => 'required|numeric',
+            'capacity'       => 'required|integer',
+            'type'           => 'nullable|string', // Room specific
+            'description'    => 'nullable|string',
         ]);
-    } else {
-        Venue::create([
+
+        // Common data shared by both models
+        $commonData = [
             'user_id'        => Auth::id(),
-            'name'           => $request->name,
             'capacity'       => $request->capacity,
-            
             'price'          => $request->internal_price,
             'external_price' => $request->external_price,
-
             'status'         => 'Available',
             'description'    => $request->description,
-        ]);
-    }
+        ];
 
-    return redirect()->back()->with('success', 'Added successfully!');
+        if ($request->category === 'Room') {
+            Room::create(array_merge($commonData, [
+                'room_number' => $request->name,
+                'room_type'   => $request->type ?? 'Standard',
+            ]));
+        } else {
+            Venue::create(array_merge($commonData, [
+                'name' => $request->name,
+            ]));
+        }
+
+        return redirect()->back()->with('success', $request->category . ' added successfully!');
     }
 
     public function index()
@@ -78,11 +74,8 @@ class RoomVenueController extends Controller
     {
         $rooms = Room::all();
         $venues = Venue::all();
-
-        // 1. Fetch the food and group it by category
         $foods = \App\Models\Food::all()->groupBy('food_category');
 
-        // 2. Add 'foods' to the compact() array so the view can use it!
         return view('employee.room_venue', compact('rooms', 'venues', 'foods'));
     }
         public function show($category, $id)

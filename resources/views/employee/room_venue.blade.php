@@ -5,7 +5,7 @@
   
   @vite('resources/js/employee_food.js')
   @vite('resources/js/employee_add_food.js')
-  @vite('resources/js/employee/create_reservations.js')
+  @vite('resources/js/employee/create_reservation.js')
 
   <link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@200;300;400;500;600;700;800;900&family=Arsenal:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
 
