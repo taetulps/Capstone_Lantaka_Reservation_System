@@ -41,6 +41,7 @@ Route::get('client.room_venue', [RoomVenueController::class, 'index'])->name('cl
             })->name('employee.dashboard');
             Route::get('/reservations', [ReservationController::class, 'adminIndex'])->name('reservations');
             Route::get('/guest', [ReservationController::class, 'showGuests'])->name('guest');
+            Route::post('/guest', [ReservationController::class, 'updateGuests'])->name('updateGuests');
             Route::get('/accounts', [AccountController::class, 'index'])->name('accounts');
             Route::get('/room_venue', [RoomVenueController::class, 'adminIndex'])->name('room_venue');
             Route::get('/eventlogs', action: fn() => view('employee.eventlogs'))->name('eventlogs');

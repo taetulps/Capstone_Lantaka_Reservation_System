@@ -57,14 +57,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const badgeStatus = badge ? badge.textContent.trim() : ''
 
+      const discountSection = document.getElementById('discountSection')
+      const checkAccomodation = data.accommodationType;
+
       if (badgeStatus === "Completed" || badgeStatus === "Checked-out" || badgeStatus === "Cancelled") {
         blockCheckout.style.display = 'none'
       }
-
       if (badgeStatus === "Rejected") {
         blockAccept.style.display = 'none'
       }
-
       if (badgeStatus === "Cancelled" || badgeStatus === "Completed") {
         blockCheckin.style.display = 'none'
       }
@@ -72,6 +73,13 @@ document.addEventListener('DOMContentLoaded', () => {
         showSOA.style.display = 'none'
         showAddChSection.style.display = 'none'
       }
+      if(badgeStatus === "Checked-in"){
+          if(checkAccomodation === "Venue"){
+            discountSection.classList.remove('none')
+          }
+      }
+
+      console.log("Accomodation check: " + data.accommodationType);
 
       // 3. Populate form and summary fields
       let fullName = data.name || 'Unknown';
@@ -80,15 +88,19 @@ document.addEventListener('DOMContentLoaded', () => {
       let status = data.status.charAt(0).toUpperCase() + data.status.slice(1);
       console.log("test user type:" + data.type)
       console.log("accomodation :" + data.accommodation)
+      console.log("accomodation Type: " + data.accommodationType)
 
       document.getElementById('modalTitle').textContent =  badge.textContent.trim();
       document.getElementById('firstName').value = nameParts[0] || '';
       document.getElementById('lastName').value = nameParts.length > 1 ? nameParts.slice(1).join(' ') : '';
+      document.getElementById('phoneNumber').value = data.phone;
+      document.getElementById('email').value = data.email;
+      document.getElementById('affiliation').value = data.type;
       document.getElementById('modalName').textContent = data.accommodation || 'N/A';
       document.getElementById('modalLastName').textContent = data.pax || '1';
       document.getElementById('modalCheckIn').textContent = data.check_in || '';
       document.getElementById('modalCheckOut').textContent = data.check_out || '';
-      document.getElementById('accomodation-type').textContent = data.accommodation || '';
+      document.getElementById('accomodation-type').textContent = data.accommodationType  || '';
       document.getElementById('unit-price').textContent = `₱` +  data.price || '';
       document.getElementById('totalAmount').textContent = `₱` +  data.price|| '';
 
@@ -98,6 +110,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (foodListContainer && data.food_items) {
         foodListContainer.innerHTML = data.food_items;
       }
+
 
       // 5. Open modal
       modalOverlay.style.display = 'flex';
@@ -127,6 +140,10 @@ document.addEventListener('DOMContentLoaded', () => {
       statusForm.submit();
     }
   };
+
+  window.updateGuestDetails = function (){
+
+  }
 
   // --- STATUS FILTER CARD TOGGLE ---
   const statusCards = document.querySelector('.status-cards');

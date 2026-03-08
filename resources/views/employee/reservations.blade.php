@@ -149,6 +149,8 @@
                               : 'Venue: ' . ($reservation->venue->Venue_Name ?? $reservation->venue->name ?? 'N/A');
 
                           $price = $reservation->total_amount;
+                          $reservationType = $reservation->type == 'room' 
+                              ? 'Room': 'Venue'
 
                       @endphp
 
@@ -157,8 +159,11 @@
                                   'id' => str_pad($reservation->id, 5, '0', STR_PAD_LEFT),
                                   'status' => strtolower($reservation->status),
                                   'type' => $reservation->user->usertype,
-                                  'name' => $reservation->user->name ?? 'Unknown',
+                                  'phone' => $reservation->user->phone ?? 'Error phone',
+                                  'email' => $reservation->user->email ?? 'Error email',
+                                  'name' => $reservation->user->name ?? 'Error name',
                                   'accommodation' => $accName,
+                                  'accommodationType' => $reservationType ?? 'Error accomodation type',
                                   'price' => $price,
                                   'pax' => $reservation->pax,
                                   'check_in' => \Carbon\Carbon::parse($reservation->check_in)->format('F d, Y'),
