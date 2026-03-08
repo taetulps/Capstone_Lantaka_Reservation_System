@@ -51,28 +51,33 @@ class AccountController extends Controller
     {
         $user = User::findOrFail($id);
 
-        // Handle Deactivation
+        // 1. Handle Deactivation
         if ($request->action === 'deactivate') {
-            $user->update(['status' => 'declined']); 
+            $user->status = 'declined';
+            $user->save();
             return redirect()->back()->with('success', 'Account deactivated.');
         }
 
-        // Validation
+        // 2. Validation
         $request->validate([
             'username'   => 'required|string|max:255',
             'first_name' => 'required|string|max:255',
             'last_name'  => 'required|string|max:255',
             'email'      => 'required|email|unique:users,email,' . $id,
-            'phone_no'   => 'nullable|string',
+            'phone_no'   => 'nullable|string', // Matches your Modal "name" attribute
         ]);
 
-        // MAP THE DATA CORRECTLY
-        $user->name = $request->first_name . ' ' . $request->last_name; // Combine for 'name' column
+        // 3. Mapping Data to DB Columns
+        // Combine names into the 'name' column
+        $user->name = trim($request->first_name . ' ' . $request->last_name);
+        
         $user->username = $request->username;
         $user->email = $request->email;
-        $user->phone = $request->phone_no; // Maps 'phone_no' input to 'phone' column
         
-        // Only save id_info if you have actually added that column to your DB
+        // VERY IMPORTANT: Map 'phone_no' (HTML) to 'phone' (DB)
+        $user->phone = $request->phone_no; 
+
+        // Only update if you have the 'id_info' column in your DB
         // $user->id_info = $request->id_info; 
 
         if ($request->filled('password')) {

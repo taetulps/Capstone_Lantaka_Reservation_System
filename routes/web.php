@@ -46,6 +46,8 @@ Route::get('client.room_venue', [RoomVenueController::class, 'index'])->name('cl
             Route::get('/eventlogs', action: fn() => view('employee.eventlogs'))->name('eventlogs');
             Route::post('/reservations/{id}/status', [ReservationController::class, 'updateStatus'])->name('reservations.updateStatus');
             Route::post('/accounts/{id}/update-status', [AccountController::class, 'updateStatus'])->name('accounts.updateStatus');
+            Route::post('/accounts/{id}/update', [AccountController::class, 'update'])->name('employee.accounts.update');
+            Route::get('/SOA', action: fn() => view('employee.SOA'))->name('SOA');
         });
     
         Route::prefix('client')
@@ -59,8 +61,9 @@ Route::get('client.room_venue', [RoomVenueController::class, 'index'])->name('cl
             Route::get('/food_option', function () {
                 return view('food_option');
             })->name('food_option');
-           
+            
         });
+Route::get('/accommodations', [RoomVenueController::class, 'index'])->name('client.index');
 
 Route::post('/client/reservations/{id}/cancel', [ReservationController::class, 'cancel'])
     ->name('client.reservations.cancel');

@@ -9,6 +9,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@200;300;400;500;600;700;800;900&family=Arsenal:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
 </head>
 <body>
+    
     <div class="background-overlay"></div>
     
     <main class="login-container">
@@ -28,9 +29,9 @@
             <p class="subtitle">Lantaka Online Room & Venue Reservation System</p>
             
             <!-- Error Message -->
-            @if ($errors->any())
-                <div class="alert-error" style="background: #f8d7da; color: #721c24; padding: 10px; border-radius: 5px; margin-bottom: 15px; border: 1px solid #f5c6cb; text-align: center;">
-                    ⚠️ {{ $errors->first() }}
+           @if(session('error'))
+                <div class="alert-message">
+                    {{ session('error') }}
                 </div>
             @endif
 

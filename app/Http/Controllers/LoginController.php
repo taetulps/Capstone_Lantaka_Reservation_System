@@ -31,31 +31,38 @@ class LoginController extends Controller
             'password' => ['required'],
         ]);
 
-        // 2. Find the user by username manually
+        // 2. Find the user
         $user = User::where('username', $request->username)->first();
 
         // 3. CHECK: Does the username exist?
         if (!$user) {
             return back()->withErrors([
-                'username' => 'This username does not exist.', // <--- Message for wrong username
+                'username' => 'This username does not exist.',
             ])->onlyInput('username');
         }
 
         // 4. CHECK: Is the password correct?
         if (!Hash::check($request->password, $user->password)) {
             return back()->withErrors([
-                'password' => 'Incorrect password.', // <--- Message for wrong password
+                'password' => 'Incorrect password.',
             ])->onlyInput('username');
         }
 
-        // 5. If both pass, log the user in manually
+        if ($user->role === 'client' && $user->status !== 'approved') {
+            return back()->with('error', 'Your account is pending admin approval. Please check your email for updates.')
+                        ->withInput($request->only('username'));
+        }
+        // --- NEW FEATURE END ---
+
+        // 5. If all checks pass, log the user in
         Auth::login($user);
         $request->session()->regenerate();
 
-        // 6. Redirect based on role (Your existing logic)
-        if ($user->role === 'admin' || $user->role === 'staff') {
+        // 6. Redirect based on role
+        if ($user->role === 'admin' || $user->role === 'staff' || $user->role === 'Admin' || $user->role === 'Staff') {
             return redirect()->route('employee.dashboard');
         }
+        
         if ($user->role === 'client') {
             return redirect()->route('client.room_venue');
         }

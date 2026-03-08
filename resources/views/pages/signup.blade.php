@@ -92,15 +92,18 @@
             </div>
 
             <div class="form-group">
-              <label for="validId">Valid ID</label>
-              <div class="file-upload">
-                <label for="validId" class="upload-label">
-                  <div class="upload-icon">⬇️</div>
-                  <p class="upload-text">Upload Image</p>
-                  <p class="upload-hint">Click to upload image</p>
-                </label>
-                <input type="file" id="validId" name="validId" accept="image/*" required>
-              </div>
+                <label for="validId">Valid ID</label>
+                <div class="file-upload">
+                    <label for="validId" class="upload-label" id="drop-zone">
+                        <div id="upload-placeholder">
+                            <div class="upload-icon">⬇️</div>
+                            <p class="upload-text">Upload Image</p>
+                            <p class="upload-hint">Click or drag to upload image</p>
+                        </div>
+                        <img id="image-preview" src="" style="display: none; max-width: 100%; max-height: 150px; border-radius: 5px; object-fit: contain;">
+                    </label>
+                    <input type="file" id="validId" name="validId" accept="image/*" required style="display: none;">
+                </div>
             </div>
           </div>
         </div>
@@ -126,33 +129,50 @@
 
     // File upload drag and drop
     const fileInput = document.getElementById('validId');
-    const uploadLabel = document.querySelector('.upload-label');
+    const uploadLabel = document.getElementById('drop-zone');
+    const placeholder = document.getElementById('upload-placeholder');
+    const preview = document.getElementById('image-preview');
 
+    // Function to process and show the image
+    function showPreview(file) {
+        if (file && file.type.startsWith('image/')) {
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                preview.src = e.target.result; // Set image source to file data
+                preview.style.display = 'block'; // Show the image
+                placeholder.style.display = 'none'; // Hide the "Upload Image" text
+            };
+
+            reader.readAsDataURL(file);
+        }
+    }
+
+    // 1. Handle selection via click
+    fileInput.addEventListener('change', function() {
+        if (this.files.length > 0) {
+            showPreview(this.files[0]);
+        }
+    });
+
+    // 2. Handle Drag and Drop
     uploadLabel.addEventListener('dragover', (e) => {
-      e.preventDefault();
-      uploadLabel.style.backgroundColor = 'rgba(0, 0, 0, 0.05)';
+        e.preventDefault();
+        uploadLabel.style.borderColor = '#007bff'; // Visual feedback
     });
 
     uploadLabel.addEventListener('dragleave', () => {
-      uploadLabel.style.backgroundColor = 'transparent';
+        uploadLabel.style.borderColor = '#ccc';
     });
 
     uploadLabel.addEventListener('drop', (e) => {
-      e.preventDefault();
-      uploadLabel.style.backgroundColor = 'transparent';
-      if (e.dataTransfer.files.length) {
-        fileInput.files = e.dataTransfer.files;
-      }
-    });
-
-    uploadLabel.addEventListener('click', () => {
-      fileInput.click();
-    });
-
-    fileInput.addEventListener('change', function() {
-      if (this.files.length > 0) {
-        uploadLabel.innerHTML = `<p class="upload-text">✓ ${this.files[0].name}</p>`;
-      }
+        e.preventDefault();
+        uploadLabel.style.borderColor = '#ccc';
+        
+        if (e.dataTransfer.files.length) {
+            fileInput.files = e.dataTransfer.files; // Assign file to input
+            showPreview(e.dataTransfer.files[0]);
+        }
     });
   </script>
 </body>

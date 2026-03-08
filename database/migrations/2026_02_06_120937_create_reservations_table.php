@@ -24,7 +24,8 @@ return new class extends Migration
             // 2. Add a type column so we know if it's a 'room' or 'venue'
             $table->string('type'); 
             // --- THE FIX ENDS HERE ---
-
+            $table->decimal('additional_fees', 10, 2)->default(0); 
+            $table->string('additional_fees_desc')->nullable();
             $table->date('check_in');
             $table->date('check_out');
             $table->integer('pax');

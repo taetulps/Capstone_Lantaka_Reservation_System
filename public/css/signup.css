@@ -15,6 +15,7 @@
   --border-color: #ddd;
   --overlay-dark: rgba(26, 35, 126, 0.4);
 }
+
 @font-face {
   font-family: "Matura Script";
   src: url("/fonts/Matura_Script.ttf") format("truetype");
@@ -86,6 +87,7 @@ body {
     opacity: 0;
     transform: translateY(30px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -130,7 +132,7 @@ body {
   color: var(--bg-white);
   margin-bottom: 4px;
   font-family: "Alexandria", sans-serif;
-  font-weight: 700; 
+  font-weight: 700;
 }
 
 .subtitle {
@@ -196,7 +198,21 @@ body {
   color: var(--text-light);
 }
 
+.upload-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 180px;
+  /* Ensures the box stays the same size when image appears */
+  width: 100%;
+  cursor: pointer;
+}
 
+#image-preview {
+  margin-top: 10px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
 
 /* File Upload */
 .file-upload {
@@ -241,11 +257,12 @@ body {
 }
 
 /* Submit Button */
-.form-bottom{
+.form-bottom {
   display: flex;
   flex-direction: column;
   align-items: center;
 }
+
 .submit-btn {
   width: 100%;
   padding: 14px;
@@ -259,7 +276,8 @@ body {
   cursor: pointer;
   transition: all 0.3s ease;
 }
-.login-back{
+
+.login-back {
   font-family: "Alexandria", sans-serif;
   font-size: 12px;
 }
@@ -293,25 +311,27 @@ body {
   background: #999;
 }
 
-.signup-bottom-section{
+.signup-bottom-section {
   font-size: 14px;
   display: flex;
   flex-direction: column;
   justify-items: center;
   align-items: center;
-  gap:5px;
+  gap: 5px;
 }
-.signup-text{
+
+.signup-text {
   color: black;
 }
-.signup-text a{
+
+.signup-text a {
   color: black;
   font-weight: 500;
   text-decoration: none;
   transition: 0.3s ease;
 }
 
-.signup-text a:hover{
+.signup-text a:hover {
   color: var(--accent-yellow);
 }
 

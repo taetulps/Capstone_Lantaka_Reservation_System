@@ -18,6 +18,8 @@ class Reservation extends Model
         'check_out',
         'pax',
         'total_amount',
+        'additional_fees',
+        'additional_fees_desc',
         'status'
     ];
     // -- RELATIONSHIPS --
