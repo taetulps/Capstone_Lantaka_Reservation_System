@@ -63,10 +63,7 @@ Route::get('client.room_venue', [RoomVenueController::class, 'index'])->name('cl
             Route::get('/food_option', function () {
                 return view('food_option');
             })->name('food_option');
-<<<<<<< HEAD
             Route::post('/reservations/{id}/cancel', [ReservationController::class, 'cancel'])->name('reservations.cancel');
-=======
->>>>>>> 28d97fdabb8c44802a55f948f1ca0b6b44c75693
         });
 Route::get('/accommodations', [RoomVenueController::class, 'index'])->name('client.index');
 
