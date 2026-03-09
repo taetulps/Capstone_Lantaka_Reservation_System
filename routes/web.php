@@ -43,7 +43,7 @@ Route::get('client.room_venue', [RoomVenueController::class, 'index'])->name('cl
             Route::get('/guest', [ReservationController::class, 'showGuests'])->name('guest');
             Route::post('/guest', [ReservationController::class, 'updateGuests'])->name('updateGuests');
             Route::get('/accounts', [AccountController::class, 'index'])->name('accounts');
-            Route::get('/room_venue', [RoomVenueController::class, 'adminIndex'])->name('room_venue');
+            Route::get('/room_venue', action: [RoomVenueController::class, 'adminIndex'])->name('room_venue');
             Route::get('/eventlogs', action: fn() => view('employee.eventlogs'))->name('eventlogs');
             Route::post('/reservations/{id}/status', [ReservationController::class, 'updateStatus'])->name('reservations.updateStatus');
             Route::post('/accounts/{id}/update-status', [AccountController::class, 'updateStatus'])->name('accounts.updateStatus');
@@ -89,8 +89,8 @@ Route::middleware(['auth'])->group(function () {
     // 3. My Reservations (Shows database data instead of static view)
     //Route::get('/client_my_reservations', [ReservationController::class, 'index'])->name('client_my_reservations');
 
-  
-    Route::post('/employee_room_venue/store', [RoomVenueController::class, 'store'])->name('room_venue.store');
+    Route::put('/employee/room-venue/update', [RoomVenueController::class, 'update'])->name('room_venue.update');
+    Route::post('/employee/room_venue/store', [RoomVenueController::class, 'store'])->name('room_venue.store');
 
     Route::post('/employee/food/store', [FoodController::class, 'store'])->name('admin.food.store');
     Route::put('/employee/room_venue/{id}', [FoodController::class, 'update'])->name('admin.food.update');});

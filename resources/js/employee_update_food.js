@@ -36,6 +36,5 @@ document.addEventListener('DOMContentLoaded', () => {
     
     if(!id) return
     window.location.href = `/employee/room_venue/${id}/delete`
-    
     })
   })
