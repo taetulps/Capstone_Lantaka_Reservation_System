@@ -534,17 +534,25 @@ class ReservationController extends Controller
         $days = $checkIn->diffInDays($checkOut) ?: 1;
 
         if ($request->type === 'room') {
+<<<<<<< HEAD
             $accommodation = \App\Models\Room::findOrFail($request->accommodation_id);
             $price = $accommodation->price;
 
             // Save to RoomReservation table
             \App\Models\RoomReservation::create([
+=======
+            $room = \App\Models\Room::findOrFail($request->accommodation_id);
+            $totalAmount = ($room->Room_Pricing ?? $room->price) * $days;
+
+            $reservation = \App\Models\RoomReservation::create([
+>>>>>>> 9da99f1 (created employee reservation)
                 'room_id' => $request->accommodation_id,
                 'Client_ID' => $request->user_id,
                 'Room_Reservation_Date' => now(),
                 'Room_Reservation_Check_In_Time' => $request->check_in,
                 'Room_Reservation_Check_Out_Time' => $request->check_out,
                 'pax' => $request->pax,
+<<<<<<< HEAD
                 'Room_Reservation_Total_Price' => $price * $days,
                 'status' => 'pending'
             ]);
@@ -554,26 +562,130 @@ class ReservationController extends Controller
 
             // Save to VenueReservation table
             \App\Models\VenueReservation::create([
+=======
+                'Room_Reservation_Total_Price' => $totalAmount,
+                'status' => 'pending',
+            ]);
+
+            $this->sendConfirmationEmail($reservation);
+        } else {
+            $venue = \App\Models\Venue::findOrFail($request->accommodation_id);
+            $basePrice = $venue->Venue_Pricing ?? $venue->external_price ?? $venue->price;
+            $totalAmount = $basePrice * $days;
+
+            $reservation = \App\Models\VenueReservation::create([
+>>>>>>> 9da99f1 (created employee reservation)
                 'venue_id' => $request->accommodation_id,
                 'Client_ID' => $request->user_id,
                 'Venue_Reservation_Date' => now(),
                 'Venue_Reservation_Check_In_Time' => $request->check_in,
                 'Venue_Reservation_Check_Out_Time' => $request->check_out,
                 'pax' => $request->pax,
+<<<<<<< HEAD
                 'Venue_Reservation_Total_Price' => $price * $days,
                 'status' => 'pending'
             ]);
+=======
+                'total_price' => $totalAmount,
+                'Venue_Reservation_Total_Price' => $totalAmount,
+                'status' => 'pending',
+            ]);
+
+            $this->sendConfirmationEmail($reservation);
+
+            if ($request->filled('selected_foods')) {
+                $attachData = [];
+
+                foreach ($request->selected_foods as $fId) {
+                    $food = \App\Models\Food::find($fId);
+
+                    if ($food) {
+                        $attachData[$fId] = [
+                            'serving_time' => now(),
+                            'total_price' => ($food->Food_Price ?? $food->food_price) * $request->pax,
+                            'status' => 'pending',
+                        ];
+                    }
+                }
+
+                $reservation->foods()->attach($attachData);
+            }
+
+            // clear session booking after venue save
+            $allBookings = session('employee_pending_bookings', []);
+            $uniqueKey = $request->type . '_' . $request->accommodation_id;
+
+            unset($allBookings[$uniqueKey]);
+            session(['employee_pending_bookings' => $allBookings]);
+>>>>>>> 9da99f1 (created employee reservation)
         }
 
         return redirect()
             ->route('employee.reservations')
             ->with('success', 'Reservation created successfully.');
     }
+    
     private function sendConfirmationEmail($reservation)
     {
         return true;
     }
-    
+
+    public function prepareEmployeeBooking(Request $request)
+    {
+        $request->validate([
+            'user_id' => 'required|exists:users,id',
+            'accommodation_id' => 'required|integer',
+            'type' => 'required|in:room,venue',
+            'check_in' => 'required|date',
+            'check_out' => 'required|date|after_or_equal:check_in',
+            'pax' => 'required|integer|min:1',
+        ]);
+
+        $bookingData = $request->all();
+
+        // ROOM: save immediately
+        if ($request->type === 'room') {
+            return $this->storeReservation($request);
+        }
+
+        // VENUE: keep booking data in session and go to employee food page
+        if ($request->type === 'venue') {
+            $allBookings = session('employee_pending_bookings', []);
+
+            $uniqueKey = $request->type . '_' . $request->accommodation_id;
+            $allBookings[$uniqueKey] = $bookingData;
+
+            session(['employee_pending_bookings' => $allBookings]);
+
+            return redirect()->route('employee.create_food_reservation', [
+                'accommodation_id' => $request->accommodation_id,
+                'type' => $request->type,
+            ]);
+        }
+    }
+
+    public function showEmployeeFoodReservation(Request $request)
+        {
+            $accommodationId = $request->accommodation_id;
+            $type = $request->type;
+
+            $allBookings = session('employee_pending_bookings', []);
+            $uniqueKey = $type . '_' . $accommodationId;
+
+            $bookingData = $allBookings[$uniqueKey] ?? null;
+
+            if (!$bookingData) {
+                return redirect()->route('employee.room_venue')
+                    ->with('error', 'No pending booking found.');
+            }
+
+            $foods = \App\Models\Food::where('status', 'available')
+                ->get()
+                ->groupBy('food_category');
+
+            return view('employee.create_food_reservation', compact('bookingData', 'foods'));
+        }
+
 }
 
 

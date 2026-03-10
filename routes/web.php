@@ -70,12 +70,22 @@ Route::get('/accommodations', [RoomVenueController::class, 'index'])->name('clie
 Route::get('/booking/prepare', [RoomVenueController::class, 'prepareBooking'])->name('booking.prepare');
 
 Route::get('/checkout/{category}/{id}', [RoomVenueController::class, 'show'])->name('client.show');
+
+/* employee create reservation workflow */
 Route::get('/employee/create_reservation', [RoomVenueController::class, 'showAssignedAccomodation'])
     ->name('showAssignedAccomodation');
 Route::get('/employee/search-accounts', [AccountController::class, 'searchAccounts'])
 ->name('employee.search_accounts');
 Route::get('/employee/create_food_reservation', action: fn() => view('employee.create_food_reservation'))->name('employee.create_food_reservation');
 
+Route::post('employee/reservations/prepare', [ReservationController::class, 'prepareEmployeeBooking'])
+    ->name('employee.reservations.prepare');
+
+Route::get('employee/create_food_reservation', [ReservationController::class, 'showEmployeeFoodReservation'])
+    ->name('employee.create_food_reservation');
+
+Route::post('employee/reservations/store', [ReservationController::class, 'storeReservation'])
+    ->name('employee.reservations.store');
 
 
 /* --- 2. Login & Signup --- */

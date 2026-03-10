@@ -170,7 +170,7 @@
                                   'name' => $reservation->user->name ?? 'Error name',
                                   'accommodation' => $accName,
                                   'accommodationType' => $reservationType ?? 'Error accomodation type',
-                                  'price' => $price,
+                                  'price' => $reservation->total_price,
                                   'pax' => $reservation->pax,
                                   'check_in' => \Carbon\Carbon::parse($dbCheckIn)->format('F d, Y'),
                                   'check_out' => \Carbon\Carbon::parse($dbCheckOut)->format('F d, Y'),

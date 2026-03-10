@@ -80,33 +80,34 @@
             </ul>
         </div>
         @endif
-        <form action="{{ route('employee.reservations.store') }}" method="POST" class="booking-form" id="bookingForm">
-            @csrf
+        <form action="{{ route('employee.reservations.prepare') }}" method="POST" class="booking-form" id="bookingForm">
+        @csrf
 
-            <input type="hidden" name="user_id" value="{{ $client->id }}">
-            <input type="hidden" name="accommodation_id" value="{{ $data->id }}">
-            <input type="hidden" name="type" value="{{ strtolower($category) }}">
-            <input type="hidden" name="check_in" id="check_in">
-            <input type="hidden" name="check_out" id="check_out">
+          <input type="hidden" name="user_id" value="{{ $client->id }}">
+          <input type="hidden" name="accommodation_id" value="{{ $data->id }}">
+          <input type="hidden" name="type" value="{{ strtolower($category) }}">
+          <input type="hidden" name="check_in" id="check_in">
+          <input type="hidden" name="check_out" id="check_out">
 
-            <label for="pax-input" class="pax-label">Number of Pax</label>
-            <input
-                type="number"
-                name="pax"
-                id="pax-input"
-                class="pax-input"
-                placeholder="Enter No. of Pax"
-                min="1"
-                max="{{ $data->capacity }}"
-                required
-            >
-            <button type="submit" class="proceed-button">PROCEED</button>
+          <label for="pax-input" class="pax-label">Number of Pax</label>
+          <input
+              type="number"
+              name="pax"
+              id="pax-input"
+              class="pax-input"
+              placeholder="Enter No. of Pax"
+              min="1"
+              max="{{ $data->capacity }}"
+              required
+          >
+
+          <button type="submit" class="proceed-button">PROCEED</button>
             
         </form>
         </div>
         <a href="{{ route('employee.create_food_reservation') }}">test</a>
       </div>
-    </div>
+    </div>  
 </div>
 @endsection
 <script>
