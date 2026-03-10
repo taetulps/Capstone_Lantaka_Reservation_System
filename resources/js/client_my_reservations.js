@@ -17,9 +17,10 @@ document.addEventListener('DOMContentLoaded', () => {
       // NEW: Store the ID in the hidden input for Cancel/Edit functions
       const idInput = document.getElementById('cancelReservationId');
       if (idInput) {
-        // We use Number(data.id) because your data-info pads it with zeros (00001)
         idInput.value = data.real_id;
-        console.log("Captured ID for cancellation:", idInput.value);
+        // SAVE THE TYPE HERE
+        idInput.setAttribute('data-type', data.type);
+        console.log("Captured ID:", idInput.value, "Type:", data.type);
       }
 
       // --- 2. Handle the food logic (PRESERVED) ---
@@ -57,7 +58,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // --- NEW: CANCELLATION LOGIC ---
   window.confirmCancellation = async function () {
-    const id = document.getElementById('cancelReservationId').value;
+    // 1. Get the hidden input element
+    const inputEl = document.getElementById('cancelReservationId');
+
+    // 2. Extract the values from it
+    const id = inputEl.value;
+    const type = inputEl.getAttribute('data-type');
 
     if (!confirm("Are you sure you want to cancel this reservation?")) return;
 
@@ -67,7 +73,9 @@ document.addEventListener('DOMContentLoaded', () => {
         headers: {
           'Content-Type': 'application/json',
           'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-        }
+        },
+        // 3. Now 'type' is defined and can be sent!
+        body: JSON.stringify({ type: type })
       });
 
       if (response.ok) {
@@ -79,7 +87,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     } catch (error) {
       console.error("Error:", error);
-      alert("An error occurred. Please try again.");
+      alert("An error occurred. Check the console.");
     }
   };
 

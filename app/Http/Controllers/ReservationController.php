@@ -95,68 +95,76 @@ class ReservationController extends Controller
             'total_amount' => 'required|numeric',
         ]);
 
-        if ($request->type === 'room') {
-            $reservation = RoomReservation::create([
-                'room_id' => $request->id,
-                'Client_ID' => Auth::id(),
-                'Room_Reservation_Date' => now(),
-                'Room_Reservation_Check_In_Time' => $request->check_in,
-                'Room_Reservation_Check_Out_Time' => $request->check_out,
-                'pax' => $request->pax,
-                'Room_Reservation_Total_Price' => $request->total_amount,
-                'status' => 'pending'
-                
-            ]);
-            $this->sendConfirmationEmail($reservation);
-        } else {
-            $reservation = VenueReservation::create([
-                'venue_id' => $request->id,
-                'Client_ID' => Auth::id(),
-                'total_price' => $request->total_amount,
-                'Venue_Reservation_Date' => now(),
-                'Venue_Reservation_Check_In_Time' => $request->check_in,
-                'Venue_Reservation_Check_Out_Time' => $request->check_out,
-                'pax' => $request->pax,
-                'Venue_Reservation_Total_Price' => $request->total_amount,
-                'status' => 'pending'
-            ]);
-            $this->sendConfirmationEmail($reservation);
+        try {
+            if ($request->type === 'room') {
+                $reservation = RoomReservation::create([
+                    'room_id' => $request->id,
+                    'Client_ID' => Auth::id(),
+                    'Room_Reservation_Date' => now(),
+                    'Room_Reservation_Check_In_Time' => $request->check_in,
+                    'Room_Reservation_Check_Out_Time' => $request->check_out,
+                    'pax' => $request->pax,
+                    'Room_Reservation_Total_Price' => $request->total_amount,
+                    'status' => 'pending'
+                ]);
+            } else {
+                $reservation = VenueReservation::create([
+                    'venue_id' => $request->id,
+                    'Client_ID' => Auth::id(),
+                    'Venue_Reservation_Date' => now(),
+                    'Venue_Reservation_Check_In_Time' => $request->check_in,
+                    'Venue_Reservation_Check_Out_Time' => $request->check_out,
+                    'pax' => $request->pax,
+                    'Venue_Reservation_Total_Price' => $request->total_amount,
+                    'status' => 'pending'
+                ]);
+
+                // Handle Food Pivot for Venues
+                $uniqueKey = 'venue_' . $request->id;
+                $allBookings = session('pending_bookings', []);
+                $bookingData = $allBookings[$uniqueKey] ?? null;
+
+                if ($bookingData && !empty($bookingData['selected_foods'])) {
+                    $attachData = [];
+                    foreach ($bookingData['selected_foods'] as $fId) {
+                        $food = Food::find($fId);
+                        if ($food) {
+                            $attachData[$fId] = [
+                                'serving_time' => now(), 
+                                // Check if your column is Food_Price or food_price
+                                'total_price'  => ($food->Food_Price ?? $food->food_price) * $request->pax,
+                                'status'       => 'pending'
+                            ];
+                        }
+                    }
+                    $reservation->foods()->attach($attachData);
+                }
+            }
+
+            // Send Email (Wrapped in try-catch so failure doesn't stop the redirect)
             try {
                 Mail::to(auth()->user()->email)->send(new \App\Mail\ReservationConfirmationMail($reservation));
             } catch (\Exception $e) {
                 \Log::error("Mail failed: " . $e->getMessage());
             }
-            // Handle Food Pivot for Venues
-            $uniqueKey = 'venue_' . $request->id;
+
+            // Clear only this item from session
             $allBookings = session('pending_bookings', []);
-            $bookingData = $allBookings[$uniqueKey] ?? null;
+            unset($allBookings[$request->type . '_' . $request->id]);
+            session(['pending_bookings' => $allBookings]);
 
-            if ($bookingData && !empty($bookingData['selected_foods'])) {
-                $attachData = [];
-                foreach ($bookingData['selected_foods'] as $fId) {
-                    $food = Food::find($fId);
-                    $attachData[$fId] = [
-                        // Match the lowercase names from your migration
-                        'serving_time' => now(), 
-                        'total_price'  => $food->food_price * $request->pax,
-                        'status'       => 'pending'
-                    ];
-                }
-                $reservation->foods()->attach($attachData);
-            }
+            return redirect()->route('client.my_reservations')->with('success', 'Reservation confirmed!');
+
+        } catch (\Exception $e) {
+            \Log::error("Reservation Store Error: " . $e->getMessage());
+            return back()->with('error', 'Something went wrong: ' . $e->getMessage());
         }
-
-        // Clear only this item from session
-        $allBookings = session('pending_bookings', []);
-        unset($allBookings[$request->type . '_' . $request->id]);
-        session(['pending_bookings' => $allBookings]);
-
-        return redirect()->route('client.my_reservations')->with('success', 'Reservation confirmed!');
     }
 
     // 3. Client List Page
     public function index(Request $request)
     {
+        $user = auth()->user();
         $search = $request->input('search');
         $status = $request->input('status');
         $dateFilter = $request->input('date');
@@ -207,7 +215,7 @@ class ReservationController extends Controller
                     if ($isRoom) {
                         $q->orWhereHas('room', fn($rq) => $rq->where('room_number', 'like', "%{$search}%"));
                     } else {
-                        $q->orWhereHas('venue', fn($vq) => $vq->where('Venue_Name', 'like', "%{$search}%"));
+                        $q->orWhereHas('venue', fn($vq) => $vq->where('name', 'like', "%{$search}%"));
                     }
                 });
             }
@@ -229,10 +237,16 @@ class ReservationController extends Controller
         $reservations = $rooms->concat($venues)->sortByDesc('created_at');
         
         // 5. IMPORTANT: This variable is required for your Status Cards in the blade!
-        $allForCounts = \App\Models\RoomReservation::select('status')->get()
-                    ->concat(\App\Models\VenueReservation::select('status')->get());
+        if ($user && ($user->usertype === 'admin' || $user->usertype === 'staff')) {
+            $allForCounts = \App\Models\RoomReservation::select('status')->get()
+                            ->concat(\App\Models\VenueReservation::select('status')->get());
+            
+            return view('employee.reservations', compact('reservations', 'allForCounts'));
+        }
 
-        return view('employee.reservations', compact('reservations', 'allForCounts'));
+        // If not an admin/staff, they are a client. Load the Client UI!
+        // Make sure this file is at resources/views/client/my_reservations.blade.php
+        return view('client.my_reservations', compact('reservations'));
     }
     // 4. Admin List Page
     public function adminIndex(Request $request)
@@ -496,28 +510,44 @@ class ReservationController extends Controller
         ]);
     }
     public function cancel(Request $request, $id)
-{
-    $type = $request->input('type');
+    {
+        // 1. Ensure we get the type from the JSON body
+        $type = $request->input('type');
 
-    if ($type === 'room') {
-        $reservation = \App\Models\RoomReservation::findOrFail($id);
-        // Also set the room back to available
-        $reservation->room->update(['status' => 'Available']); 
-    } else {
-        $reservation = \App\Models\VenueReservation::findOrFail($id);
-        // Also set the venue back to available
-        $reservation->venue->update(['status' => 'Available']);
+        if (!$type) {
+            return response()->json(['message' => 'Type is required'], 400);
+        }
+
+        // 2. Find the reservation
+        if ($type === 'room') {
+            $reservation = \App\Models\RoomReservation::with('room')->find($id);
+            if ($reservation && $reservation->room) {
+                // Set the room back to available
+                $reservation->room->update(['status' => 'Available']); 
+            }
+        } else {
+            $reservation = \App\Models\VenueReservation::with('venue')->find($id);
+            if ($reservation && $reservation->venue) {
+                // Set the venue back to available
+                $reservation->venue->update(['status' => 'Available']);
+            }
+        }
+
+        // 3. Security Check: Ensure the user owns this reservation
+        if (!$reservation) {
+            return response()->json(['message' => 'Reservation not found'], 404);
+        }
+
+        if ($reservation->Client_ID !== auth()->id()) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        // 4. Update and Save
+        $reservation->status = 'cancelled';
+        $reservation->save();
+
+        return response()->json(['success' => true, 'message' => 'Success']);
     }
-
-    if ($reservation->Client_ID !== auth()->id()) {
-        return response()->json(['message' => 'Unauthorized'], 403);
-    }
-
-    $reservation->status = 'cancelled';
-    $reservation->save();
-
-    return response()->json(['message' => 'Success']);
-}
     public function storeReservation(Request $request)
     {
         $request->validate([

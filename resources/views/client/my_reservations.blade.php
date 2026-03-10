@@ -19,15 +19,15 @@
 
     <div class="filter-dropdowns">
         {{-- Reservation Type Filter --}}
-        <select name="type" class="filter-select" onchange="this.form.submit()">
-            <option>Reservation Type</option>
-            <option value="room" {{ request('type') == 'room' ? 'selected' : '' }}>Room</option>
-            <option value="venue" {{ request('type') == 'venue' ? 'selected' : '' }}>Venue</option>
+        <select name="accommodation_type" class="filter-select" onchange="this.form.submit()">
+            <option value="">Reservation Type</option>
+            <option value="room" {{ request('accommodation_type') == 'room' ? 'selected' : '' }}>Room</option>
+            <option value="venue" {{ request('accommodation_type') == 'venue' ? 'selected' : '' }}>Venue</option>
         </select>
 
         {{-- Status Filter --}}
         <select name="status" class="filter-select" onchange="this.form.submit()">
-            <option>Status</option>
+            <option value="">Status</option>
             <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
             <option value="confirmed" {{ request('status') == 'confirmed' ? 'selected' : '' }}>Confirmed</option>
             <option value="cancelled" {{ request('status') == 'cancelled' ? 'selected' : '' }}>Cancelled</option>
