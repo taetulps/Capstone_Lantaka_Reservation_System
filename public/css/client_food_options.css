@@ -18,7 +18,7 @@
 }
 
 /* Header */
-
+.content{}
 /* Main Content */
 .main-content {
   z-index: 100;
@@ -460,4 +460,8 @@
 
 .fooddate-confirm:hover {
   filter: brightness(0.97);
+}
+
+.content{
+  padding: 20px 40px;
 }

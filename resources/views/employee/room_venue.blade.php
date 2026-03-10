@@ -112,7 +112,7 @@
   <!-- Add Room Venue Modal -->
       <!-- Modal Content -->
       <x-add_room_venue/>
-      <x-create_reservation/>
+      <x-create_reservation_modal/>
       <x-employee_rv_viewing_modal/>
       <x-employee_food :foods="$foods" />
 

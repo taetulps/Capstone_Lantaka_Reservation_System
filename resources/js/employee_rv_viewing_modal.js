@@ -88,7 +88,6 @@ document.addEventListener("DOMContentLoaded", () => {
       enableRoomForm();
 
       itemId.value = data.id || "";
-
       roomForm.querySelector('input[name="name"]').value = data.name || "";
       roomForm.querySelector('input[name="type"]').value = data.type || "";
       roomForm.querySelector('input[name="capacity"]').value = data.capacity || "";

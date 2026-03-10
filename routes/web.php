@@ -50,8 +50,7 @@ Route::get('client.room_venue', [RoomVenueController::class, 'index'])->name('cl
             Route::post('/accounts/{id}/update', [AccountController::class, 'update'])->name('employee.accounts.update');
             Route::get('/SOA', action: fn() => view('employee.SOA'))->name('SOA');
             Route::post('/room_venue', action: fn() => view('employee.SOA'))->name('SOA');
-            
-
+            Route::post('/reservations/store', [ReservationController::class, 'storeReservation'])->name('reservations.store');
         });
         Route::prefix('client')
         ->name('client.')
@@ -71,6 +70,13 @@ Route::get('/accommodations', [RoomVenueController::class, 'index'])->name('clie
 Route::get('/booking/prepare', [RoomVenueController::class, 'prepareBooking'])->name('booking.prepare');
 
 Route::get('/checkout/{category}/{id}', [RoomVenueController::class, 'show'])->name('client.show');
+Route::get('/employee/create_reservation', [RoomVenueController::class, 'showAssignedAccomodation'])
+    ->name('showAssignedAccomodation');
+Route::get('/employee/search-accounts', [AccountController::class, 'searchAccounts'])
+->name('employee.search_accounts');
+Route::get('/employee/create_food_reservation', action: fn() => view('employee.create_food_reservation'))->name('employee.create_food_reservation');
+
+
 
 /* --- 2. Login & Signup --- */
 

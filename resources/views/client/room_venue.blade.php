@@ -44,7 +44,7 @@
         @if(isset($all_accommodations) && $all_accommodations->isNotEmpty())
             
             @foreach($all_accommodations as $item)
-              <a href="{{ route('client.show', ['category' => $item->category, 'id' => $item->id]) }}" 
+              <a href="{{ route('client.show', parameters: ['category' => $item->category, 'id' => $item->id]) }}" 
               class="book-btn">
                 <div class="accommodations-grid">
                     <div class="card">
