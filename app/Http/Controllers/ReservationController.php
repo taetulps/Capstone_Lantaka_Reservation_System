@@ -534,35 +534,16 @@ class ReservationController extends Controller
         $days = $checkIn->diffInDays($checkOut) ?: 1;
 
         if ($request->type === 'room') {
-<<<<<<< HEAD
-            $accommodation = \App\Models\Room::findOrFail($request->accommodation_id);
-            $price = $accommodation->price;
-
-            // Save to RoomReservation table
-            \App\Models\RoomReservation::create([
-=======
             $room = \App\Models\Room::findOrFail($request->accommodation_id);
             $totalAmount = ($room->Room_Pricing ?? $room->price) * $days;
 
             $reservation = \App\Models\RoomReservation::create([
->>>>>>> 9da99f1 (created employee reservation)
                 'room_id' => $request->accommodation_id,
                 'Client_ID' => $request->user_id,
                 'Room_Reservation_Date' => now(),
                 'Room_Reservation_Check_In_Time' => $request->check_in,
                 'Room_Reservation_Check_Out_Time' => $request->check_out,
                 'pax' => $request->pax,
-<<<<<<< HEAD
-                'Room_Reservation_Total_Price' => $price * $days,
-                'status' => 'pending'
-            ]);
-        } else {
-            $accommodation = \App\Models\Venue::findOrFail($request->accommodation_id);
-            $price = $accommodation->external_price ?? $accommodation->price;
-
-            // Save to VenueReservation table
-            \App\Models\VenueReservation::create([
-=======
                 'Room_Reservation_Total_Price' => $totalAmount,
                 'status' => 'pending',
             ]);
@@ -574,18 +555,12 @@ class ReservationController extends Controller
             $totalAmount = $basePrice * $days;
 
             $reservation = \App\Models\VenueReservation::create([
->>>>>>> 9da99f1 (created employee reservation)
                 'venue_id' => $request->accommodation_id,
                 'Client_ID' => $request->user_id,
                 'Venue_Reservation_Date' => now(),
                 'Venue_Reservation_Check_In_Time' => $request->check_in,
                 'Venue_Reservation_Check_Out_Time' => $request->check_out,
                 'pax' => $request->pax,
-<<<<<<< HEAD
-                'Venue_Reservation_Total_Price' => $price * $days,
-                'status' => 'pending'
-            ]);
-=======
                 'total_price' => $totalAmount,
                 'Venue_Reservation_Total_Price' => $totalAmount,
                 'status' => 'pending',
@@ -617,7 +592,6 @@ class ReservationController extends Controller
 
             unset($allBookings[$uniqueKey]);
             session(['employee_pending_bookings' => $allBookings]);
->>>>>>> 9da99f1 (created employee reservation)
         }
 
         return redirect()
