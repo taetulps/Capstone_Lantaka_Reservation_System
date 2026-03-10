@@ -4,44 +4,38 @@ document.addEventListener('DOMContentLoaded', () => {
   const closeBtn = document.querySelector('.close-btn');
   const statusForm = document.getElementById('statusForm');
   const statusInput = document.getElementById('statusInput');
-  
 
   console.log("employee_reservations.js connection working");
 
-  // --- OPEN MODAL AND POPULATE DATA ---
   expandButtons.forEach(button => {
     button.addEventListener('click', function () {
-      const rawData = this.getAttribute('data-info');
       const data = JSON.parse(this.getAttribute('data-info'));
-      console.log("ID found:", data.id); // If this says 'undefined', the Blade key is wrong
-      console.log("Type found:", data.res_type);
 
-      // 1. Update form action dynamically
+      console.log("ID found:", data.id);
+      console.log("Type found:", data.res_type);
+      console.log("User ID found:", data.userId);
+
+      // Set status form action
       if (statusForm && data.id) {
-        // Construct the URL using backticks
         statusForm.action = `/employee/reservations/${data.id}/status?type=${data.res_type}`;
       } else {
         console.error("Form action not set: ID or Form missing", data.id);
       }
 
-      // 2. Get current status and toggle appropriate action buttons
+      // IMPORTANT: update SOA link here
+      updateSoaLink(data.userId);
+
       const currentStatus = data.status ? data.status.toLowerCase().trim() : '';
 
       const statusGroups = {
         'pending': document.getElementById('pendingActions'),
-        /* checked in guest is also a confirmed reservation */
         'rejected': document.getElementById('pendingActions'),
-
         'confirmed': document.getElementById('confirmedActions'),
         'cancelled': document.getElementById('confirmedActions'),
-
         'checked-in': document.getElementById('checkedInActions'),
-        'cancelled': document.getElementById('checkedInActions'),
-
         'checked-out': document.getElementById('checkedInActions'),
       };
 
-      // Hide all action groups, then show only the one matching current status
       Object.values(statusGroups).forEach(group => {
         if (group) group.style.display = 'none';
       });
@@ -52,83 +46,74 @@ document.addEventListener('DOMContentLoaded', () => {
         statusGroups['pending'].style.display = 'flex';
       }
 
-      const blockCheckin = document.getElementById('confirmedActions')
-      const blockCheckout = document.getElementById('checkedInActions') // correct id
-      const blockAccept = document.getElementById('pendingActions')
-      const showSOA = document.getElementById('exportSection')
+      const blockCheckin = document.getElementById('confirmedActions');
+      const blockCheckout = document.getElementById('checkedInActions');
+      const blockAccept = document.getElementById('pendingActions');
+      const showSOA = document.getElementById('exportSection');
+      const showAddChSection = document.getElementById('additionalChargesSection');
+      const row = this.closest('tr');
+      const badge = row.querySelector('.badge');
+      const badgeStatus = badge ? badge.textContent.trim() : '';
 
-      const showAddChSection = document.getElementById('additionalChargesSection')
-      const row = this.closest('tr')
-      const badge = row.querySelector('.badge')
-
-      const badgeStatus = badge ? badge.textContent.trim() : ''
-
-      const discountSection = document.getElementById('discountSection')
+      const discountSection = document.getElementById('discountSection');
       const checkAccomodation = data.accommodationType;
 
       if (badgeStatus === "Completed" || badgeStatus === "Checked-out" || badgeStatus === "Cancelled") {
-        blockCheckout.style.display = 'none'
+        blockCheckout.style.display = 'none';
       }
       if (badgeStatus === "Rejected") {
-        blockAccept.style.display = 'none'
+        blockAccept.style.display = 'none';
       }
       if (badgeStatus === "Cancelled" || badgeStatus === "Completed") {
-        blockCheckin.style.display = 'none'
+        blockCheckin.style.display = 'none';
       }
       if (badgeStatus !== "Checked-in") {
-        showSOA.style.display = 'none'
-        showAddChSection.style.display = 'none'
-      }
-      if (badgeStatus === "Checked-in") {
-        if (checkAccomodation === "Venue") {
-          discountSection.classList.remove('none')
-        }
+        showSOA.style.display = 'none';
+        showAddChSection.style.display = 'none';
+      } else {
+        showSOA.style.display = 'block';
+        showAddChSection.style.display = 'block';
       }
 
-      console.log("Accomodation check: " + data.accommodationType);
+      if (badgeStatus === "Checked-in" && checkAccomodation === "Venue") {
+        discountSection.classList.remove('none');
+      } else {
+        discountSection.classList.add('none');
+      }
 
-      // 3. Populate form and summary fields
       let fullName = data.name || 'Unknown';
       let nameParts = fullName.trim().split(' ');
-
-      let status = data.status.charAt(0).toUpperCase() + data.status.slice(1);
-      console.log("test user type:" + data.type)
-      console.log("accomodation :" + data.accommodation)
-      console.log("accomodation Type: " + data.accommodationType)
 
       document.getElementById('modalTitle').textContent = badge.textContent.trim();
       document.getElementById('firstName').value = nameParts[0] || '';
       document.getElementById('lastName').value = nameParts.length > 1 ? nameParts.slice(1).join(' ') : '';
-      document.getElementById('phoneNumber').value = data.phone;
-      document.getElementById('email').value = data.email;
-      document.getElementById('affiliation').value = data.type;
+      document.getElementById('phoneNumber').value = data.phone || '';
+      document.getElementById('email').value = data.email || '';
+      document.getElementById('affiliation').value = data.type || '';
       document.getElementById('modalName').textContent = data.accommodation || 'N/A';
       document.getElementById('modalLastName').textContent = data.pax || '1';
       document.getElementById('modalCheckIn').textContent = data.check_in || '';
       document.getElementById('modalCheckOut').textContent = data.check_out || '';
       document.getElementById('accomodation-type').textContent = data.accommodationType || '';
-      document.getElementById('unit-price').textContent = `₱` + data.price || '';
-      document.getElementById('totalAmount').textContent = `₱` + data.price || '';
-      document.getElementById('userId').textContent = `₱` + data.userId || '';
+      document.getElementById('unit-price').textContent = `₱${data.price || 0}`;
+      document.getElementById('totalAmount').textContent = `₱${data.price || 0}`;
+      document.getElementById('userId').value = data.userId || '';
 
-      // 4. Populate food list if available
       const foodListContainer = document.getElementById('modalFoodList');
       if (foodListContainer && data.food_items) {
         foodListContainer.innerHTML = data.food_items;
       }
-      // 5. Open modal
+
       modalOverlay.style.display = 'flex';
     });
   });
 
-  // --- CLOSE MODAL ---
   if (closeBtn) {
     closeBtn.addEventListener('click', () => {
       modalOverlay.style.display = 'none';
     });
   }
 
-  // Close modal when clicking overlay background
   if (modalOverlay) {
     modalOverlay.addEventListener('click', (e) => {
       if (e.target === modalOverlay) {
@@ -137,7 +122,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // --- GLOBAL SUBMIT FUNCTION ---
   window.submitStatus = function (statusValue) {
     if (statusInput && statusForm) {
       statusInput.value = statusValue;
@@ -145,11 +129,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
-  window.updateGuestDetails = function () {
-
-  }
-
-  // --- STATUS FILTER CARD TOGGLE ---
   const statusCards = document.querySelector('.status-cards');
   if (statusCards) {
     statusCards.addEventListener('click', (e) => {
@@ -166,20 +145,32 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
-const addChargesBtn = document.getElementById('addAdditionalCharges')
-const chargesContainer = document.getElementById('chargesContainer')
+function updateSoaLink(clientId) {
+  const soaLink = document.getElementById('soaLink');
+  const userIdInput = document.getElementById('userId');
 
-function addAditionalCharges() {
+  if (!soaLink || !userIdInput) return;
 
-  const html = `
-    <div class="charges-container-sub">
-      <input id="addChargesDes" type="text" placeholder="Description" class="charge-input">
-      <input id="addChargesQty" type="number" placeholder="Qty" class="charge-input">
-      <input id="addChargesAmount" type="number" placeholder="₱" class="charge-input">
-    </div>
-  `
-  chargesContainer.innerHTML += html
+  userIdInput.value = clientId;
+  soaLink.href = `/employee/SOA/${clientId}`;
+
+  console.log('SOA LINK SET TO:', soaLink.href);
 }
 
-addChargesBtn.addEventListener('click', addAditionalCharges)
+const addChargesBtn = document.getElementById('addAdditionalCharges');
+const chargesContainer = document.getElementById('chargesContainer');
 
+function addAditionalCharges() {
+  const html = `
+    <div class="charges-container-sub">
+      <input type="text" placeholder="Description" class="charge-input">
+      <input type="number" placeholder="Qty" class="charge-input">
+      <input type="number" placeholder="₱" class="charge-input">
+    </div>
+  `;
+  chargesContainer.innerHTML += html;
+}
+
+if (addChargesBtn) {
+  addChargesBtn.addEventListener('click', addAditionalCharges);
+}

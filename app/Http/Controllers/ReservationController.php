@@ -429,16 +429,21 @@ class ReservationController extends Controller
 
     public function updateStatus(Request $request, $id)
     {
-        // 1. Capture type from query string (sent via JS) and status from form body
-        $type = $request->query('type'); 
+        $type = $request->query('type');
         $newStatus = strtolower($request->input('status'));
 
-        // 2. Validate Type to prevent errors
-        if ($id === 'null' || !$id) {
+        if (!$id || $id === 'null') {
             return redirect()->back()->with('error', 'Critical Error: Reservation ID was not passed correctly.');
         }
 
-        // 3. Find the correct model based on type
+        if (!in_array($type, ['room', 'venue'])) {
+            return redirect()->back()->with('error', 'Invalid or missing reservation type.');
+        }
+
+        if (!in_array($newStatus, ['pending', 'confirmed', 'checked-in', 'checked-out', 'cancelled', 'rejected', 'completed'])) {
+            return redirect()->back()->with('error', 'Invalid status value.');
+        }
+
         try {
             if ($type === 'room') {
                 $reservation = \App\Models\RoomReservation::with('user')->findOrFail($id);
@@ -449,10 +454,9 @@ class ReservationController extends Controller
             return redirect()->back()->with('error', 'Reservation not found.');
         }
 
-        // 4. Update the status
-        $reservation->update(['status' => $newStatus]);
+        $reservation->status = $newStatus;
+        $reservation->save();
 
-        // 5. Trigger Email if Check-out
         if (in_array($newStatus, ['checked-out', 'completed'])) {
             if ($reservation->user && $reservation->user->email) {
                 try {
@@ -460,12 +464,11 @@ class ReservationController extends Controller
                         ->send(new \App\Mail\GuestCheckOutMail($reservation));
                 } catch (\Exception $e) {
                     \Log::error("Email Error for Reservation #{$id}: " . $e->getMessage());
-                    // We don't return error here so the status update still "saves" even if mail fails
                 }
             }
         }
 
-        return redirect()->back()->with('success', "Status updated to " . ucfirst($newStatus) . " successfully.");
+        return redirect()->back()->with('success', 'Status updated to ' . ucfirst($newStatus) . ' successfully.');
     }
    public function displayStatistics()
 {

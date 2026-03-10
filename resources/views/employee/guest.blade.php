@@ -163,22 +163,23 @@
                   <td class="action-cell">
                       {{-- We are removing the Check-in form/button from here --}}
                       <button class="expand-btn" data-info="{{
-                      json_encode([
-                          'id' => $res->id,
-                          'status' => strtolower($res->status),
-                          'name' => $res->user->name ?? $res->user->first_name ?? 'Unknown',
-                          'accommodation' => $accName,
-                          'phone' => $res->user->phone ?? 'Error phone',
-                          'email' => $res->user->email ?? 'Error email',
-                          'type' => $res->user->usertype,
-                          'accommodationType' => $reservationType ?? 'Error accomodation type',
-                          'price' => $price,
-                          'pax' => $res->pax,
-                          'check_in' => \Carbon\Carbon::parse($res->check_in)->format('F d, Y'),
-                          'check_out' => \Carbon\Carbon::parse($res->check_out)->format('F d, Y'),
-                          'foods' => $res->foods,
-                          'userId' => $userId
-                      ]) }}">
+                        json_encode([
+                            'id' => $res->id,
+                            'status' => strtolower($res->status),
+                            'name' => $res->user->name ?? $res->user->first_name ?? 'Unknown',
+                            'accommodation' => $accName,
+                            'phone' => $res->user->phone ?? 'Error phone',
+                            'email' => $res->user->email ?? 'Error email',
+                            'type' => $res->user->usertype,
+                            'res_type' => $res->type,
+                            'accommodationType' => $reservationType ?? 'Error accomodation type',
+                            'price' => $price,
+                            'pax' => $res->pax,
+                            'check_in' => \Carbon\Carbon::parse($res->check_in)->format('F d, Y'),
+                            'check_out' => \Carbon\Carbon::parse($res->check_out)->format('F d, Y'),
+                            'foods' => $res->foods,
+                            'userId' => $userId
+                        ]) }}">
                           ⤢
                       </button>
                   </td>
