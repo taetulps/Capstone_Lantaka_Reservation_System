@@ -10,7 +10,6 @@ use App\Models\Room;
 use App\Models\Venue;
 use App\Models\User;
 use App\Models\Food;
-use App\Models\Reservation;
 use Carbon\CarbonPeriod;
 
 class RoomVenueController extends Controller
@@ -101,17 +100,17 @@ class RoomVenueController extends Controller
     {
         $search = $request->search;
         $status = $request->status;
-    
+
         $rooms = Room::query()
             ->when($search, function ($query) use ($search) {
                 $query->where('room_number', 'ilike', "%{$search}%")
-                      ->orWhere('room_type', 'ilike', "%{$search}%");
+                    ->orWhere('room_type', 'ilike', "%{$search}%");
             })
             ->when($status, function ($query) use ($status) {
                 $query->where('status', $status);
             })
             ->get();
-    
+
         $venues = Venue::query()
             ->when($search, function ($query) use ($search) {
                 $query->where('name', 'ilike', "%{$search}%");
@@ -120,10 +119,13 @@ class RoomVenueController extends Controller
                 $query->where('status', $status);
             })
             ->get();
-    
-        $foods = Food::all();
-    
-        return view('employee.room_venue', compact('rooms','venues','foods'));
+
+        // FIX: Group the food items by category and make keys lowercase
+        $foods = Food::all()->groupBy(function($item) {
+            return strtolower($item->food_category);
+        });
+
+        return view('employee.room_venue', compact('rooms', 'venues', 'foods'));
     }
         public function show($category, $id)
     {
@@ -231,39 +233,51 @@ class RoomVenueController extends Controller
     }
 
     public function showAssignedAccomodation(Request $request)
-    {
-        $category = $request->category;
-        $id = $request->id;
-        $userId = $request->user_id;
+{
+    $category = $request->category;
+    $id = $request->id;
+    $userId = $request->user_id;
 
-        if ($category === 'Room') {
-            $data = Room::findOrFail($id);
-            $data->display_name = "Room " . $data->room_number . " (" . $data->room_type . ")";
-        } else {
-            $data = Venue::findOrFail($id);
-            $data->display_name = $data->name;
-        }
+    // 1. Fetch the Room or Venue and its specific reservations
+    if ($category === 'Room') {
+        $data = Room::findOrFail($id);
+        $data->display_name = "Room " . $data->room_number . " (" . $data->room_type . ")";
 
-        $client = User::findOrFail($userId);
+        // Fetch from RoomReservation model
+        $reservations = RoomReservation::where('room_id', $id)
+            ->get([
+                'Room_Reservation_Check_In_Time as check_in', 
+                'Room_Reservation_Check_Out_Time as check_out'
+            ]);
+    } else {
+        $data = Venue::findOrFail($id);
+        $data->display_name = $data->name;
 
-        $reservations = Reservation::where('accommodation_id', $id)
-            ->where('type', strtolower($category))
-            ->get(['check_in', 'check_out']);
-
-        $occupiedDates = [];
-
-        foreach ($reservations as $res) {
-            $period = CarbonPeriod::create($res->check_in, $res->check_out);
-
-            foreach ($period as $date) {
-                $occupiedDates[] = $date->format('Y-m-d');
-            }
-        }
-
-        $occupiedDates = array_values(array_unique($occupiedDates));
-
-        return view('employee.create_reservation', compact('data', 'category', 'occupiedDates', 'client'));
+        // Fetch from VenueReservation model
+        $reservations = VenueReservation::where('venue_id', $id)
+            ->get([
+                'Venue_Reservation_Check_In_Time as check_in', 
+                'Venue_Reservation_Check_Out_Time as check_out'
+            ]);
     }
+
+    $client = User::findOrFail($userId);
+    $occupiedDates = [];
+
+    // 2. Generate the list of occupied dates
+    foreach ($reservations as $res) {
+        // Ensure we are using the aliased names 'check_in' and 'check_out'
+        $period = CarbonPeriod::create($res->check_in, $res->check_out);
+
+        foreach ($period as $date) {
+            $occupiedDates[] = $date->format('Y-m-d');
+        }
+    }
+
+    $occupiedDates = array_values(array_unique($occupiedDates));
+
+    return view('employee.create_reservation', compact('data', 'category', 'occupiedDates', 'client'));
+}
     }
 
     

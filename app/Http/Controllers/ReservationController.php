@@ -531,32 +531,39 @@ class ReservationController extends Controller
 
         $checkIn = \Carbon\Carbon::parse($request->check_in);
         $checkOut = \Carbon\Carbon::parse($request->check_out);
-        $days = $checkIn->diffInDays($checkOut);
-
-        if ($days < 1) {
-            $days = 1;
-        }
+        $days = $checkIn->diffInDays($checkOut) ?: 1;
 
         if ($request->type === 'room') {
             $accommodation = \App\Models\Room::findOrFail($request->accommodation_id);
             $price = $accommodation->price;
+
+            // Save to RoomReservation table
+            \App\Models\RoomReservation::create([
+                'room_id' => $request->accommodation_id,
+                'Client_ID' => $request->user_id,
+                'Room_Reservation_Date' => now(),
+                'Room_Reservation_Check_In_Time' => $request->check_in,
+                'Room_Reservation_Check_Out_Time' => $request->check_out,
+                'pax' => $request->pax,
+                'Room_Reservation_Total_Price' => $price * $days,
+                'status' => 'pending'
+            ]);
         } else {
             $accommodation = \App\Models\Venue::findOrFail($request->accommodation_id);
             $price = $accommodation->external_price ?? $accommodation->price;
+
+            // Save to VenueReservation table
+            \App\Models\VenueReservation::create([
+                'venue_id' => $request->accommodation_id,
+                'Client_ID' => $request->user_id,
+                'Venue_Reservation_Date' => now(),
+                'Venue_Reservation_Check_In_Time' => $request->check_in,
+                'Venue_Reservation_Check_Out_Time' => $request->check_out,
+                'pax' => $request->pax,
+                'Venue_Reservation_Total_Price' => $price * $days,
+                'status' => 'pending'
+            ]);
         }
-
-        $totalAmount = $price * $days;
-
-        \App\Models\Reservation::create([
-            'user_id' => $request->user_id,
-            'accommodation_id' => $request->accommodation_id,
-            'type' => $request->type,
-            'check_in' => $request->check_in,
-            'check_out' => $request->check_out,
-            'pax' => $request->pax,
-            'total_amount' => $totalAmount,
-            'status' => 'pending',
-        ]);
 
         return redirect()
             ->route('employee.reservations')
