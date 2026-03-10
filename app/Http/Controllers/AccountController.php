@@ -88,4 +88,16 @@ class AccountController extends Controller
 
         return redirect()->back()->with('success', 'Account updated successfully.');
     }
+
+        public function searchAccounts(Request $request)
+        {
+            $search = $request->search;
+
+            $users = User::where('name','ilike',"%{$search}%")
+                ->orWhere('email','ilike',"%{$search}%")
+                ->limit(10)
+                ->get(['id','name','email']);
+
+            return response()->json($users);
+        }
 }

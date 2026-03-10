@@ -416,6 +416,50 @@ class ReservationController extends Controller
 
     return response()->json(['message' => 'Success']);
 }
+    public function storeReservation(Request $request)
+    {
+        $request->validate([
+            'user_id' => 'required|exists:users,id',
+            'accommodation_id' => 'required|integer',
+            'type' => 'required|in:room,venue',
+            'check_in' => 'required|date',
+            'check_out' => 'required|date|after_or_equal:check_in',
+            'pax' => 'required|integer|min:1',
+        ]);
+
+        $checkIn = \Carbon\Carbon::parse($request->check_in);
+        $checkOut = \Carbon\Carbon::parse($request->check_out);
+        $days = $checkIn->diffInDays($checkOut);
+
+        if ($days < 1) {
+            $days = 1;
+        }
+
+        if ($request->type === 'room') {
+            $accommodation = \App\Models\Room::findOrFail($request->accommodation_id);
+            $price = $accommodation->price;
+        } else {
+            $accommodation = \App\Models\Venue::findOrFail($request->accommodation_id);
+            $price = $accommodation->external_price ?? $accommodation->price;
+        }
+
+        $totalAmount = $price * $days;
+
+        \App\Models\Reservation::create([
+            'user_id' => $request->user_id,
+            'accommodation_id' => $request->accommodation_id,
+            'type' => $request->type,
+            'check_in' => $request->check_in,
+            'check_out' => $request->check_out,
+            'pax' => $request->pax,
+            'total_amount' => $totalAmount,
+            'status' => 'pending',
+        ]);
+
+        return redirect()
+            ->route('employee.reservations')
+            ->with('success', 'Reservation created successfully.');
+    }
     
 }
 

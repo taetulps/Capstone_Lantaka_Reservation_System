@@ -3,12 +3,13 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth; // Needed to get the logged-in user
 use App\Models\Room;
 use App\Models\Venue;
-use Illuminate\Support\Facades\Auth; // Needed to get the logged-in user
+use App\Models\User;
+use App\Models\Food;
 use App\Models\Reservation;
 use Carbon\CarbonPeriod;
-use App\Models\Food;
 
 class RoomVenueController extends Controller
 {
@@ -91,7 +92,7 @@ class RoomVenueController extends Controller
         } else {
             $all_accommodations = $rooms->concat($venues);
         }
-
+        
         return view('client.room_venue', compact('all_accommodations'));
     }
     public function adminIndex(Request $request)
@@ -169,13 +170,14 @@ class RoomVenueController extends Controller
         // 2. If it's a Venue, fetch the food and go to the Food Options page
         if ($request->type === 'venue') {
             
-            // ⭐ FETCH THE AVAILABLE FOOD HERE
+            // FETCH THE AVAILABLE FOOD HERE
             $foods = Food::where('status', 'available')->get()->groupBy('food_category');
 
-            // ⭐ PASS BOTH bookingData AND foods TO THE VIEW
+            // PASS BOTH bookingData AND foods TO THE VIEW
             return view('client.food_option', compact('bookingData', 'foods'));
         }
     }
+
     public function update(Request $request)
     {
         $validated = $request->validate([
@@ -217,4 +219,41 @@ class RoomVenueController extends Controller
     
         return back()->with('success', $request->category . ' updated successfully!');
     }
+
+    public function showAssignedAccomodation(Request $request)
+    {
+        $category = $request->category;
+        $id = $request->id;
+        $userId = $request->user_id;
+
+        if ($category === 'Room') {
+            $data = Room::findOrFail($id);
+            $data->display_name = "Room " . $data->room_number . " (" . $data->room_type . ")";
+        } else {
+            $data = Venue::findOrFail($id);
+            $data->display_name = $data->name;
+        }
+
+        $client = User::findOrFail($userId);
+
+        $reservations = Reservation::where('accommodation_id', $id)
+            ->where('type', strtolower($category))
+            ->get(['check_in', 'check_out']);
+
+        $occupiedDates = [];
+
+        foreach ($reservations as $res) {
+            $period = CarbonPeriod::create($res->check_in, $res->check_out);
+
+            foreach ($period as $date) {
+                $occupiedDates[] = $date->format('Y-m-d');
+            }
+        }
+
+        $occupiedDates = array_values(array_unique($occupiedDates));
+
+        return view('employee.create_reservation', compact('data', 'category', 'occupiedDates', 'client'));
     }
+    }
+
+    
