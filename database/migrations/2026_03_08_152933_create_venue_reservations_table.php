@@ -32,7 +32,7 @@ return new class extends Migration
             $table->decimal('Venue_Reservation_Total_Price', 10, 2);
             $table->decimal('Venue_Reservation_Additional_Fees', 10, 2)->nullable();
             $table->string('Venue_Reservation_Additional_Fees_Desc', 255)->nullable();
-            
+            $table->decimal('Venue_Reservation_Discount', 10, 2)->default(0)->after('Venue_Reservation_Additional_Fees_Desc');
             $table->integer('pax'); // Included for your controller logic
             $table->string('status')->default('Pending');
             $table->timestamps();
@@ -46,6 +46,9 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('venue_reservations');
+        Schema::table('venue_reservations', function (Blueprint $table) {
+            // Drops the column if you ever need to rollback
+            $table->dropColumn('Venue_Reservation_Discount');
+        });
     }
 };

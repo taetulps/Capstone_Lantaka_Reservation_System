@@ -150,16 +150,30 @@
                   </td>
 
                   @php
-                      $price=$res->total_amount;
-                      $accName = '';
-                      if($res->type === 'room' && $res->room) {
-                          $accName = 'Room ' . $res->room->room_number;
-                      } elseif($res->type === 'venue' && $res->venue) {
-                          $accName = 'Venue: ' . $res->venue->name;
-                      }
-                      $userId = $res->Client_ID;
-                      $reservationType = $res->type == 'room' 
-                              ? 'Room': 'Venue';
+                        $basePrice = 0;
+                        $accName = '';
+                        $discount = 0;
+                        $extraFees = 0;
+                        $foodTotal = 0;
+
+                        if($res->type === 'room' && $res->room) {
+                            $accName = 'Room ' . $res->room->room_number;
+                            // Use the actual room price from the rooms table
+                            $basePrice = $res->room->price ?? 0; 
+                            $extraFees = $res->Room_Reservation_Additional_Fees ?? 0;
+                            $discount = $res->Room_Reservation_Discount ?? 0;
+                        } 
+                        elseif($res->type === 'venue' && $res->venue) {
+                            $accName = 'Venue: ' . $res->venue->name;
+                            // Use the actual venue price from the venues table
+                            $basePrice = $res->venue->price ?? 0; 
+                            $extraFees = $res->Venue_Reservation_Additional_Fees ?? 0;
+                            $discount = $res->Venue_Reservation_Discount ?? 0;
+                            $foodTotal = $res->foods ? $res->foods->sum('pivot.total_price') : 0;
+                        }
+
+                        $userId = $res->Client_ID;
+                        $reservationType = $res->type == 'room' ? 'Room' : 'Venue';
                   @endphp
                   
                   <td class="action-cell">
@@ -175,12 +189,23 @@
                             'type' => $res->user->usertype,
                             'res_type' => $res->type,
                             'accommodationType' => $reservationType ?? 'Error accomodation type',
-                            'price' => $price,
+                            'price' => $basePrice,
+                           
+                            'food_total' => $foodTotal, // Pass the pre-calculated food total
                             'pax' => $res->pax,
                             'check_in' => \Carbon\Carbon::parse($res->check_in)->format('F d, Y'),
                             'check_out' => \Carbon\Carbon::parse($res->check_out)->format('F d, Y'),
                             'foods' => $res->foods,
-                            'userId' => $userId
+                            'userId' => $userId,
+                            'discount' => $discount,
+        
+                            'additional_fees' => ($res->type === 'room') 
+                                ? ($res->Room_Reservation_Additional_Fees ?? 0) 
+                                : ($res->Venue_Reservation_Additional_Fees ?? 0),
+                                
+                            'additional_fees_desc' => ($res->type === 'room') 
+                                ? ($res->Room_Reservation_Additional_Fees_Desc ?? '') 
+                                : ($res->Venue_Reservation_Additional_Fees_Desc ?? '')
                         ]) }}">
                           ⤢
                       </button>

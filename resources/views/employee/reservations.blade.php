@@ -102,28 +102,48 @@
             <tbody>
               {{-- DYNAMIC LOOP STARTS HERE --}}
               @forelse($reservations as $reservation)
-
                   @if(in_array($reservation->status, ['pending','confirmed','checked-in','rejected']))
                   @php
-                      // 1. Identify Type (Using the 'display_type' we mapped in the controller)
+                      // 1. IDENTIFY TYPE FIRST! (This fixes the undefined variable error)
                       $isRoom = ($reservation->display_type === 'room');
 
-                      // 2. Map Column Names based on type
+                      // 2. Map Database Columns
                       $dbId = $isRoom ? $reservation->Room_Reservation_ID : $reservation->Venue_Reservation_ID;
                       $dbCheckIn = $isRoom ? $reservation->Room_Reservation_Check_In_Time : $reservation->Venue_Reservation_Check_In_Time;
                       $dbCheckOut = $isRoom ? $reservation->Room_Reservation_Check_Out_Time : $reservation->Venue_Reservation_Check_Out_Time;
                       $dbTotal = $isRoom ? $reservation->Room_Reservation_Total_Price : $reservation->Venue_Reservation_Total_Price;
-                      
-                      // 3. Setup Accommodation Name for Display
+
+                      // 3. Setup Accommodation Name & Type
                       $accName = $isRoom 
                           ? 'Room: ' . ($reservation->room->room_number ?? 'N/A') 
                           : 'Venue: ' . ($reservation->venue->Venue_Name ?? $reservation->venue->name ?? 'N/A');
+                      $reservationType = $isRoom ? 'Room' : 'Venue';
+
+                      // 4. Setup Pricing Variables for the JavaScript
+                      $basePrice = 0;
+                      $discount = 0;
+                      $extraFees = 0;
+                      $extraFeesDesc = '';
+                      $foodTotal = 0;
+
+                      if($isRoom) {
+                          $basePrice = $reservation->room->price ?? 0;
+                          $discount = $reservation->Room_Reservation_Discount ?? 0;
+                          $extraFees = $reservation->Room_Reservation_Additional_Fees ?? 0;
+                          $extraFeesDesc = $reservation->Room_Reservation_Additional_Fees_Desc ?? '';
+                      } else {
+                          $basePrice = $reservation->venue->price ?? 0;
+                          $discount = $reservation->Venue_Reservation_Discount ?? 0;
+                          $extraFees = $reservation->Venue_Reservation_Additional_Fees ?? 0;
+                          $extraFeesDesc = $reservation->Venue_Reservation_Additional_Fees_Desc ?? '';
+                          $foodTotal = $reservation->foods ? $reservation->foods->sum('pivot.total_price') : 0;
+                      }
                   @endphp
 
                   <tr>
                       <td class="name-cell">
                           <span class="user-icon">
-                            <img src="{{ asset(path: 'images/logo/topnav/user-avatar.svg') }}" alt="reservations">
+                            <img src="{{ asset('images/logo/topnav/user-avatar.svg') }}" alt="reservations">
                           </span>
                           <span>{{ $reservation->user->name ?? 'Unknown User' }}</span>
                       </td>
@@ -148,37 +168,32 @@
                           @endif
                       </td>
 
-                  <td class="action-cell">
-                      @php
-                          $accName = $reservation->type == 'room' 
-                              ? 'Room: ' . ($reservation->room->room_number ?? 'N/A') 
-                              : 'Venue: ' . ($reservation->venue->Venue_Name ?? $reservation->venue->name ?? 'N/A');
-
-                          $price = $reservation->total_amount;
-                          $reservationType = $reservation->type == 'room' 
-                              ? 'Room': 'Venue'
-
-                      @endphp
-
-                      <button class="expand-btn"
-                              data-info="{{ json_encode([
-                                  'id' => $dbId, // Use raw ID for database searching
-                                  'db_id_display' => str_pad($dbId, 5, '0', STR_PAD_LEFT),
-                                  'status' => strtolower($reservation->status),
-                                  'res_type' => $reservation->display_type, //ito inadd ko na bago
-                                  'client_type' => $reservation->user->usertype, //tsaka ito
-                                  'type' => $reservation->user->usertype,
-                                  'phone' => $reservation->user->phone ?? 'Error phone',
-                                  'email' => $reservation->user->email ?? 'Error email',
-                                  'name' => $reservation->user->name ?? 'Error name',
-                                  'accommodation' => $accName,
-                                  'accommodationType' => $reservationType ?? 'Error accomodation type',
-                                  'price' => $reservation->total_amount,
-                                  'pax' => $reservation->pax,
-                                  'check_in' => \Carbon\Carbon::parse($dbCheckIn)->format('F d, Y'),
-                                  'check_out' => \Carbon\Carbon::parse($dbCheckOut)->format('F d, Y'),
-                                  'foods' => $reservation->foods ?? []
-                              ]) }}">
+                      <td class="action-cell">
+                          <button class="expand-btn"
+                                  data-info="{{ json_encode([
+                                      'id' => $dbId,
+                                      'db_id_display' => str_pad($dbId, 5, '0', STR_PAD_LEFT),
+                                      'status' => strtolower($reservation->status),
+                                      'res_type' => $reservation->display_type,
+                                      'client_type' => $reservation->user->usertype ?? 'External',
+                                      'type' => $reservation->user->usertype ?? 'External',
+                                      'phone' => $reservation->user->phone ?? 'Error phone',
+                                      'email' => $reservation->user->email ?? 'Error email',
+                                      'name' => $reservation->user->name ?? 'Unknown User',
+                                      'accommodation' => $accName,
+                                      'accommodationType' => $reservationType,
+                                      
+                                      'price' => $basePrice,
+                                      'food_total' => $foodTotal,
+                                      'discount' => $discount,
+                                      'additional_fees' => $extraFees,
+                                      'additional_fees_desc' => $extraFeesDesc,
+                                      
+                                      'pax' => $reservation->pax,
+                                      'check_in' => \Carbon\Carbon::parse($dbCheckIn)->format('F d, Y'),
+                                      'check_out' => \Carbon\Carbon::parse($dbCheckOut)->format('F d, Y'),
+                                      'foods' => $reservation->foods ?? []
+                                  ]) }}">
                               ⤢
                           </button>
                       </td>
@@ -190,7 +205,7 @@
                           No reservations found matching your filters.
                       </td>
                   </tr>
-              @endforelse
+            @endforelse
               {{-- DYNAMIC LOOP ENDS HERE --}}
 
             </tbody>

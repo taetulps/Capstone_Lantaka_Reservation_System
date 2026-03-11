@@ -30,7 +30,9 @@ Route::get('client.room_venue', [RoomVenueController::class, 'index'])->name('cl
         ->name('employee.')
         ->middleware(['role:admin,staff'])
         ->group(function () {
-
+            Route::post('/reservations/{id}/status', [ReservationController::class, 'updateStatus'])->name('reservations.updateStatus');
+            Route::get('/dashboard', action: fn() => view('employee.dashboard'))->name('dashboard');
+            Route::get('/dashboard', [ReservationController::class, 'displayStatistics'])->name('dashboard');
             Route::get('/dashboard', [ReservationController::class, 'showReservationsCalendar'])->name('dashboard');
             Route::get('/employee_dashboard', function () {
                 // Fetch the food for the dashboard modal
@@ -39,11 +41,10 @@ Route::get('client.room_venue', [RoomVenueController::class, 'index'])->name('cl
             })->name('employee.dashboard');
             Route::get('/reservations', [ReservationController::class, 'adminIndex'])->name('reservations');
             Route::get('/guest', [ReservationController::class, 'showGuests'])->name('guest');
-            Route::post('/guest', [ReservationController::class, 'updateGuests'])->name('updateGuests');
+            Route::put('/guest', [ReservationController::class, 'updateGuests'])->name('updateGuests');
             Route::get('/accounts', [AccountController::class, 'index'])->name('accounts');
             Route::get('/room_venue', action: [RoomVenueController::class, 'adminIndex'])->name('room_venue');
             Route::get('/eventlogs', action: fn() => view('employee.eventlogs'))->name('eventlogs');
-            Route::post('/reservations/{id}/status', [ReservationController::class, 'updateStatus'])->name('reservations.updateStatus');
             Route::post('/accounts/{id}/update-status', [AccountController::class, 'updateStatus'])->name('accounts.updateStatus');
             Route::post('/accounts/{id}/update', [AccountController::class, 'update'])->name('employee.accounts.update');
             Route::get('/SOA/{clientId}', [ReservationController::class, 'showSOA'])->name('SOA');

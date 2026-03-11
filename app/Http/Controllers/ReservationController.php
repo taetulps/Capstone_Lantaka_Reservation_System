@@ -398,12 +398,16 @@ class ReservationController extends Controller
             $item->check_out = $item->Room_Reservation_Check_Out_Time;
             $item->total_amount = $item->Room_Reservation_Total_Price;
             $item->id = $item->Room_Reservation_ID;
-            // Adjust this if your Room table uses a different quantity column
+            $item->base_room_price = $item->room->Room_Pricing ?? 0;
             $item->pax = $item->Room_Reservation_Quantity ?? 0; 
+            $item->additional_fees = $item->additional_fees ?? 0;
+            $item->additional_fees_desc = $item->additional_fees_desc ?? '';
+
             return $item;
         });
 
         $venues = ($accommodationType === 'room') ? collect() : $venueQuery->get()->map(function($item) {
+            \Log::info('Venue reservation ID ' . $item->Venue_Reservation_ID . ' discount: ' . ($item->discount ?? 'null'));
             $item->display_type = 'venue';
             $item->type = 'venue';
             $item->check_in = $item->Venue_Reservation_Check_In_Time;
@@ -412,6 +416,10 @@ class ReservationController extends Controller
             $item->id = $item->Venue_Reservation_ID;
             // Using the 'pax' column confirmed in your Model fillable
             $item->pax = $item->pax ?? 0; 
+            $item->discount = $item->Venue_Reservation_Discount ?? 0;
+            $item->additional_fees = $item->additional_fees ?? 0;
+            $item->additional_fees_desc = $item->additional_fees_desc ?? '';
+            $item->food_total = $item->foods->sum('pivot.total_price') ?? 0;
             return $item;
         });
 
@@ -424,11 +432,71 @@ class ReservationController extends Controller
         return view('employee.guest', compact('reservations', 'allForCounts'));
     }
 
-    public function updateGuests(){
+    public function updateGuests(Request $request)
+    {
+        //dd($request->all());
+        $resId = $request->reservation_id;
+        $type = strtolower($request->res_type); 
 
-        return view('employee.guest');
+        try {
+            if ($type === 'room') {
+                $reservation = RoomReservation::with('room')->findOrFail($resId);
+                
+                // 1. Get the current saved numbers before we overwrite them
+                $currentTotal = (float) $reservation->Room_Reservation_Total_Price;
+                $currentFees = (float) $reservation->Room_Reservation_Additional_Fees;
+                
+                // 2. Reverse-engineer the TRUE original room cost (Price x Nights)
+                $trueBookingCost = $currentTotal - $currentFees; 
+
+                // 3. Get the new values from the form
+                $totalExtra = array_sum($request->input('additional_fees', [0]));
+                $discount = (float) ($request->discount ?? 0);
+
+                // 4. Update the Extra Fees in the DB
+                $reservation->Room_Reservation_Additional_Fees = $totalExtra;
+                $reservation->Room_Reservation_Additional_Fees_Desc = json_encode($request->additional_fees_desc);
+                
+                // 5. Calculate new total strictly using the True Booking Cost
+                $reservation->Room_Reservation_Total_Price = ($trueBookingCost + $totalExtra) - $discount;
+                $reservation->save();
+
+           } elseif ($type === 'venue') {
+                $reservation = VenueReservation::with(['venue', 'foods'])->findOrFail($resId);
+                
+                // 1. Get the current saved numbers before we overwrite them
+                $currentTotal = (float) $reservation->Venue_Reservation_Total_Price;
+                $currentFees = (float) $reservation->Venue_Reservation_Additional_Fees;
+                $currentDiscount = (float) $reservation->Venue_Reservation_Discount;
+                $foodTotal = (float) $reservation->foods->sum('pivot.total_price');
+
+                // 2. Reverse-engineer the TRUE original venue cost
+                $trueBookingCost = $currentTotal - $foodTotal - $currentFees + $currentDiscount;
+
+                // 3. Get the new values from the form (FIXED to match JS snake_case)
+                $totalExtra = array_sum($request->input('additional_fees', [0])); 
+                $discount = (float) ($request->discount ?? 0);
+
+                // 4. Assign new values directly (Removed the Schema check that was blocking it)
+                $reservation->Venue_Reservation_Additional_Fees = $totalExtra;
+                $reservation->Venue_Reservation_Additional_Fees_Desc = json_encode($request->input('additional_fees_desc', []));
+                $reservation->Venue_Reservation_Discount = $discount;
+
+                // 5. Calculate new total strictly using the True Booking Cost
+                $reservation->Venue_Reservation_Total_Price = ($trueBookingCost + $foodTotal + $totalExtra) - $discount;
+                
+                $reservation->save(); 
+
+            } else {
+                return redirect()->back()->with('error', 'Invalid reservation type detected.');
+            }
+
+            return redirect()->back()->with('success', 'Modifications saved successfully!');
+
+        } catch (\Exception $e) {
+            return dd("Database Error: " . $e->getMessage());
+        }
     }
-
     public function updateStatus(Request $request, $id)
     {
         $type = $request->query('type');

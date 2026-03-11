@@ -17,7 +17,9 @@ class RoomReservation extends Model
         'Room_Reservation_Check_Out_Time', 
         'Room_Reservation_Total_Price',
         'pax', 
-        'status'
+        'status',
+        'Room_Reservation_Additional_Fees', 
+        'Room_Reservation_Additional_Fees_Desc'
     ];
 
     public function room() { 

@@ -4,29 +4,103 @@ document.addEventListener('DOMContentLoaded', () => {
   const closeBtn = document.querySelector('.close-btn');
   const statusForm = document.getElementById('statusForm');
   const statusInput = document.getElementById('statusInput');
+  const chargesContainer = document.getElementById('chargesContainer');
+  const addChargesBtn = document.getElementById('addAdditionalCharges');
+  const discInput = document.getElementById('discount');
 
-  console.log("employee_reservations.js connection working");
+  console.log("employee_reservations.js connection working - FULL VERSION");
 
+  // --- 1. GLOBAL CALCULATION LOGIC ---
+  window.calculateLiveTotal = () => {
+    const unitPriceEl = document.getElementById('unit-price');
+    // Improved regex to handle the ₱ symbol and commas
+    const base = unitPriceEl ? (parseFloat(unitPriceEl.textContent.replace(/[^\d.-]/g, '')) || 0) : 0;
+
+    const foodEl = document.getElementById('summaryFood');
+    const food = foodEl ? (parseFloat(foodEl.textContent.replace(/[^\d.-]/g, '')) || 0) : 0;
+
+    const discInput = document.getElementById('discount');
+    const disc = discInput ? (parseFloat(discInput.value) || 0) : 0;
+
+    let extra = 0;
+    document.querySelectorAll('input[name="additional_fees[]"]').forEach(input => {
+      const row = input.closest('.charges-container-sub');
+      const qtyInput = row ? row.querySelector('input[placeholder="Qty"]') : null;
+      const qty = qtyInput ? (parseFloat(qtyInput.value) || 1) : 1;
+      extra += (parseFloat(input.value) || 0) * qty;
+    });
+
+    const grandTotal = (base + food + extra) - disc;
+
+    // Debugging: Check your F12 console to see these numbers!
+    console.log(`Calculation: Base(${base}) + Food(${food}) + Extra(${extra}) - Disc(${disc}) = ${grandTotal}`);
+
+    const summaryExtra = document.getElementById('summaryExtra');
+    if (summaryExtra) summaryExtra.textContent = `₱ ${extra.toFixed(2)}`;
+
+    const summaryDiscount = document.getElementById('summaryDiscount');
+    if (summaryDiscount) summaryDiscount.textContent = `₱ ${disc.toFixed(2)}`;
+
+    const totalAmountEl = document.getElementById('totalAmount');
+    if (totalAmountEl) totalAmountEl.textContent = `₱${grandTotal.toFixed(2)}`;
+  };
+
+  if (discInput) {
+    discInput.addEventListener('input', window.calculateLiveTotal);
+  }
+
+  // --- 2. MODAL POPULATION ---
   expandButtons.forEach(button => {
     button.addEventListener('click', function () {
       const data = JSON.parse(this.getAttribute('data-info'));
+      console.log("Reservation Data:", data);
+      const resIdField = document.getElementById('modalResId');
+      const resTypeField = document.getElementById('modalResType');
+      if (resIdField) resIdField.value = data.id;
+      if (resTypeField) resTypeField.value = data.res_type;
 
-      console.log("ID found:", data.id);
-      console.log("Type found:", data.res_type);
-      console.log("User ID found:", data.userId);
+      if (chargesContainer) {
+        chargesContainer.innerHTML = '';
 
-      // Set status form action
-      if (statusForm && data.id) {
-        statusForm.action = `/employee/reservations/${data.id}/status?type=${data.res_type}`;
-      } else {
-        console.error("Form action not set: ID or Form missing", data.id);
+        let descriptions = [];
+        try {
+          descriptions = JSON.parse(data.additional_fees_desc);
+        } catch (e) {
+          descriptions = data.additional_fees_desc ? data.additional_fees_desc.split(', ') : [];
+        }
+
+        if (descriptions && descriptions.length > 0) {
+          let amounts = [];
+          try {
+            amounts = typeof data.additional_fees === 'string' ? JSON.parse(data.additional_fees) : data.additional_fees;
+          } catch (e) {
+            amounts = [data.additional_fees];
+          }
+
+          descriptions.forEach((item, index) => {
+            let desc = item;
+            let amount = 0;
+
+            if (typeof item === 'string' && item.includes(':')) {
+              const parts = item.split(':');
+              desc = parts[0];
+              amount = parseFloat(parts[1]) || 0;
+            } else {
+              if (Array.isArray(amounts)) {
+                amount = parseFloat(amounts[index]) || 0;
+              } else if (index === 0) {
+                amount = parseFloat(data.additional_fees) || 0;
+              }
+            }
+
+            addAditionalCharges(desc, amount);
+          });
+        }
       }
 
-      // IMPORTANT: update SOA link here
       updateSoaLink(data.userId);
 
       const currentStatus = data.status ? data.status.toLowerCase().trim() : '';
-
       const statusGroups = {
         'pending': document.getElementById('pendingActions'),
         'rejected': document.getElementById('pendingActions'),
@@ -51,22 +125,23 @@ document.addEventListener('DOMContentLoaded', () => {
       const blockAccept = document.getElementById('pendingActions');
       const showSOA = document.getElementById('exportSection');
       const showAddChSection = document.getElementById('additionalChargesSection');
+
       const row = this.closest('tr');
       const badge = row.querySelector('.badge');
       const badgeStatus = badge ? badge.textContent.trim() : '';
-
       const discountSection = document.getElementById('discountSection');
       const checkAccomodation = data.accommodationType;
 
       if (badgeStatus === "Completed" || badgeStatus === "Checked-out" || badgeStatus === "Cancelled") {
-        blockCheckout.style.display = 'none';
+        if (blockCheckout) blockCheckout.style.display = 'none';
       }
       if (badgeStatus === "Rejected") {
-        blockAccept.style.display = 'none';
+        if (blockAccept) blockAccept.style.display = 'none';
       }
       if (badgeStatus === "Cancelled" || badgeStatus === "Completed") {
-        blockCheckin.style.display = 'none';
+        if (blockCheckin) blockCheckin.style.display = 'none';
       }
+
       if (badgeStatus !== "Checked-in") {
         showSOA.style.display = 'none';
         showAddChSection.style.display = 'none';
@@ -84,7 +159,7 @@ document.addEventListener('DOMContentLoaded', () => {
       let fullName = data.name || 'Unknown';
       let nameParts = fullName.trim().split(' ');
 
-      document.getElementById('modalTitle').textContent = badge.textContent.trim();
+      document.getElementById('modalTitle').textContent = badge ? badge.textContent.trim() : '';
       document.getElementById('firstName').value = nameParts[0] || '';
       document.getElementById('lastName').value = nameParts.length > 1 ? nameParts.slice(1).join(' ') : '';
       document.getElementById('phoneNumber').value = data.phone || '';
@@ -95,40 +170,75 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('modalCheckIn').textContent = data.check_in || '';
       document.getElementById('modalCheckOut').textContent = data.check_out || '';
       document.getElementById('accomodation-type').textContent = data.accommodationType || '';
-      document.getElementById('unit-price').textContent = `₱${data.price || "ERROR"}`;
-      document.getElementById('totalAmount').textContent = `₱${data.price || 0}`;
-      document.getElementById('userId').value = data.userId || '';
 
+      const basePrice = data.price || data.total_amount || 0;
+      const unitPriceEl = document.getElementById('unit-price');
+      if (unitPriceEl) unitPriceEl.textContent = `₱${parseFloat(basePrice).toFixed(2)}`;
+
+      // 2. Fix the Food Total (This explicitly updates the food text so the math works)
+      const foodTotal = data.food_total || 0;
+      const summaryFoodEl = document.getElementById('summaryFood');
+      if (summaryFoodEl) summaryFoodEl.textContent = `₱${parseFloat(foodTotal).toFixed(2)}`;
+
+      // 3. Fix the Discount (Targets both possible ID variations safely)
+      const discountValue = data.discount || 0;
+      const discInputEl = document.getElementById('discount');
+      const discInputAlt = document.getElementById('discountInput');
+      if (discInputEl) discInputEl.value = discountValue;
+      if (discInputAlt) discInputAlt.value = discountValue;
+
+      // 4. Update the User ID
+      const userIdEl = document.getElementById('userId');
+      if (userIdEl) userIdEl.value = data.userId || '';
+
+      // 5. Update Food List (if applicable)
       const foodListContainer = document.getElementById('modalFoodList');
       if (foodListContainer && data.food_items) {
         foodListContainer.innerHTML = data.food_items;
       }
 
+      window.calculateLiveTotal();
       modalOverlay.style.display = 'flex';
     });
   });
 
+  // --- 3. MODAL CONTROLS & STATUS SAVING ---
   if (closeBtn) {
-    closeBtn.addEventListener('click', () => {
-      modalOverlay.style.display = 'none';
-    });
+    closeBtn.addEventListener('click', () => { modalOverlay.style.display = 'none'; });
   }
 
   if (modalOverlay) {
     modalOverlay.addEventListener('click', (e) => {
-      if (e.target === modalOverlay) {
-        modalOverlay.style.display = 'none';
-      }
+      if (e.target === modalOverlay) modalOverlay.style.display = 'none';
     });
   }
 
   window.submitStatus = function (statusValue) {
-    if (statusInput && statusForm) {
+    // 1. Correct the variable name (was 'status', now 'statusValue')
+    const statusInput = document.getElementById('statusInput');
+    if (statusInput) {
       statusInput.value = statusValue;
-      statusForm.submit();
+    }
+
+    // 2. Get the values
+    const resId = document.getElementById('modalResId').value;
+    const resType = document.getElementById('modalResType').value;
+
+    // 3. Get the form and update the action URL
+    const form = document.getElementById('statusForm');
+
+    if (resId && form) {
+      // This builds: /employee/reservations/5/status?type=Room
+      form.action = `/employee/reservations/${resId}/status?type=${resType}`;
+
+      console.log("Submitting to:", form.action); // Debugging line
+      form.submit();
+    } else {
+      console.error("Form or Reservation ID missing!");
     }
   };
 
+  // --- 4. STATUS CARDS ANIMATION ---
   const statusCards = document.querySelector('.status-cards');
   if (statusCards) {
     statusCards.addEventListener('click', (e) => {
@@ -145,6 +255,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
+// --- 5. GLOBAL HELPERS ---
 function updateSoaLink(clientId) {
   const soaLink = document.getElementById('soaLink');
   const userIdInput = document.getElementById('userId');
@@ -153,24 +264,57 @@ function updateSoaLink(clientId) {
 
   userIdInput.value = clientId;
   soaLink.href = `/employee/SOA/${clientId}`;
-
-  console.log('SOA LINK SET TO:', soaLink.href);
 }
+
+window.addAditionalCharges = function (description = '', amount = 0) {
+  const chargesContainer = document.getElementById('chargesContainer');
+  if (!chargesContainer) return;
+
+  const newRow = document.createElement('div');
+  newRow.className = 'charges-container-sub';
+  newRow.style.marginTop = "8px";
+
+  newRow.innerHTML = `
+          <input type="text" name="additional_fees_desc[]" value="${description}" placeholder="Description" class="charge-input" style="width: 230px;" required>
+          <input type="number" placeholder="Qty" class="charge-input" style="width: 70px;" min="1" value="1">
+          <input type="number" name="additional_fees[]" value="${amount}" placeholder="₱" class="charge-input amount-input" style="width: 100px;" required>
+          <button type="button" class="remove-btn" onclick="this.parentElement.remove(); window.calculateLiveTotal();" 
+                  style="background:none; border:none; color:red; cursor:pointer; font-size: 20px; padding-left: 5px;">&times;</button>
+      `;
+
+  chargesContainer.appendChild(newRow);
+
+  const newAmountInput = newRow.querySelector('.amount-input');
+  if (typeof window.calculateLiveTotal === 'function') {
+    newAmountInput.addEventListener('input', window.calculateLiveTotal);
+  }
+};
 
 const addChargesBtn = document.getElementById('addAdditionalCharges');
-const chargesContainer = document.getElementById('chargesContainer');
-
-function addAditionalCharges() {
-  const html = `
-    <div class="charges-container-sub">
-      <input type="text" placeholder="Description" class="charge-input">
-      <input type="number" placeholder="Qty" class="charge-input">
-      <input type="number" placeholder="₱" class="charge-input">
-    </div>
-  `;
-  chargesContainer.innerHTML += html;
-}
-
 if (addChargesBtn) {
-  addChargesBtn.addEventListener('click', addAditionalCharges);
+  addChargesBtn.addEventListener('click', () => window.addAditionalCharges('', 0));
 }
+
+// --- 6. SAVE MODIFICATIONS SCRIPT ---
+window.saveModificationsAndSubmit = function (e) {
+  e.preventDefault();
+
+  const modificationForm = document.getElementById('modificationForm');
+  const descInputs = document.querySelectorAll('input[name="additional_fees_desc[]"]');
+  const amountInputs = document.querySelectorAll('input[name="additional_fees[]"]');
+
+  descInputs.forEach((descInput, index) => {
+    const amount = amountInputs[index] ? (parseFloat(amountInputs[index].value) || 0) : 0;
+
+    // Bake the Description and Amount together with a ":"
+    if (descInput.value && !descInput.value.includes(':')) {
+      descInput.value = `${descInput.value.trim()}:${amount}`;
+    }
+  });
+
+  if (modificationForm) {
+    modificationForm.submit();
+  } else {
+    console.error("Could not find the modificationForm!");
+  }
+};

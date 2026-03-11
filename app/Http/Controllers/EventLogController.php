@@ -19,6 +19,7 @@ class EventLogController extends Controller
             'message' => $message,
         ]);
     }
+    
     public function index()
     {
         $logs = EventLog::with('user')->latest()->paginate(20);
