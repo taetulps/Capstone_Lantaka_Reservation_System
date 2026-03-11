@@ -472,26 +472,17 @@ class ReservationController extends Controller
 
         return redirect()->back()->with('success', 'Status updated to ' . ucfirst($newStatus) . ' successfully.');
     }
-    public function displayStatistics()
-    {
-        $roomCount = RoomReservation::count();
-        $venueCount = VenueReservation::count();
-        $totalReservations = $roomCount + $venueCount;
-
-        return view('employee.dashboard', compact('totalReservations'));
-    }
 
     public function showReservationsCalendar()
     {
-        // Load with relationships
         $roomRes = RoomReservation::with(['room', 'user'])->get()->map(function($item) {
             return [
                 'id' => $item->Room_Reservation_ID,
                 'status' => strtolower($item->status),
-                'check_in' => \Carbon\Carbon::parse($item->Room_Reservation_Check_In_Time)->format('Y-m-d'), 
+                'check_in' => \Carbon\Carbon::parse($item->Room_Reservation_Check_In_Time)->format('Y-m-d'),
                 'check_out' => \Carbon\Carbon::parse($item->Room_Reservation_Check_Out_Time)->format('Y-m-d'),
                 'user' => $item->user,
-                'room' => $item->room, // Ensure this isn't null
+                'room' => $item->room,
                 'label' => $item->room ? "Room " . $item->room->Room_Number : "Room N/A",
                 'type' => 'room'
             ];
@@ -513,7 +504,50 @@ class ReservationController extends Controller
         $reservations = $roomRes->concat($venueRes);
         $totalReservations = $reservations->count();
 
-        return view('employee.dashboard', compact('reservations', 'totalReservations'));
+        $roomRevenue = RoomReservation::sum('Room_Reservation_Total_Price');
+        $venueRevenue = VenueReservation::sum('Venue_Reservation_Total_Price');
+        $totalRevenue = $roomRevenue + $venueRevenue;
+        
+        $today = Carbon::today();
+
+        $activeRoomGuests = RoomReservation::where('status', 'checked-in')
+            ->whereDate('Room_Reservation_Check_In_Time', '<=', $today)
+            ->whereDate('Room_Reservation_Check_Out_Time', '>=', $today)
+            ->sum('pax');
+
+        $activeVenueGuests = VenueReservation::where('status', 'checked-in')
+            ->whereDate('Venue_Reservation_Check_In_Time', '<=', $today)
+            ->whereDate('Venue_Reservation_Check_Out_Time', '>=', $today)
+            ->sum('pax');
+
+        $activeGuests = $activeRoomGuests + $activeVenueGuests;
+
+        $totalRooms = \App\Models\Room::count();
+        $occupiedRooms = RoomReservation::where('status', 'checked-in')->count();
+
+        $days = 30;
+
+        $totalRooms = Room::count();
+        $totalRoomNights = $totalRooms * $days;
+
+        $roomNightsSold = RoomReservation::where('status', 'checked-in')
+            ->whereBetween('Room_Reservation_Check_In_Time', [
+                Carbon::now()->subDays($days),
+                Carbon::now()
+            ])
+            ->count();
+
+        $occupancyRate = $totalRoomNights > 0
+            ? ($roomNightsSold / $totalRoomNights) * 100
+            : 0;
+
+        return view('employee.dashboard', compact(
+            'reservations',
+            'totalReservations',
+            'totalRevenue',
+            'activeGuests',
+            'occupancyRate'
+        ));
     }
     public function cancel(Request $request, $id)
     {

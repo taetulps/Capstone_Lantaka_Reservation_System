@@ -95,7 +95,7 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('modalCheckIn').textContent = data.check_in || '';
       document.getElementById('modalCheckOut').textContent = data.check_out || '';
       document.getElementById('accomodation-type').textContent = data.accommodationType || '';
-      document.getElementById('unit-price').textContent = `₱${data.price || 0}`;
+      document.getElementById('unit-price').textContent = `₱${data.price || "ERROR"}`;
       document.getElementById('totalAmount').textContent = `₱${data.price || 0}`;
       document.getElementById('userId').value = data.userId || '';
 

@@ -31,8 +31,6 @@ Route::get('client.room_venue', [RoomVenueController::class, 'index'])->name('cl
         ->middleware(['role:admin,staff'])
         ->group(function () {
 
-            Route::get('/dashboard', action: fn() => view('employee.dashboard'))->name('dashboard');
-            Route::get('/dashboard', [ReservationController::class, 'displayStatistics'])->name('dashboard');
             Route::get('/dashboard', [ReservationController::class, 'showReservationsCalendar'])->name('dashboard');
             Route::get('/employee_dashboard', function () {
                 // Fetch the food for the dashboard modal
