@@ -45,6 +45,14 @@
                     <div class="stat-value">{{ $activeGuests ?? 0 }}</div>
                     <div class="stat-change">+7.2% from last month</div>
                 </div>
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <h3>Checked-outs Today</h3>
+                        <img src="{{ asset('images/logo/dashboard/dashboard-occupancy.svg') }}" alt="reservations">
+                    </div>
+                    <div class="stat-value">{{ number_format($occupancyRate ?? 0, 1) }}%</div>
+                    <div class="stat-change">+2.5% from last month</div>
+                </div>
             </div>
 
             <!-- Calendar Section -->

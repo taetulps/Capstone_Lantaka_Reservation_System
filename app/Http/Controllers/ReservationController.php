@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\RoomReservation;
 use App\Models\VenueReservation;
+use App\Models\FoodReservation;
 use App\Models\Room;
 use App\Models\Venue;
 use App\Models\Food;
@@ -14,156 +15,241 @@ use Illuminate\Support\Facades\Mail;
 use Carbon\Carbon;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+
 
 class ReservationController extends Controller
 {
     // 1. Show Checkout Page
     public function checkout(Request $request)
-    {
-        $allBookings = session('pending_bookings', []);
+{
+    $allBookings = session('pending_bookings', []);
 
-        if ($request->has('accommodation_id')) {
-            $newEntry = $request->all();
-            $uniqueKey = $newEntry['type'] . '_' . $newEntry['accommodation_id'];
-            $allBookings[$uniqueKey] = $newEntry;
-            session(['pending_bookings' => $allBookings]);
-        }
+    if ($request->has('accommodation_id')) {
+        $newEntry = $request->all();
+        $uniqueKey = $newEntry['type'] . '_' . $newEntry['accommodation_id'] . '_' . $newEntry['check_in'] . '_' . $newEntry['check_out'];
 
-        $processedItems = [];
-        $grandTotal = 0;
-
-        foreach ($allBookings as $key => $item) {
-            $checkIn = Carbon::parse($item['check_in']);
-            $checkOut = Carbon::parse($item['check_out']);
-            $days = $checkIn->diffInDays($checkOut) ?: 1;
-
-            if ($item['type'] === 'room') {
-                $model = Room::find($item['accommodation_id']);
-                // Use the pricing field from your Room model
-                $price = $model->Room_Pricing ?? $model->price;
-                $name = "Room " . $model->Room_Number;
-                $img = $model->Room_Image;
-            } else {
-                $model = Venue::find($item['accommodation_id']);
-                $price = $model->Venue_Pricing ?? $model->price;
-                $name = $model->Venue_Name;
-                $img = $model->Venue_Image;
-            }
-
-            if ($model) {
-                $accommodationTotal = $price * $days;
-                $foodTotal = 0;
-                $selectedFoods = [];
-
-                if ($item['type'] === 'venue' && !empty($item['selected_foods'])) {
-                    $selectedFoods = Food::whereIn('food_id', $item['selected_foods'])->get();
-                    $foodTotal = $selectedFoods->sum('Food_Price') * $item['pax'];
-                }
-
-                $itemTotal = $accommodationTotal + $foodTotal;
-                $grandTotal += $itemTotal;
-
-                $processedItems[] = [
-                    'key' => $key,
-                    'id' => $model->getKey(),
-                    'name' => $name,
-                    'type' => $item['type'],
-                    'price' => $price,
-                    'img' => $img,
-                    'pax' => $item['pax'], // Ensure pax is passed
-                    'check_in' => $checkIn->format('F d, Y'),
-                    'check_out' => $checkOut->format('F d, Y'),
-                    
-                    // ADD THESE TWO LINES
-                    'check_in_raw' => $checkIn->toDateString(), 
-                    'check_out_raw' => $checkOut->toDateString(),
-                    'days' => $days > 0 ? $days : 1,
-                    'total' => $itemTotal,
-                    'selected_foods' => $selectedFoods ?? []
-                ];
-            }
-        }
-        return view('client.my_bookings', compact('processedItems', 'grandTotal'));
+        $allBookings[$uniqueKey] = $newEntry;
+        session(['pending_bookings' => $allBookings]);
     }
+
+    $processedItems = [];
+    $grandTotal = 0;
+
+    foreach ($allBookings as $key => $item) {
+        $checkIn = Carbon::parse($item['check_in']);
+        $checkOut = Carbon::parse($item['check_out']);
+        $days = $checkIn->diffInDays($checkOut) ?: 1;
+
+        if ($item['type'] === 'room') {
+            $model = Room::find($item['accommodation_id']);
+
+            if (!$model) {
+                continue;
+            }
+
+            $price = $model->Room_Pricing ?? $model->price;
+            $name = "Room " . ($model->room_number ?? $model->Room_Number ?? '');
+            $img = $model->Room_Image ?? null;
+        } else {
+            $model = Venue::find($item['accommodation_id']);
+
+            if (!$model) {
+                continue;
+            }
+
+            $price = $model->Venue_Pricing ?? $model->price;
+            $name = $model->name ?? $model->Venue_Name ?? 'Venue';
+            $img = $model->Venue_Image ?? null;
+        }
+
+        $accommodationTotal = $price * $days;
+        $foodTotal = 0;
+        $selectedFoods = collect();
+        $foodSelections = $item['food_selections'] ?? [];
+
+        if ($item['type'] === 'venue' && !empty($foodSelections)) {
+            $allFoodIds = [];
+
+            foreach ($foodSelections as $date => $meals) {
+                foreach ($meals as $mealType => $foodIds) {
+                    if (is_array($foodIds)) {
+                        $allFoodIds = array_merge($allFoodIds, $foodIds);
+                    }
+                }
+            }
+
+            $allFoodIds = array_unique($allFoodIds);
+
+            if (!empty($allFoodIds)) {
+                $selectedFoods = Food::whereIn('food_id', $allFoodIds)->get();
+
+                foreach ($foodSelections as $date => $meals) {
+                    foreach ($meals as $mealType => $foodIds) {
+                        if (!is_array($foodIds) || empty($foodIds)) {
+                            continue;
+                        }
+
+                        
+                        $mealFoods = $selectedFoods->whereIn('food_id', $foodIds);
+                        $foodTotal += $mealFoods->sum('Food_Price') * $item['pax'];
+                    }
+                }
+            }
+        }
+        $itemTotal = $accommodationTotal + $foodTotal;
+        $grandTotal += $itemTotal;
+
+        $processedItems[] = [
+            'key' => $key,
+            'id' => $model->getKey(),
+            'name' => $name,
+            'type' => $item['type'],
+            'price' => $price,
+            'img' => $img,
+            'pax' => $item['pax'],
+            'check_in' => $checkIn->format('F d, Y'),
+            'check_out' => $checkOut->format('F d, Y'),
+            'check_in_raw' => $checkIn->toDateString(),
+            'check_out_raw' => $checkOut->toDateString(),
+            'days' => $days > 0 ? $days : 1,
+            'total' => $itemTotal,
+
+            // full grouped structure by date + meal
+            'food_selections' => $foodSelections,
+
+            // all selected food models
+            'selected_foods' => $selectedFoods,
+            'base_total' => $accommodationTotal,
+            'food_total' => $foodTotal,
+        ];
+    }
+
+    return view('client.my_bookings', compact('processedItems', 'grandTotal'));
+}
 
     // 2. Store Reservation (Confirm)
     public function store(Request $request)
-    {
-        $request->validate([
-            'id' => 'required',
-            'type' => 'required|in:room,venue',
-            'check_in' => 'required|date',
-            'check_out' => 'required|date',
-            'pax' => 'required|integer',
-            'total_amount' => 'required|numeric',
-        ]);
+{
+    $request->validate([
+        'selected_items' => 'required|string',
+    ]);
 
-        try {
-            if ($request->type === 'room') {
-                $reservation = RoomReservation::create([
-                    'room_id' => $request->id,
-                    'Client_ID' => Auth::id(),
-                    'Room_Reservation_Date' => now(),
-                    'Room_Reservation_Check_In_Time' => $request->check_in,
-                    'Room_Reservation_Check_Out_Time' => $request->check_out,
-                    'pax' => $request->pax,
-                    'Room_Reservation_Total_Price' => $request->total_amount,
-                    'status' => 'pending'
-                ]);
-            } else {
-                $reservation = VenueReservation::create([
-                    'venue_id' => $request->id,
-                    'Client_ID' => Auth::id(),
-                    'Venue_Reservation_Date' => now(),
-                    'Venue_Reservation_Check_In_Time' => $request->check_in,
-                    'Venue_Reservation_Check_Out_Time' => $request->check_out,
-                    'pax' => $request->pax,
-                    'Venue_Reservation_Total_Price' => $request->total_amount,
-                    'status' => 'pending'
-                ]);
+    try {
+        $selectedItems = json_decode($request->selected_items, true);
 
-                // Handle Food Pivot for Venues
-                $uniqueKey = 'venue_' . $request->id;
-                $allBookings = session('pending_bookings', []);
-                $bookingData = $allBookings[$uniqueKey] ?? null;
+        if (!is_array($selectedItems) || empty($selectedItems)) {
+            return back()->with('error', 'No selected items found.');
+        }
 
-                if ($bookingData && !empty($bookingData['selected_foods'])) {
-                    $attachData = [];
-                    foreach ($bookingData['selected_foods'] as $fId) {
-                        $food = Food::find($fId);
-                        if ($food) {
-                            $attachData[$fId] = [
-                                'serving_time' => now(), 
-                                // Check if your column is Food_Price or food_price
-                                'total_price'  => ($food->Food_Price ?? $food->food_price) * $request->pax,
-                                'status'       => 'pending'
-                            ];
+        \Log::info('Selected items received:', $selectedItems);
+
+        $savedReservations = [];
+
+        DB::transaction(function () use ($selectedItems, &$savedReservations) {
+            foreach ($selectedItems as $index => $item) {
+                \Log::info("Processing item #{$index}", $item);
+
+                if (
+                    empty($item['id']) ||
+                    empty($item['type']) ||
+                    empty($item['check_in']) ||
+                    empty($item['check_out']) ||
+                    !isset($item['pax']) ||
+                    !isset($item['total_amount'])
+                ) {
+                    throw new \Exception("Selected item #{$index} is incomplete.");
+                }
+
+                if ($item['type'] === 'room') {
+                    $reservation = RoomReservation::create([
+                        'room_id' => $item['id'],
+                        'Client_ID' => Auth::id(),
+                        'Room_Reservation_Date' => now(),
+                        'Room_Reservation_Check_In_Time' => $item['check_in'],
+                        'Room_Reservation_Check_Out_Time' => $item['check_out'],
+                        'pax' => $item['pax'],
+                        'Room_Reservation_Total_Price' => $item['total_amount'],
+                        'status' => 'pending',
+                    ]);
+
+                    \Log::info("Saved room reservation #{$reservation->getKey()} for item #{$index}");
+
+                    $savedReservations[] = $reservation;
+                }
+
+                if ($item['type'] === 'venue') {
+                    $reservation = VenueReservation::create([
+                        'venue_id' => $item['id'],
+                        'Client_ID' => Auth::id(),
+                        'Venue_Reservation_Date' => now(),
+                        'Venue_Reservation_Check_In_Time' => $item['check_in'],
+                        'Venue_Reservation_Check_Out_Time' => $item['check_out'],
+                        'pax' => $item['pax'],
+                        'Venue_Reservation_Total_Price' => $item['total_amount'],
+                        'status' => 'pending',
+                    ]);
+
+                    \Log::info("Saved venue reservation #{$reservation->Venue_Reservation_ID} for item #{$index}");
+
+                    $foodSelections = $item['food_selections'] ?? [];
+
+                    if (!empty($foodSelections)) {
+                        foreach ($foodSelections as $date => $meals) {
+                            foreach ($meals as $mealType => $foodIds) {
+                                if (!is_array($foodIds) || empty($foodIds)) {
+                                    continue;
+                                }
+
+                                foreach ($foodIds as $foodId) {
+                                    $food = Food::find($foodId);
+
+                                    if ($food) {
+                                        $price = $food->Food_Price ?? $food->food_price ?? 0;
+
+                                        FoodReservation::create([
+                                            'food_id' => $foodId,
+                                            'venue_reservation_id' => $reservation->Venue_Reservation_ID,
+                                            'client_id' => Auth::id(),
+                                            'serving_time' => $date,
+                                            'total_price' => $price * $item['pax'],
+                                        ]);
+                                    }
+                                }
+                            }
                         }
                     }
-                    $reservation->foods()->attach($attachData);
+
+                    $savedReservations[] = $reservation;
                 }
             }
+        });
 
-            // Send Email (Wrapped in try-catch so failure doesn't stop the redirect)
-            try {
-                Mail::to(auth()->user()->email)->send(new \App\Mail\ReservationConfirmationMail($reservation));
-            } catch (\Exception $e) {
-                \Log::error("Mail failed: " . $e->getMessage());
-            }
-
-            // Clear only this item from session
-            $allBookings = session('pending_bookings', []);
-            unset($allBookings[$request->type . '_' . $request->id]);
-            session(['pending_bookings' => $allBookings]);
-
-            return redirect()->route('client.my_reservations')->with('success', 'Reservation confirmed!');
-
+        try {
+            Mail::to(auth()->user()->email)->send(
+                new \App\Mail\ReservationConfirmationMail($savedReservations)
+            );
         } catch (\Exception $e) {
-            \Log::error("Reservation Store Error: " . $e->getMessage());
-            return back()->with('error', 'Something went wrong: ' . $e->getMessage());
+            \Log::error("Mail failed: " . $e->getMessage());
         }
-    }
 
+        $allBookings = session('pending_bookings', []);
+
+        foreach ($selectedItems as $item) {
+            $uniqueKey = $item['type'] . '_' . $item['id'] . '_' . $item['check_in'] . '_' . $item['check_out'];
+            unset($allBookings[$uniqueKey]);
+        }
+        
+        session(['pending_bookings' => $allBookings]);
+
+        return redirect()->route('client.my_reservations')
+            ->with('success', 'Reservations confirmed successfully!');
+    } catch (\Exception $e) {
+        \Log::error("Reservation Store Error: " . $e->getMessage());
+        return back()->with('error', 'Something went wrong: ' . $e->getMessage());
+    }
+}
     // 3. Client List Page
     public function index(Request $request)
     {
@@ -175,10 +261,11 @@ class ReservationController extends Controller
         $accType = $request->input('accommodation_type');
 
         // 1. Query Room Reservations (Global for Employees)
-        $roomQuery = \App\Models\RoomReservation::with(['room', 'user']);
+        $roomQuery = \App\Models\RoomReservation::with(['room', 'user'])
+        ->where('Client_ID', $user->id);
 
-        // 2. Query Venue Reservations (Global for Employees)
-        $venueQuery = \App\Models\VenueReservation::with(['venue', 'user', 'foods']);
+        $venueQuery = \App\Models\VenueReservation::with(['venue', 'user', 'foods'])
+        ->where('Client_ID', $user->id);
 
         // 3. Apply Filters
         foreach ([$roomQuery, $venueQuery] as $query) {
@@ -848,53 +935,129 @@ class ReservationController extends Controller
                 $reservations = collect();
 
                 foreach ($roomReservations as $r) {
-
                     $checkIn = \Carbon\Carbon::parse($r->Room_Reservation_Check_In_Time);
                     $checkOut = \Carbon\Carbon::parse($r->Room_Reservation_Check_Out_Time);
                     $days = $checkIn->diffInDays($checkOut) ?: 1;
-
+                
+                    $rawItems = json_decode($r->Room_Reservation_Additional_Fees_Desc ?? '[]', true) ?? [];
+                    $parsedItems = [];
+                
+                    foreach ($rawItems as $item) {
+                        $parts = explode(':', $item);
+                
+                        $desc = $parts[0] ?? '';
+                        $qty = (int) ($parts[1] ?? 1);
+                        $amount = (float) ($parts[2] ?? 0);
+                
+                        $parsedItems[] = [
+                            'desc' => $desc,
+                            'qty' => $qty,
+                            'amount' => $amount,
+                            'line_total' => $qty * $amount,
+                        ];
+                    }
+                
+                    $additionalFees = (float) ($r->Room_Reservation_Additional_Fees ?? 0);
+                    $baseAmount = (float) ($r->Room_Reservation_Total_Price ?? 0) - $additionalFees;
+                
                     $reservations->push([
+                        'type' => 'room',
+                        'id' => $r->Room_Reservation_ID,
                         'name' => 'Room ' . ($r->room->room_number ?? 'Error'),
                         'check_in' => $checkIn->format('m/d/Y'),
                         'check_out' => $checkOut->format('m/d/Y'),
                         'pax' => $r->pax,
                         'days' => $days,
-                        'total_price' => $r->Room_Reservation_Total_Price ?? 0
+                        'base_price' => $baseAmount,
+                        'total_price' => $r->Room_Reservation_Total_Price ?? 0,
+                        'additional_fees' => $additionalFees,
+                        'discount' => 0,
+                        'additional_fee_items' => $parsedItems,
                     ]);
                 }
 
                 foreach ($venueReservations as $v) {
-
                     $checkIn = \Carbon\Carbon::parse($v->Venue_Reservation_Check_In_Time);
                     $checkOut = \Carbon\Carbon::parse($v->Venue_Reservation_Check_Out_Time);
                     $days = $checkIn->diffInDays($checkOut) ?: 1;
-
+                
+                    $rawItems = json_decode($v->Venue_Reservation_Additional_Fees_Desc ?? '[]', true) ?? [];
+                    $parsedItems = [];
+                
+                    foreach ($rawItems as $item) {
+                        $parts = explode(':', $item);
+                
+                        $desc = $parts[0] ?? '';
+                        $qty = (int) ($parts[1] ?? 1);
+                        $amount = (float) ($parts[2] ?? 0);
+                
+                        $parsedItems[] = [
+                            'desc' => $desc,
+                            'qty' => $qty,
+                            'amount' => $amount,
+                            'line_total' => $qty * $amount,
+                        ];
+                    }
+                
+                    $additionalFees = (float) ($v->Venue_Reservation_Additional_Fees ?? 0);
+                    $discount = (float) ($v->Venue_Reservation_Discount ?? 0);
+                    $baseAmount = (float) ($v->Venue_Reservation_Total_Price ?? 0) - $additionalFees + $discount;
+                
                     $reservations->push([
+                        'type' => 'venue',
+                        'id' => $v->Venue_Reservation_ID,
                         'name' => 'Venue ' . ($v->venue->name ?? 'Error'),
                         'check_in' => $checkIn->format('m/d/Y'),
                         'check_out' => $checkOut->format('m/d/Y'),
                         'pax' => $v->pax,
                         'days' => $days,
-                        'total_price' => $v->Venue_Reservation_Total_Price ?? 0
+                        'base_price' => $baseAmount,
+                        'total_price' => $v->Venue_Reservation_Total_Price ?? 0,
+                        'additional_fees' => $additionalFees,
+                        'discount' => $discount,
+                        'additional_fee_items' => $parsedItems,
                     ]);
                 }
 
                 return view('employee.SOA', compact('client', 'reservations'));
             }
 
-
-            public function exportSOA($clientId)
+            public function exportSOA(Request $request, $clientId)
             {
+                $selectedItems = json_decode($request->input('selected_items', '[]'), true) ?? [];
+
+                $roomIds = collect($selectedItems)
+                    ->where('type', 'room')
+                    ->pluck('id')
+                    ->map(fn ($id) => (int) $id)
+                    ->toArray();
+
+                $venueIds = collect($selectedItems)
+                    ->where('type', 'venue')
+                    ->pluck('id')
+                    ->map(fn ($id) => (int) $id)
+                    ->toArray();
+
                 $client = User::findOrFail($clientId);
-            
+
                 $roomReservations = RoomReservation::with('room')
                     ->where('Client_ID', $clientId)
                     ->where('status', 'checked-in')
+                    ->when(!empty($roomIds), function ($query) use ($roomIds) {
+                        $query->whereIn('Room_Reservation_ID', $roomIds);
+                    }, function ($query) {
+                        $query->whereRaw('1 = 0');
+                    })
                     ->get();
-            
+
                 $venueReservations = VenueReservation::with('venue')
                     ->where('Client_ID', $clientId)
                     ->where('status', 'checked-in')
+                    ->when(!empty($venueIds), function ($query) use ($venueIds) {
+                        $query->whereIn('Venue_Reservation_ID', $venueIds);
+                    }, function ($query) {
+                        $query->whereRaw('1 = 0');
+                    })
                     ->get();
             
                 $reservations = collect();
@@ -903,30 +1066,94 @@ class ReservationController extends Controller
                     $checkIn = Carbon::parse($r->Room_Reservation_Check_In_Time);
                     $checkOut = Carbon::parse($r->Room_Reservation_Check_Out_Time);
                     $days = $checkIn->diffInDays($checkOut) ?: 1;
-            
+                
+                    $additionalFees = (float) ($r->Room_Reservation_Additional_Fees ?? 0);
+                    $baseAmount = (float) ($r->Room_Reservation_Total_Price ?? 0) - $additionalFees;
+                
                     $reservations->push([
-                        'name' => 'Room ' . ($r->room->Room_Number ?? 'Room'),
-                        'check_in' => $checkIn->format('d/m/Y'),
-                        'check_out' => $checkOut->format('d/m/Y'),
+                        'date' => $checkIn->format('d/m/Y'),
+                        'name' => 'Room ' . ($r->room->Room_Number ?? $r->room->room_number ?? 'Room'),
                         'pax' => $r->pax,
                         'days' => $days,
-                        'total_price' => $r->Room_Reservation_Total_Price ?? 0,
+                        'rate' => $days > 0 ? $baseAmount / $days : $baseAmount,
+                        'amount' => $baseAmount,
+                        'is_subitem' => false,
                     ]);
+                
+                    $rawItems = json_decode($r->Room_Reservation_Additional_Fees_Desc ?? '[]', true) ?? [];
+                
+                    foreach ($rawItems as $item) {
+                        $parts = explode(':', $item);
+                
+                        $desc = $parts[0] ?? '';
+                        $qty = (int) ($parts[1] ?? 1);
+                        $rate = (float) ($parts[2] ?? 0);
+                        $lineTotal = $qty * $rate;
+                
+                        $reservations->push([
+                            'date' => '',
+                            'name' => '+ ' . $desc,
+                            'pax' => $qty,
+                            'days' => '',
+                            'rate' => $rate,
+                            'amount' => $lineTotal,
+                            'is_subitem' => true,
+                        ]);
+                    }
                 }
             
                 foreach ($venueReservations as $v) {
                     $checkIn = Carbon::parse($v->Venue_Reservation_Check_In_Time);
                     $checkOut = Carbon::parse($v->Venue_Reservation_Check_Out_Time);
                     $days = $checkIn->diffInDays($checkOut) ?: 1;
-            
+                
+                    $additionalFees = (float) ($v->Venue_Reservation_Additional_Fees ?? 0);
+                    $discount = (float) ($v->Venue_Reservation_Discount ?? 0);
+                    $baseAmount = (float) ($v->Venue_Reservation_Total_Price ?? 0) - $additionalFees + $discount;
+                
                     $reservations->push([
-                        'name' => 'Venue ' . ($v->venue->Venue_Name ?? 'Venue'),
-                        'check_in' => $checkIn->format('d/m/Y'),
-                        'check_out' => $checkOut->format('d/m/Y'),
+                        'date' => $checkIn->format('d/m/Y'),
+                        'name' => 'Venue ' . ($v->venue->Venue_Name ?? $v->venue->name ?? 'Venue'),
                         'pax' => $v->pax,
                         'days' => $days,
-                        'total_price' => $v->Venue_Reservation_Total_Price ?? 0,
+                        'rate' => $days > 0 ? $baseAmount / $days : $baseAmount,
+                        'amount' => $baseAmount,
+                        'is_subitem' => false,
                     ]);
+                
+                    $rawItems = json_decode($v->Venue_Reservation_Additional_Fees_Desc ?? '[]', true) ?? [];
+                
+                    foreach ($rawItems as $item) {
+                        $parts = explode(':', $item);
+                
+                        $desc = $parts[0] ?? '';
+                        $qty = (int) ($parts[1] ?? 1);
+                        $rate = (float) ($parts[2] ?? 0);
+                        $lineTotal = $qty * $rate;
+                
+                        $reservations->push([
+                            'date' => '',
+                            'name' => '+ ' . $desc,
+                            'pax' => $qty,
+                            'days' => '',
+                            'rate' => $rate,
+                            'amount' => $lineTotal,
+                            'is_subitem' => true,
+                        ]);
+                    }
+                
+                    if ($discount > 0) {
+                        $reservations->push([
+                            'date' => '',
+                            'name' => '- Discount',
+                            'pax' => 1,
+                            'days' => '',
+                            'rate' => $discount,
+                            'amount' => $discount,
+                            'is_subitem' => true,
+                            'is_discount' => true,
+                        ]);
+                    }
                 }
             
                 /*
@@ -963,24 +1190,42 @@ class ReservationController extends Controller
             
                 $startRow = 25;
                 $currentRow = $startRow;
+
+                $startRow = 25;
+                $currentRow = $startRow;
+
                 $subtotal = 0;
-            
+                $totalAdditionalFees = 0;
+                $totalDiscounts = 0;
+
                 foreach ($reservations as $r) {
-                    $days = $r['days'] ?? 1;
-                    $amount = $r['total_price'] ?? 0;
-                    $rate = $days > 0 ? $amount / $days : $amount;
-            
-                    $sheet->setCellValue("A{$currentRow}", $r['check_in']);
-                    $sheet->setCellValue("B{$currentRow}", $r['name']);
-                    $sheet->setCellValue("C{$currentRow}", $r['pax']);
-                    $sheet->setCellValue("D{$currentRow}", $days . ' day');
+                    $date = $r['date'] ?? '';
+                    $name = $r['name'] ?? '';
+                    $qty = $r['pax'] ?? '';
+                    $days = $r['days'] ?? '';
+                    $rate = $r['rate'] ?? 0;
+                    $amount = (float) ($r['amount'] ?? 0);
+
+                    $sheet->setCellValue("A{$currentRow}", $date);
+                    $sheet->setCellValue("B{$currentRow}", $name);
+                    $sheet->setCellValue("C{$currentRow}", $qty);
+                    $sheet->setCellValue("D{$currentRow}", $days !== '' ? $days . ' day' : '');
                     $sheet->setCellValue("E{$currentRow}", $rate);
                     $sheet->setCellValue("F{$currentRow}", $amount);
-            
-                    $subtotal += $amount;
+
+                    if (($r['is_subitem'] ?? false) === true) {
+                        if (($r['is_discount'] ?? false) === true) {
+                            $totalDiscounts += $amount;
+                        } else {
+                            $totalAdditionalFees += $amount;
+                        }
+                    } else {
+                        $subtotal += $amount;
+                    }
+
                     $currentRow++;
                 }
-            
+
                 /*
                 ===============================
                 SUMMARY BOX
@@ -988,12 +1233,11 @@ class ReservationController extends Controller
                 Column F = values
                 ===============================
                 */
-            
-                $sheet->setCellValue('F15', $subtotal); // Subtotal
-                $sheet->setCellValue('F16', 0);         // Additional Fees
-                $sheet->setCellValue('F17', 0);         // Discounts
-                $sheet->setCellValue('F18', $subtotal); // Total Amount Due
-            
+
+                $sheet->setCellValue('F15', $subtotal);
+                $sheet->setCellValue('F16', $totalAdditionalFees);
+                $sheet->setCellValue('F17', $totalDiscounts);
+                $sheet->setCellValue('F18', $subtotal + $totalAdditionalFees - $totalDiscounts);
                 /*
                 ===============================
                 CURRENCY FORMAT

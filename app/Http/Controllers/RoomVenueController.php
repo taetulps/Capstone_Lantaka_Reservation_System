@@ -127,68 +127,62 @@ class RoomVenueController extends Controller
 
         return view('employee.room_venue', compact('rooms', 'venues', 'foods'));
     }
-        public function show($category, $id)
+    public function show($category, $id)
     {
-        // 1. Find the correct item based on category
         if (strtolower($category) === 'room') {
             $data = Room::findOrFail($id);
             $data->display_name = "Room " . ($data->room_number ?? $id);
-            
-            // Use RoomReservation model
+    
             $reservations = RoomReservation::where('room_id', $id)
                 ->whereIn('status', ['pending', 'confirmed', 'checked-in'])
                 ->get();
-                
+    
             $dateFieldIn = 'Room_Reservation_Check_In_Time';
             $dateFieldOut = 'Room_Reservation_Check_Out_Time';
+    
         } else {
             $data = Venue::findOrFail($id);
             $data->display_name = $data->name;
-
-            // Use VenueReservation model
+    
             $reservations = VenueReservation::where('venue_id', $id)
                 ->whereIn('status', ['pending', 'confirmed', 'checked-in'])
                 ->get();
-                
+    
             $dateFieldIn = 'Venue_Reservation_Check_In_Time';
             $dateFieldOut = 'Venue_Reservation_Check_Out_Time';
         }
-
-        // 2. Map the occupied dates
-        $occupiedDates = [];
-        foreach ($reservations as $res) {
-            $period = CarbonPeriod::create($res->$dateFieldIn, $res->$dateFieldOut);
-            foreach ($period as $date) {
-                $occupiedDates[] = $date->format('Y-m-d');
-            }
-        }
-        
-        // Remove duplicate dates just in case, and reset array keys
-        $occupiedDates = array_values(array_unique($occupiedDates));
-
-        // 3. Pass the data AND the occupiedDates to the view
+    
+        // Send ranges instead of individual dates
+        $occupiedDates = $reservations->map(function ($res) use ($dateFieldIn, $dateFieldOut) {
+            return [
+                'start' => \Carbon\Carbon::parse($res->$dateFieldIn)->format('Y-m-d'),
+                'end'   => \Carbon\Carbon::parse($res->$dateFieldOut)->format('Y-m-d')
+            ];
+        });
+    
         return view('client.room_venue_viewing', compact('data', 'category', 'occupiedDates'));
     }
+    
     public function prepareBooking(\Illuminate\Http\Request $request)
     {
-        // Grab all the data the user just submitted (dates, pax, accommodation_id, type)
         $bookingData = $request->all();
-
-        // 1. If it's a Room, skip food and go straight to Checkout
+    
         if ($request->type === 'room') {
             return redirect()->route('checkout', $bookingData);
         }
-
-        // 2. If it's a Venue, fetch the food and go to the Food Options page
+    
         if ($request->type === 'venue') {
-            
-            // FETCH THE AVAILABLE FOOD HERE
-            $foods = Food::where('status', 'available')->get()->groupBy('food_category');
-
-            // PASS BOTH bookingData AND foods TO THE VIEW
+            $foods = Food::where('status', 'available')
+                ->get()
+                ->groupBy(function ($food) {
+                    return strtolower($food->food_category);
+                });
+    
             return view('client.food_option', compact('bookingData', 'foods'));
         }
     }
+
+    
 
     public function update(Request $request)
     {

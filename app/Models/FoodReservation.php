@@ -16,6 +16,7 @@ class FoodReservation extends Model
         'client_id',
         'staff_id',
         'serving_time',
-        'total_price'
+        'total_price',
+        'status',
     ];
 }

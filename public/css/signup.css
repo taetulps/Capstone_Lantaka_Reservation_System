@@ -201,12 +201,18 @@ body {
 .upload-label {
   display: flex;
   flex-direction: column;
+  border: 2px dashed var(--border-color);
+  border-radius: 6px;
   align-items: center;
   justify-content: center;
   min-height: 180px;
   /* Ensures the box stays the same size when image appears */
   width: 100%;
   cursor: pointer;
+  text-align: center;
+  transition: all 0.3s ease;
+  background-color: var(--bg-light);
+  padding: 0 !important;
 }
 
 #image-preview {
@@ -223,16 +229,7 @@ body {
   display: none;
 }
 
-.upload-label {
-  display: block;
-  border: 2px dashed var(--border-color);
-  border-radius: 6px;
-  padding: 32px 16px;
-  text-align: center;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  background-color: var(--bg-light);
-}
+
 
 .upload-label:hover {
   border-color: var(--primary-blue);

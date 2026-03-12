@@ -65,7 +65,7 @@
           --}}
       <div class="right-section">
         <div class="calendar-container">
-          <x-booking_calendar :occupiedDates="json_encode($occupiedDates)" />
+          <x-booking_calendar :occupiedRanges="json_encode($occupiedRanges)" />
 
         </div> 
         <div class="booking-section">
@@ -85,6 +85,7 @@
 
           <input type="hidden" name="user_id" value="{{ $client->id }}">
           <input type="hidden" name="accommodation_id" value="{{ $data->id }}">
+          <input type="hidden" name="res_name" id="res_name" value="{{ $data->display_name }}">
           <input type="hidden" name="type" value="{{ strtolower($category) }}">
           <input type="hidden" name="check_in" id="check_in">
           <input type="hidden" name="check_out" id="check_out">
@@ -123,6 +124,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const hiddenCheckIn = document.getElementById('check_in');
         const hiddenCheckOut = document.getElementById('check_out');
+
 
         // Only fill values if calendar exists
         if (calendarCheckIn && calendarCheckOut) {

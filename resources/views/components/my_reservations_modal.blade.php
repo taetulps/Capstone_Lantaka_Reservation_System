@@ -42,3 +42,23 @@
     </div>
   </div>
 </div>
+
+<style>
+  .modal-food-table{
+  width:100%;
+  border-collapse:collapse;
+  font-size:0.85rem;
+}
+
+.modal-food-table th,
+.modal-food-table td{
+  border:1px solid #ddd;
+  padding:8px;
+  text-align:left;
+}
+
+.modal-food-table th{
+  background:#f5f5f5;
+  font-weight:600;
+}
+</style>

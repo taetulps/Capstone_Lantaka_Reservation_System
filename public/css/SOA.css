@@ -179,6 +179,16 @@
   background: #fff8dc;
 }
 
+
+.soa-extra-row td {
+  font-size: 13px;
+  color: #555;
+  border-top: none;
+}
+
+.soa-extra-row.soa-row-selected {
+  background-color: #dbeafe !important;
+}
 /* =========================
    MOBILE
 ========================= */

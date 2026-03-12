@@ -39,23 +39,58 @@
 
             <tbody>
               @foreach($reservations as $index => $r)
-              <tr
-                class="soa-table-row"
-                data-name="{{ $r['name'] }}"
-                data-days="{{ $r['days'] ?? 1 }}"
-                data-price="{{ $r['total_price'] }}"
-              >
-                <td>{{ $r['check_in'] }}</td>
-                <td>
-                  {{ $r['name'] }}<br>
-                  <small>{{ $r['check_in'] }} - {{ $r['check_out'] }}</small>
-                </td>
-                <td>{{ $r['pax'] }}</td>
-                <td>{{ $r['days'] ?? 1 }} day</td>
-                <td>₱ {{ number_format(($r['total_price'] / ($r['days'] ?? 1)), 2) }}</td>
-                <td><strong>₱ {{ number_format($r['total_price'], 2) }}</strong></td>
-              </tr>
-              @endforeach
+                  <tr
+                    class="soa-table-row"
+                    data-group="soa-group-{{ $index }}"
+                    data-id="{{ $r['id'] }}"
+                    data-type="{{ $r['type'] }}"
+                    data-name="{{ $r['name'] }}"
+                    data-days="{{ $r['days'] ?? 1 }}"
+                    data-price="{{ $r['base_price'] ?? $r['total_price'] }}"
+                    data-discount="{{ $r['discount'] ?? 0 }}"
+                    data-fee-items='@json($r["additional_fee_items"] ?? [])'
+                  >
+                  <td>{{ $r['check_in'] }}</td>
+
+                  <td>
+                    {{ $r['name'] }}<br>
+                    <small>{{ $r['check_in'] }} - {{ $r['check_out'] }}</small>
+                  </td>
+
+                  <td>{{ $r['pax'] }}</td>
+                  <td>{{ $r['days'] ?? 1 }} day</td>
+                  <td>₱ {{ number_format((($r['base_price'] ?? 0) / ($r['days'] ?? 1)), 2) }}</td>
+                  <td><strong>₱ {{ number_format($r['base_price'] ?? 0, 2) }}</strong></td>
+                </tr>
+
+                @if(!empty($r['additional_fee_items']))
+                  @foreach($r['additional_fee_items'] as $fee)
+                  <tr class="soa-extra-row" data-group="soa-group-{{ $index }}">
+                    <td></td>
+                    <td style="padding-left:30px;">
+                      + {{ $fee['desc'] }}
+                    </td>
+                    <td>{{ $fee['qty'] }}</td>
+                    <td>pc</td>
+                    <td>₱ {{ number_format($fee['amount'], 2) }}</td>
+                    <td>₱ {{ number_format($fee['line_total'], 2) }}</td>
+                  </tr>
+                  @endforeach
+                @endif
+
+                @if(!empty($r['discount']) && $r['discount'] > 0)
+                <tr class="soa-extra-row" data-group="soa-group-{{ $index }}">
+                  <td></td>
+                  <td style="padding-left:30px; color:#c0392b;">
+                    - Discount
+                  </td>
+                  <td>1</td>
+                  <td>deduction</td>
+                  <td style="color:#c0392b;">₱ {{ number_format($r['discount'], 2) }}</td>
+                  <td style="color:#c0392b;">₱ {{ number_format($r['discount'], 2) }}</td>
+                </tr>
+                @endif
+                @endforeach
             </tbody>
           </table>
         </div>
@@ -69,11 +104,12 @@
       </div>
 
 
-      <button class="soa-export-btn">
-        <a href="{{ route('export.exportSOA', $client->id) }}" class="soa-export-btn" style="text-decoration: none;">
+      <form id="soaExportForm" method="GET" action="{{ route('export.exportSOA', $client->id) }}">
+        <input type="hidden" name="selected_items" id="selectedItemsInput">
+        <button type="submit" class="soa-export-btn">
           EXPORT STATEMENT OF ACCOUNTS
-        </a>
-      </button>
+        </button>
+      </form>
     </div>
 
   </div>

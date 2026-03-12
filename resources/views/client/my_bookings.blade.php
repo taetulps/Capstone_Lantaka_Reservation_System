@@ -6,25 +6,28 @@
 
 
 @section('content')
-        
-        <h1 class="page-title">Checkout</h1>
-
+        <div>
+            <h1 class="page-title">Checkout</h1>
+    
+        </div>
+            
         <div class="checkout-container">
 
             <section class="cart-items">
                 @forelse($processedItems as $item)
-                    <div class="cart-item" 
-                    onclick="selectItem(
-                        '{{ $item['name'] }}', 
-                        '{{ $item['total'] }}', 
-                        '{{ $item['id'] }}', 
-                        '{{ $item['type'] }}', 
-                        '{{ $item['check_in_raw'] }}', 
-                        '{{ $item['check_out_raw'] }}', 
-                        '{{ $item['pax'] }}',
-                        '{{ json_encode($item['selected_foods'] ?? []) }}' {{-- ADD THIS LINE --}}
-                    )" 
-                    style="cursor: pointer; margin-bottom: 15px;">
+                <div class="cart-item" 
+                        data-name="{{ $item['name'] }}"
+                        data-total="{{ $item['base_total'] }}"
+                        data-base="{{ $item['price'] }}"
+                        data-id="{{ $item['id'] }}"
+                        data-type="{{ $item['type'] }}"
+                        data-in="{{ $item['check_in_raw'] }}"
+                        data-out="{{ $item['check_out_raw'] }}"
+                        data-pax="{{ $item['pax'] }}"
+                        data-food='@json($item['selected_foods'] ?? [])'
+                        data-food-selections='@json($item['food_selections'] ?? [])'
+                        style="cursor: pointer; margin-bottom: 15px;">
+                
                         
                         <div class="item-image">                    
                             <img src="{{ $item['img'] ? asset('storage/' . $item['img']) : asset('images/adzu_logo.png') }}" alt="Item">
@@ -39,14 +42,68 @@
                             <p class="item-dates">
                                 {{ $item['check_in'] }} • {{ $item['check_out'] }}
                                 <br>
-                                <small>({{ $item['days'] ?? 0 }} Nights)</small>
+                                @if($item['type'] == 'room')
+                                <small>({{ $item['days'] ?? 0 }} Night{{ ($item['days'] ?? 0) > 1 ? 's' : '' }})</small>
+                                @endif
                             </p>
-                             @if(!empty($item['selected_foods']) && count($item['selected_foods']) > 0)
-                                <div class="item-food-list" style="margin-top: 8px; font-size: 0.85em; color: #555;">
-                                    <strong style="display: block; margin-bottom: 2px;">Selected Foods:</strong>
-                                    @foreach($item['selected_foods'] as $food)
-                                        <span style="display: block; padding-left: 5px;">• {{ $food['food_name'] }}</span>
-                                    @endforeach
+                            @if(
+                                    $item['type'] === 'venue' &&
+                                    !empty($item['food_selections']) &&
+                                    isset($item['selected_foods']) &&
+                                    $item['selected_foods']->isNotEmpty()
+                                )
+                                <div class="item-food-list" style="margin-top: 10px;
+                                                                    width: 50vw;
+                                                                    overflow-x: scroll; ">
+                                    <strong style="display:block; margin-bottom:8px; color:#333;">Selected Foods by Date:</strong>
+
+                                    <table style="width:100%; border-collapse: collapse; font-size: 0.85em;">
+                                        <thead>
+                                            <tr style="background:#f5f5f5;">
+                                                @foreach($item['food_selections'] as $date => $meals)
+                                                    <th style="border:1px solid #ddd; padding:8px; text-align:left;">
+                                                        {{ \Carbon\Carbon::parse($date)->format('M d, Y') }}
+                                                    </th>
+                                                @endforeach
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @php
+                                                $foodsByDate = [];
+
+                                                foreach ($item['food_selections'] as $date => $meals) {
+                                                    $foodsByDate[$date] = [];
+
+                                                    foreach ($meals as $mealType => $foodIds) {
+                                                        if (!is_array($foodIds) || empty($foodIds)) {
+                                                            continue;
+                                                        }
+
+                                                        $matchedFoods = $item['selected_foods']->whereIn('food_id', $foodIds);
+
+                                                        foreach ($matchedFoods as $food) {
+                                                            $foodsByDate[$date][] = $food->food_name;
+                                                        }
+                                                    }
+                                                }
+
+                                                $maxRows = 0;
+                                                foreach ($foodsByDate as $dateFoods) {
+                                                    $maxRows = max($maxRows, count($dateFoods));
+                                                }
+                                            @endphp
+
+                                            @for($row = 0; $row < $maxRows; $row++)
+                                                <tr>
+                                                    @foreach($foodsByDate as $date => $dateFoods)
+                                                        <td style="border:1px solid #ddd; padding:8px; vertical-align:top;">
+                                                            {{ $dateFoods[$row] ?? '—' }}
+                                                        </td>
+                                                    @endforeach
+                                                </tr>
+                                            @endfor
+                                        </tbody>
+                                    </table>
                                 </div>
                             @endif
                         </div>
@@ -54,7 +111,7 @@
                 @empty
                     <div class="empty-tray-container" style="text-align: center; padding: 50px; background: #f9f9f9; border-radius: 15px; border: 2px dashed #ddd;">
                         <div style="font-size: 50px; margin-bottom: 10px;">🛒</div>
-                        <h3 style="color: #555; font-family: 'Alexandria', sans-serif;">empty</h3>
+                        <h3 style="color: #555; font-family: 'Alexandria', sans-serif;">Empty</h3>
                         <p style="color: #6e5757; font-family: 'Arsenal', sans-serif;">You haven't selected any accommodations yet.</p>
                         <a href="{{ route('client.room_venue') }}" style="display: inline-block; margin-top: 15px; padding: 10px 20px; background: #333; color: white; text-decoration: none; border-radius: 5px;">
                             Find a Room or Venue
@@ -70,32 +127,20 @@
                 </div>
 
                 <div id="summary-details" style="display: none;">
-                    <form action="{{ route('reservation.store') }}" method="POST">
-                        @csrf
-                        <input type="hidden" name="id" id="form-id">
-                        <input type="hidden" name="type" id="form-type">
-                        <input type="hidden" name="check_in" id="form-check-in">
-                        <input type="hidden" name="check_out" id="form-check-out">
-                        <input type="hidden" name="pax" id="form-pax">
-                        <input type="hidden" name="total_price" id="form-total-price">
-                        <input type="hidden" name="total_amount" id="form-total-amount">
+                <form action="{{ route('reservation.store') }}" method="POST">
+                    @csrf
+                    <input type="hidden" name="selected_items" id="selected-items-input">
 
-                        <div class="summary-items">
-                            <div class="summary-item">
-                                <span class="item-label" id="summary-name"></span>
-                                <span class="item-amount" id="summary-total"></span>
-                            </div>
-                        </div>
-                        <div id="summary-foods" style="margin-top: 10px; border-top: 1px dashed #ddd; padding-top: 10px;">
-                {{-- JavaScript will inject food rows here --}}
-            </div>
-                        <div class="summary-divider"></div>
-                        <div class="total-section">
-                            <span class="total-label">Total Payable</span>
-                            <span class="total-amount" id="summary-grand-total"></span>
-                        </div>
-                        <button type="submit" class="confirm-btn">CONFIRM RESERVATION</button>
-                    </form>
+                    <div class="summary-items" id="summary-items"></div>
+                    <div id="summary-foods" style="margin-top: 10px; border-top: 1px dashed #ddd; padding-top: 10px;"></div>
+
+                    <div class="summary-divider"></div>
+                    <div class="total-section">
+                        <span class="total-label">Total Payable</span>
+                        <span class="total-amount" id="summary-grand-total"></span>
+                    </div>
+                    <button type="submit" class="confirm-btn">CONFIRM RESERVATION</button>
+                </form>
                 </div>
             </aside>
         </div>

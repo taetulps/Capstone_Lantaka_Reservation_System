@@ -32,6 +32,15 @@ body {
   align-items: center;
 }
 
+.remove-selected{
+  display: flex;
+  font-size: 16px;
+  padding: 9px 11px;
+  background-color: #e5e7eb;
+  border-radius: 9px;
+  font-weight: 700;
+}
+
 .logo-section {
   display: flex;
   align-items: center;

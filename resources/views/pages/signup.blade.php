@@ -100,7 +100,7 @@
                             <p class="upload-text">Upload Image</p>
                             <p class="upload-hint">Click or drag to upload image</p>
                         </div>
-                        <img id="image-preview" src="" style="display: none; max-width: 100%; max-height: 150px; border-radius: 5px; object-fit: contain;">
+                        <img id="image-preview" src="" style="display: none; max-width: 100%; max-height: 100%; border-radius: 5px; object-fit: contain;">
                     </label>
                     <input type="file" id="validId" name="validId" accept="image/*" required style="display: none;">
                 </div>
@@ -121,11 +121,11 @@
 
   <script>
     // Toggle password visibility
-    document.getElementById('togglePassword').addEventListener('click', function() {
-      const passwordInput = document.getElementById('password');
-      const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-      passwordInput.setAttribute('type', type);
-    });
+    // document.getElementById('togglePassword').addEventListener('click', function() {
+    //   const passwordInput = document.getElementById('password');
+    //   const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+    //   passwordInput.setAttribute('type', type);
+    // });
 
     // File upload drag and drop
     const fileInput = document.getElementById('validId');

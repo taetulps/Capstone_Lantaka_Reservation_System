@@ -3,6 +3,19 @@ document.addEventListener('DOMContentLoaded', () => {
   const modalOverlay = document.querySelector('.modal-overlay');
   const closeBtn = document.querySelector('.close-btn');
 
+  function formatDateHeader(dateString) {
+    if (!dateString) return 'Unknown Date';
+
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return dateString;
+
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: '2-digit',
+      year: 'numeric'
+    });
+  }
+
   expandButtons.forEach(button => {
     button.addEventListener('click', function () {
       const data = JSON.parse(this.getAttribute('data-info'));
@@ -12,68 +25,125 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('modalPax').textContent = data.pax;
       document.getElementById('modalCheckIn').textContent = data.check_in;
       document.getElementById('modalCheckOut').textContent = data.check_out;
-      document.getElementById('modalFoodIdLabel').textContent = `Food ID (${data.id}):`;
+      document.getElementById('modalFoodIdLabel').textContent = `Food ID (${data.display_id}):`;
 
       const cancelBtn = document.querySelector('.detail-section-cancel');
-      if (data.status !== "pending"){
-        cancelBtn.style.display = 'none';
-      }else if(data.status === "pending"){
-        cancelBtn.style.display = 'flex';
+      if (cancelBtn) {
+        if (data.status !== 'pending') {
+          cancelBtn.style.display = 'none';
+        } else {
+          cancelBtn.style.display = 'flex';
+        }
       }
-      ;
 
-      // NEW: Store the ID in the hidden input for Cancel/Edit functions
+      // --- 2. Store ID + type for cancellation ---
       const idInput = document.getElementById('cancelReservationId');
       if (idInput) {
         idInput.value = data.real_id;
-        // SAVE THE TYPE HERE
         idInput.setAttribute('data-type', data.type);
-        console.log("Captured ID:", idInput.value, "Type:", data.type);
+        console.log('Captured ID:', idInput.value, 'Type:', data.type);
       }
 
-      // --- 2. Handle the food logic (PRESERVED) ---
+      // --- 3. Build food table by date ---
       const foodListContainer = document.getElementById('modalFoodList');
       let foodHtml = '';
 
       if (data.foods && data.foods.length > 0) {
-        let groupedFoods = {};
+        const foodsByDate = {};
+
         data.foods.forEach(food => {
-          let cat = food.food_category || food.category || 'Other';
-          if (!groupedFoods[cat]) groupedFoods[cat] = [];
-          groupedFoods[cat].push(food);
+          const servingTime =
+            food.pivot?.serving_time ||
+            food.serving_time ||
+            null;
+
+          const foodName =
+            food.food_name ||
+            food.name ||
+            'Unknown Food';
+
+          if (!servingTime) return;
+
+          if (!foodsByDate[servingTime]) {
+            foodsByDate[servingTime] = [];
+          }
+
+          foodsByDate[servingTime].push(foodName);
         });
 
-        for (const [category, items] of Object.entries(groupedFoods)) {
-          foodHtml += `
-            <div class="food-category">
-                <p class="food-category-title">${category.toUpperCase()}</p>
-                <ul class="food-items">
-          `;
-          items.forEach(food => {
-            const foodName = food.food_name || food.name || 'Unknown Food';
-            foodHtml += `<li>${foodName}</li>`;
+        const dates = Object.keys(foodsByDate).sort();
+
+        if (dates.length > 0) {
+          let maxRows = 0;
+
+          dates.forEach(date => {
+            maxRows = Math.max(maxRows, foodsByDate[date].length);
           });
-          foodHtml += `</ul></div>`;
+
+          foodHtml += `
+            <div style="overflow-x: auto; margin-top: 8px;">
+              <table style="width: 100%; border-collapse: collapse; font-size: 0.85em;">
+                <thead>
+                  <tr style="background: #f5f5f5;">
+          `;
+
+          dates.forEach(date => {
+            foodHtml += `
+              <th style="border: 1px solid #ddd; padding: 8px; text-align: left; min-width: 130px;">
+                ${formatDateHeader(date)}
+              </th>
+            `;
+          });
+
+          foodHtml += `
+                  </tr>
+                </thead>
+                <tbody>
+          `;
+
+          for (let row = 0; row < maxRows; row++) {
+            foodHtml += `<tr>`;
+
+            dates.forEach(date => {
+              foodHtml += `
+                <td style="border: 1px solid #ddd; padding: 8px; vertical-align: top;">
+                  ${foodsByDate[date][row] ?? '—'}
+                </td>
+              `;
+            });
+
+            foodHtml += `</tr>`;
+          }
+
+          foodHtml += `
+                </tbody>
+              </table>
+            </div>
+          `;
+        } else {
+          foodHtml = '<p class="detail-value" style="margin-top: 5px;">No food reserved.</p>';
         }
       } else {
         foodHtml = '<p class="detail-value" style="margin-top: 5px;">No food reserved.</p>';
       }
 
       foodListContainer.innerHTML = foodHtml;
-      modalOverlay.style.display = 'flex';
+
+      if (modalOverlay) {
+        modalOverlay.style.display = 'flex';
+      }
     });
   });
 
-  // --- NEW: CANCELLATION LOGIC ---
+  // --- 4. Cancellation logic ---
   window.confirmCancellation = async function () {
-    // 1. Get the hidden input element
     const inputEl = document.getElementById('cancelReservationId');
+    if (!inputEl) return;
 
-    // 2. Extract the values from it
     const id = inputEl.value;
     const type = inputEl.getAttribute('data-type');
 
-    if (!confirm("Are you sure you want to cancel this reservation?")) return;
+    if (!confirm('Are you sure you want to cancel this reservation?')) return;
 
     try {
       const response = await fetch(`/client/reservations/${id}/cancel`, {
@@ -82,27 +152,34 @@ document.addEventListener('DOMContentLoaded', () => {
           'Content-Type': 'application/json',
           'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
         },
-        // 3. Now 'type' is defined and can be sent!
         body: JSON.stringify({ type: type })
       });
 
       if (response.ok) {
-        alert("Reservation cancelled successfully.");
+        alert('Reservation cancelled successfully.');
         window.location.reload();
       } else {
         const result = await response.json();
-        alert(result.message || "Failed to cancel reservation.");
+        alert(result.message || 'Failed to cancel reservation.');
       }
     } catch (error) {
-      console.error("Error:", error);
-      alert("An error occurred. Check the console.");
+      console.error('Error:', error);
+      alert('An error occurred. Check the console.');
     }
   };
 
-  // Close Modal Logic (PRESERVED)
-  if (closeBtn) {
+  // --- 5. Close modal ---
+  if (closeBtn && modalOverlay) {
     closeBtn.addEventListener('click', () => {
       modalOverlay.style.display = 'none';
+    });
+  }
+
+  if (modalOverlay) {
+    modalOverlay.addEventListener('click', (e) => {
+      if (e.target === modalOverlay) {
+        modalOverlay.style.display = 'none';
+      }
     });
   }
 });

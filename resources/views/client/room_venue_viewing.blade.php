@@ -59,8 +59,16 @@
               </div>
             </div>
           </div>
-
-          <p class="price">₱ {{ number_format($data->external_price, 2) }}<span>/use</span></p>
+          @if (isset(Auth()->user()->usertype))
+            @if ( Auth()->user()->usertype == 'Internal')
+                <p class="price">₱ {{ number_format($data->price, 2) }}<span>/use</span></p>
+              @else
+                <p class="price">₱ {{ number_format($data->external_price, 2) }}<span>/use</span></p>
+              @endif
+          @else
+              <p class="price">₱ {{ number_format($data->external_price, 2) }}<span>/use</span></p>
+          @endif
+            
 
           <p class="venue-description">
             {{ $data->description ?? 'No description provided for this accommodation.' }}
@@ -75,12 +83,13 @@
       <div class="right-section">
         <div class="calendar-container">
           <x-booking_calendar :occupiedDates="json_encode($occupiedDates)" />
-
+        
         </div> 
         <div class="booking-section">
           <form action="{{ route('booking.prepare') }}" method="GET" class="booking-form" id="bookingForm">
               
               <input type="hidden" name="accommodation_id" value="{{ $data->id }}">
+              <input type="hidden" name="res_name" id="res_name" value="{{ $data->display_name }}">
               <input type="hidden" name="type" value="{{ stripos($category, 'room') !== false ? 'room' : 'venue' }}">
               
               <input type="hidden" name="check_in" id="check_in" required>
@@ -91,7 +100,8 @@
                      placeholder="Enter No. of Pax" 
                      min="1" 
                      max="{{ $data->capacity }}" required>
-              
+                 
+
               <button type="submit" class="proceed-button">PROCEED</button>
           </form>
         </div>
@@ -100,24 +110,27 @@
   <script>
     // Listen for when the user clicks "PROCEED"
     document.getElementById('bookingForm').addEventListener('submit', function(e) {
-        
-        // 1. Grab the dates from your new custom calendar component
-        const calendarCheckIn = document.getElementById('checkinDate');
-        const calendarCheckOut = document.getElementById('checkoutDate');
 
-        // 2. Make sure the calendar actually exists on the page
-        if (calendarCheckIn && calendarCheckOut) {
-            
-            // 3. Assign the custom calendar dates to your form's hidden inputs
-            document.getElementById('check_in').value = calendarCheckIn.value;
-            document.getElementById('check_out').value = calendarCheckOut.value;
+    const checkIn = document.getElementById('checkinDate').value;
+    const checkOut = document.getElementById('checkoutDate').value;
 
-            // 4. Validate that both dates are selected before going to checkout
-            if (!calendarCheckIn.value || !calendarCheckOut.value) {
-                e.preventDefault(); // Stops the page from redirecting
-                alert('Please select both a check-in and check-out date from the calendar before proceeding.');
-            }
-        }
+    document.getElementById('check_in').value = checkIn;
+    document.getElementById('check_out').value = checkOut;
+
+    // Check if both dates are selected
+    if (!checkIn || !checkOut) {
+        e.preventDefault();
+        alert('Please select both check-in and check-out dates.');
+        return;
+    }
+
+    // Prevent same date selection
+    if (checkIn === checkOut) {
+        e.preventDefault();
+        alert('Check-in and check-out dates cannot be the same.');
+        return;
+    }
+
     });
   </script>
 @endsection

@@ -60,7 +60,16 @@
                                 
                                 <div class="card-details">
                                     <span class="detail-item">👤 {{ $item->capacity }} Guests</span>
+                                    @if (isset(Auth()->user()->usertype))
+                                        @if ( Auth()->user()->usertype == 'Internal')
+                                          <span class="detail-item">₱ {{ number_format($item->price, 2) }}</span>
+                                        @else
+                                          <span class="detail-item">₱ {{ number_format($item->external_price, 2) }}</span>
+                                      @endif
+                                    @else
                                     <span class="detail-item">₱ {{ number_format($item->external_price, 2) }}</span>
+                                    @endif
+                                  
                                 </div>
                             </div>            
                         </div>
