@@ -29,7 +29,13 @@
             <p class="subtitle">Lantaka Online Room & Venue Reservation System</p>
             
             <!-- Error Message -->
-           @if(session('error'))
+           @if(session('success'))
+                <div class="alert-message" style="color: #155724; background-color: #d4edda; border: 1px solid #c3e6cb; padding: 10px; border-radius: 5px; margin-bottom: 15px; text-align: center; font-size: 0.9rem;">
+                    {{ session('success') }}
+                </div>
+            @endif
+
+            @if(session('error'))
                 <div class="alert-message" style="color: red; margin-bottom: 15px; text-align: center;">
                     {{ session('error') }}
                 </div>
