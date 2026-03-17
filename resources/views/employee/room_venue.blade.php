@@ -44,7 +44,9 @@
         
           <div class="button-section">
             <button class="btn btn-secondary" id="food_button">Food Menu</button>
-            <button class="btn btn-primary" id="add_room_venue_button">Add Room/Venue</button>
+            @if(auth()->user()->role === 'admin')
+              <button class="btn btn-primary" id="add_room_venue_button">Add Room/Venue</button>
+            @endif
           </div>
         </div>
 
@@ -70,7 +72,8 @@
                         data-price="{{ $room->price }}"
                         data-external_price="{{ $room->external_price }}"
                         data-status="{{ $room->status }}"
-                        data-description="{{ $room->description }}">
+                        data-description="{{ $room->description }}"
+                        data-image="{{ $room->image ? asset('storage/' . $room->image) : '' }}">
                 </div>
               @endforeach
 
@@ -97,7 +100,8 @@
                         data-price="{{ $venue->price }}"
                         data-external_price="{{ $venue->external_price }}"
                         data-status="{{ $venue->status }}"
-                        data-description="{{ $venue->description }}">
+                        data-description="{{ $venue->description }}"
+                        data-image="{{ $venue->image ? asset('storage/' . $venue->image) : '' }}">
                 </div>
               @endforeach
 

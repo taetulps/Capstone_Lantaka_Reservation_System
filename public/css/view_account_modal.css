@@ -70,6 +70,13 @@ h2 {
   grid-column: 1 / -1;
 }
 
+#view_id_image{ 
+  width: auto;
+  max-width: 100%;
+  height: auto;
+  max-height: 300px;   /* increased from 250px */
+  object-fit: contain;
+}
 label {
   font-weight: 600;
   font-size: 14px;

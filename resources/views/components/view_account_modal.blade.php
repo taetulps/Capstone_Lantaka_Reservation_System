@@ -45,13 +45,19 @@
         </div>
 
         <div class="account-field full-width">
-          <label>ID Info</label>
-          <textarea id="view_id_info" name="id_info"></textarea>
+          <label>ID / Proof of Identity</label>
+            <div class="id-preview-container">
+                <img id="view_id_image" src="" alt="Valid ID"> 
+                <p id="view_no_id" style="color: #999;">No image available</p>
+            </div>
         </div>
 
         <div class="approval-buttons">
-            <button type="submit" name="action" value="deactivate" class="approval-btn deactivate btn-decline">DEACTIVATE</button>
-            <button type="submit" name="action" value="save" class="approval-btn accept btn-accept">SAVE</button>
+            {{-- Shown for active accounts --}}
+            <button type="submit" name="action" value="deactivate" id="btn-deactivate" class="approval-btn deactivate btn-decline">DEACTIVATE</button>
+            {{-- Shown only for deactivated accounts --}}
+            <button type="submit" name="action" value="reactivate" id="btn-reactivate" class="approval-btn accept btn-accept" style="display:none;">REACTIVATE</button>
+            <button type="submit" name="action" value="save" id="btn-save" class="approval-btn accept btn-accept">SAVE</button>
         </div>
       </form>
     </div>

@@ -92,7 +92,7 @@
                             </svg>
                           </span>
                         </button>
-                        @elseif($user->status == 'approved')
+                        @elseif($user->status != 'declined')
                           <button class="action-btn-view" data-user="{{ json_encode($user) }}">✎</button>
                         @else
 
@@ -111,6 +111,9 @@
               @endforelse
             </tbody>
           </table>
+          <div style="margin-top: 16px;">
+            {{ $users->links('vendor.pagination.simple') }}
+          </div>
         </div>
       </div>
       <x-approve_account_modal/>

@@ -14,19 +14,68 @@ use Carbon\CarbonPeriod;
 
 class RoomVenueController extends Controller
 {
-   public function store(Request $request)
+    /**
+     * Resize + compress an uploaded image with GD. Always saves as JPEG.
+     * Max output 1200×900 px, 82% quality. Never upscales.
+     */
+    private function processAndStoreImage($file, string $folder): string
     {
-        $validated = $request->validate([
+        $ext        = strtolower($file->getClientOriginalExtension());
+        $sourcePath = $file->getPathname();
+
+        $src = match ($ext) {
+            'png'  => imagecreatefrompng($sourcePath),
+            'webp' => imagecreatefromwebp($sourcePath),
+            default => imagecreatefromjpeg($sourcePath),
+        };
+
+        if (!$src) {
+            $name = uniqid() . '.jpg';
+            $file->storeAs('public/' . $folder, $name);
+            return $folder . '/' . $name;
+        }
+
+        $origW = imagesx($src);
+        $origH = imagesy($src);
+        $ratio = min(1200 / $origW, 900 / $origH, 1.0);
+        $newW  = (int) round($origW * $ratio);
+        $newH  = (int) round($origH * $ratio);
+
+        $dst   = imagecreatetruecolor($newW, $newH);
+        $white = imagecolorallocate($dst, 255, 255, 255);
+        imagefill($dst, 0, 0, $white);
+        imagecopyresampled($dst, $src, 0, 0, 0, 0, $newW, $newH, $origW, $origH);
+        imagedestroy($src);
+
+        $dir = storage_path('app/public/' . $folder);
+        if (!file_exists($dir)) mkdir($dir, 0755, true);
+
+        $filename = $folder . '/' . uniqid() . '.jpg';
+        imagejpeg($dst, storage_path('app/public/' . $filename), 82);
+        imagedestroy($dst);
+
+        return $filename;
+    }
+
+    public function store(Request $request)
+    {
+        $request->validate([
             'category'       => 'required|in:Room,Venue',
             'name'           => 'required|string',
             'internal_price' => 'required|numeric',
             'external_price' => 'required|numeric',
             'capacity'       => 'required|integer',
-            'type'           => 'nullable|string', // Room specific
+            'type'           => 'nullable|string',
             'description'    => 'nullable|string',
+            'image'          => 'nullable|image|mimes:jpeg,jpg,png,webp|max:5120',
         ]);
 
-        // Common data shared by both models
+        $imagePath = null;
+        if ($request->hasFile('image') && $request->file('image')->isValid()) {
+            $folder    = $request->category === 'Room' ? 'rooms' : 'venues';
+            $imagePath = $this->processAndStoreImage($request->file('image'), $folder);
+        }
+
         $commonData = [
             'user_id'        => Auth::id(),
             'capacity'       => $request->capacity,
@@ -34,6 +83,7 @@ class RoomVenueController extends Controller
             'external_price' => $request->external_price,
             'status'         => 'Available',
             'description'    => $request->description,
+            'image'          => $imagePath,
         ];
 
         if ($request->category === 'Room') {
@@ -192,7 +242,7 @@ class RoomVenueController extends Controller
 
     public function update(Request $request)
     {
-        $validated = $request->validate([
+        $request->validate([
             'id'             => 'required|integer',
             'category'       => 'required|in:Room,Venue',
             'name'           => 'required|string',
@@ -202,12 +252,13 @@ class RoomVenueController extends Controller
             'status'         => 'required|in:Available,Unavailable',
             'type'           => 'nullable|string',
             'description'    => 'nullable|string',
+            'image'          => 'nullable|image|mimes:jpeg,jpg,png,webp|max:5120',
         ]);
-    
+
         if ($request->category === 'Room') {
             $room = Room::findOrFail($request->id);
-    
-            $room->update([
+
+            $data = [
                 'room_number'    => $request->name,
                 'room_type'      => $request->type ?? 'Standard',
                 'capacity'       => $request->capacity,
@@ -215,20 +266,42 @@ class RoomVenueController extends Controller
                 'external_price' => $request->external_price,
                 'status'         => $request->status,
                 'description'    => $request->description,
-            ]);
+            ];
+
+            if ($request->hasFile('image') && $request->file('image')->isValid()) {
+                // Delete old image file if it exists
+                if ($room->image) {
+                    $old = storage_path('app/public/' . $room->image);
+                    if (file_exists($old)) @unlink($old);
+                }
+                $data['image'] = $this->processAndStoreImage($request->file('image'), 'rooms');
+            }
+
+            $room->update($data);
+
         } else {
             $venue = Venue::findOrFail($request->id);
-    
-            $venue->update([
+
+            $data = [
                 'name'           => $request->name,
                 'capacity'       => $request->capacity,
                 'price'          => $request->internal_price,
                 'external_price' => $request->external_price,
                 'status'         => $request->status,
                 'description'    => $request->description,
-            ]);
+            ];
+
+            if ($request->hasFile('image') && $request->file('image')->isValid()) {
+                if ($venue->image) {
+                    $old = storage_path('app/public/' . $venue->image);
+                    if (file_exists($old)) @unlink($old);
+                }
+                $data['image'] = $this->processAndStoreImage($request->file('image'), 'venues');
+            }
+
+            $venue->update($data);
         }
-    
+
         return back()->with('success', $request->category . ' updated successfully!');
     }
 

@@ -22,7 +22,8 @@ class VenueReservation extends Model
         'purpose',
         'Venue_Reservation_Total_Price',
         'status',
-        'Venue_Reservation_Additional_Fees', 
+        'payment_status',
+        'Venue_Reservation_Additional_Fees',
         'Venue_Reservation_Additional_Fees_Desc',
         'Venue_Reservation_Discount'
     ];

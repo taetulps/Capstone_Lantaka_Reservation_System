@@ -185,62 +185,85 @@ document.addEventListener('DOMContentLoaded', () => {
 
       updateSoaLink(data.userId);
 
-      const currentStatus = data.status ? data.status.toLowerCase().trim() : '';
-      const statusGroups = {
-        'pending': document.getElementById('pendingActions'),
-        'rejected': document.getElementById('pendingActions'),
-        'confirmed': document.getElementById('confirmedActions'),
-        'cancelled': document.getElementById('confirmedActions'),
-        'checked-in': document.getElementById('checkedInActions'),
-        'checked-out': document.getElementById('checkedInActions'),
-      };
+      const currentStatus  = data.status          ? data.status.toLowerCase().trim()          : '';
+      const currentPayment = data.payment_status  ? data.payment_status.toLowerCase().trim() : '';
 
-      Object.values(statusGroups).forEach(group => {
-        if (group) group.style.display = 'none';
+      // --- Hide ALL action panels first ---
+      const allPanels = [
+        'pendingActions', 'confirmedActions', 'checkedInActions',
+        'checkedOutUnpaidActions', 'checkedOutPaidActions'
+      ];
+      allPanels.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = 'none';
       });
 
-      if (statusGroups[currentStatus]) {
-        statusGroups[currentStatus].style.display = 'flex';
-      } else if (statusGroups['pending']) {
-        statusGroups['pending'].style.display = 'flex';
+      // --- Show the correct panel for the current status ---
+      const statusGroups = {
+        'pending':    'pendingActions',
+        'rejected':   'pendingActions',
+        'confirmed':  'confirmedActions',
+        'cancelled':  'confirmedActions',
+        'checked-in': 'checkedInActions',
+      };
+
+      if (currentStatus === 'checked-out') {
+        // After checkout: show payment panel based on payment_status
+        const payPanel = (currentPayment === 'paid')
+          ? document.getElementById('checkedOutPaidActions')
+          : document.getElementById('checkedOutUnpaidActions');
+        if (payPanel) payPanel.style.display = 'flex';
+
+        // Stash IDs so doMarkAsPaid / doMarkAsUnpaid can use them
+        window._paymentResId   = data.id;
+        window._paymentResType = data.res_type;
+
+      } else if (statusGroups[currentStatus]) {
+        const el = document.getElementById(statusGroups[currentStatus]);
+        if (el) el.style.display = 'flex';
+      } else {
+        const fallback = document.getElementById('pendingActions');
+        if (fallback) fallback.style.display = 'flex';
       }
 
-      const blockCheckin = document.getElementById('confirmedActions');
-      const blockCheckout = document.getElementById('checkedInActions');
-      const blockAccept = document.getElementById('pendingActions');
-      const showSOA = document.getElementById('exportSection');
+      const blockCheckin    = document.getElementById('confirmedActions');
+      const blockCheckout   = document.getElementById('checkedInActions');
+      const blockAccept     = document.getElementById('pendingActions');
+      const showSOA         = document.getElementById('exportSection');
       const showAddChSection = document.getElementById('modal-bottom');
+      
 
+      const discountSection   = document.getElementById('discountSection');
+      const checkAccomodation = data.accommodationType;
       const row = this.closest('tr');
       const badge = row.querySelector('.badge');
-      const badgeStatus = badge ? badge.textContent.trim() : '';
-      const discountSection = document.getElementById('discountSection');
-      const checkAccomodation = data.accommodationType;
+      // Use the real status from data (not badge text, which can be relabelled on the Guest page)
       document.querySelector('#editLink').style.display = 'flex';
-      if (badgeStatus === "Completed" || badgeStatus === "Checked-out" || badgeStatus === "Cancelled") {
+
+      if (currentStatus === 'completed' || currentStatus === 'checked-out' || currentStatus === 'cancelled') {
         if (blockCheckout) blockCheckout.style.display = 'none';
         document.querySelector('#editLink').style.display = 'none';
       }
-      if (badgeStatus === "Rejected") {
+      if (currentStatus === 'rejected') {
         if (blockAccept) blockAccept.style.display = 'none';
         document.querySelector('#editLink').style.display = 'none';
       }
-      if (badgeStatus === "Cancelled" || badgeStatus === "Completed") {
+      if (currentStatus === 'cancelled' || currentStatus === 'completed' || currentStatus === 'pending' || currentStatus === 'checked-out') {
         if (blockCheckin) blockCheckin.style.display = 'none';
         document.querySelector('#editLink').style.display = 'none';
+        document.querySelector('.modal-left-column').style.display = 'none';
       }
 
-      if (badgeStatus !== "Checked-in") {
+      if (currentStatus !== 'checked-in') {
         showSOA.style.display = 'none';
         showAddChSection.style.display = 'none';
         document.querySelector('.meals-container').style.maxHeight = '75vh';
-      
       } else {
         showSOA.style.display = 'flex';
         showAddChSection.style.display = 'flex';
       }
 
-      if (badgeStatus === "Checked-in" && checkAccomodation === "Venue") {
+      if (currentStatus === 'checked-in' && checkAccomodation === 'Venue') {
         discountSection.classList.remove('none');
       } else {
         discountSection.classList.add('none');
@@ -265,6 +288,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (data.accommodationType == "Venue") {
         document.getElementById('meal-container-left').style.display = "block";
+        document.querySelector('.modal-body').classList.remove('room-mode');
         // Populate the food table with the actual reserved foods
         if (Array.isArray(data.foods) && data.foods.length > 0) {
           createFoodTables(data.foods);
@@ -276,6 +300,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     } else {
         document.getElementById('meal-container-left').style.display = "none";
+        document.querySelector('.modal-body').classList.add('room-mode');
     }
      
       document.getElementById('fullName_r').textContent = fullName;
@@ -347,6 +372,56 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
+  // --- Mark an already-checked-out reservation as paid ---
+  window.doMarkAsPaid = function () {
+    const id   = window._paymentResId;
+    const type = window._paymentResType;
+    if (!id || !type) {
+      console.error('markAsPaid: missing id or type');
+      return;
+    }
+
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = `/employee/reservations/${id}/mark-paid?type=${type}`;
+
+    const csrf = document.createElement('input');
+    csrf.type  = 'hidden';
+    csrf.name  = '_token';
+    csrf.value = document.querySelector('meta[name="csrf-token"]')?.content
+                 || document.querySelector('input[name="_token"]')?.value
+                 || '';
+    form.appendChild(csrf);
+
+    document.body.appendChild(form);
+    form.submit();
+  };
+
+  // --- Revert a paid reservation back to unpaid (admin only, enforced server-side) ---
+  window.doMarkAsUnpaid = function () {
+    const id   = window._paymentResId;
+    const type = window._paymentResType;
+    if (!id || !type) {
+      console.error('markAsUnpaid: missing id or type');
+      return;
+    }
+
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = `/employee/reservations/${id}/mark-unpaid?type=${type}`;
+
+    const csrf = document.createElement('input');
+    csrf.type  = 'hidden';
+    csrf.name  = '_token';
+    csrf.value = document.querySelector('meta[name="csrf-token"]')?.content
+                 || document.querySelector('input[name="_token"]')?.value
+                 || '';
+    form.appendChild(csrf);
+
+    document.body.appendChild(form);
+    form.submit();
+  };
+
   // --- 4. STATUS CARDS ANIMATION ---
   const statusCards = document.querySelector('.status-cards');
   if (statusCards) {
@@ -386,9 +461,17 @@ window.addAdditionalCharges = function (description = '', amount = 0, qty = 1, d
   newRow.innerHTML = `
   <input type="date" name="additional_fees_date[]" value="${date}" class="charge-input date-input" style="width: 140px;" title="Date of charge">
   <input type="text" name="additional_fees_desc[]" value="${description}" placeholder="Description" class="charge-input" style="width: 180px;" required>
+  <span style="display: flex;
+    flex-direction: row;
+    width: 100%;
+    column-span: 2;
+    grid-column: 1 / -1;
+    gap: 8px;
+    padding-right: 6px;">
   <input type="number" name="additional_fees_qty[]" value="${qty}" placeholder="Qty" class="charge-input qty-input" style="width: 60px;" min="1">
   <input type="number" name="additional_fees[]" value="${amount}" placeholder="₱" class="charge-input amount-input" style="width: 90px;" required>
   <button type="button" class="remove-btn" onclick="this.parentElement.remove(); window.calculateLiveTotal();" style="background:none; border:none; color:red; cursor:pointer; font-size: 20px; padding-left: 5px;">&times;</button>
+  </span>
 `;
 
   chargesContainer.appendChild(newRow);

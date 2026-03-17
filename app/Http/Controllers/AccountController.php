@@ -10,17 +10,51 @@ use App\Models\Venue;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Mail; // REQUIRED for email
-use App\Mail\AccountStatusMail;      // REQUIRED for email
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
+use App\Mail\AccountApprovedMail;
+use App\Mail\AccountDeclinedMail;
+use App\Mail\AccountReactivatedMail;
+use App\Mail\AccountUpdatedMail;
+use App\Http\Controllers\EventLogController;
 
 class AccountController extends Controller
 {
+    /**
+     * Delete approved accounts that have NEVER logged in
+     * and whose password has been sitting unused for more than 7 days.
+     * Silently skipped if the tracking columns don't exist yet.
+     */
+    private function cleanupExpiredAccounts(): void
+    {
+        if (! Schema::hasColumn('users', 'password_set_at')) {
+            return; // Migration not run yet — skip silently
+        }
+
+        User::where('status', 'approved')
+            ->whereNull('last_login_at')
+            ->where('password_set_at', '<', now()->subDays(7))
+            ->delete();
+    }
+
     public function index(Request $request)
     {
+        $this->cleanupExpiredAccounts();
+
         $status = $request->query('status');
-        $role = $request->query('role');
+        $role   = $request->query('role');
+        $search = $request->query('search');
 
         $query = User::query();
+
+        // Search by name or email
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('name',  'ILIKE', "%{$search}%")
+                  ->orWhere('email', 'ILIKE', "%{$search}%");
+            });
+        }
 
         if ($role === 'employee') {
             $query->whereIn('role', ['admin', 'staff', 'Admin', 'Staff']);
@@ -28,40 +62,100 @@ class AccountController extends Controller
             $query->where('status', $status);
         }
 
-        $users = $query->orderBy('created_at', 'desc')->get();
-        $allForCounts = $users;
+        $users = $query->orderBy('created_at', 'desc')->paginate(15)->withQueryString();
+
         return view('employee.accounts', compact('users'));
     }
     public function updateStatus(Request $request, $id)
     {
-        $user = User::findOrFail($id);
+        $user   = User::findOrFail($id);
         $status = $request->input('status'); // 'approved' or 'declined'
 
         if ($status === 'approved') {
-            $user->status = 'approved'; // Matches your "Approved" badge in the UI
-        } else {
-            $user->status = 'declined';
+            // Generate a secure password: prefix "lrs" + 9 random alphanumeric chars
+            $plainPassword = 'lrs' . Str::random(9);
+
+            $user->status   = 'approved';
+            $user->password = Hash::make($plainPassword);
+
+            // Only set tracking columns if the migration has been run
+            if (Schema::hasColumn('users', 'password_set_at')) {
+                $user->password_set_at = now();
+                $user->last_login_at   = null; // ensure clean state
+            }
+
+            $user->save();
+
+            Mail::to($user->email)->send(new AccountApprovedMail($user, $plainPassword));
+
+            EventLogController::log(
+                'account_approved',
+                "Account approved for {$user->name} ({$user->email}). Credentials sent via email."
+            );
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Account approved. Login credentials have been sent to the user\'s email.',
+            ]);
         }
-        
+
+        // Declined
+        $user->status = 'declined';
         $user->save();
-        $user = User::findOrFail($id);
-        // Send the email with the dynamic data
-        Mail::to($user->email)->send(new AccountStatusMail($user, $status));
+
+        Mail::to($user->email)->send(new AccountDeclinedMail($user));
+
+        EventLogController::log(
+            'account_declined',
+            "Account declined for {$user->name} ({$user->email})."
+        );
 
         return response()->json([
             'success' => true,
-            'message' => 'Account has been ' . $status . ' and the client has been notified.'
+            'message' => 'Account declined. The user has been notified via email.',
         ]);
     }
     public function update(Request $request, $id)
     {
         $user = User::findOrFail($id);
 
-        // 1. Handle Deactivation
+        // 1a. Handle Deactivation
         if ($request->action === 'deactivate') {
             $user->status = 'deactivate';
             $user->save();
+            EventLogController::log(
+                'account_deactivated',
+                "Account deactivated for {$user->name} ({$user->email})."
+            );
             return redirect()->back()->with('success', 'Account deactivated.');
+        }
+
+        // 1b. Handle Reactivation — generate a fresh password and email it
+        if ($request->action === 'reactivate') {
+            $plainPassword = 'lrs' . Str::random(9);
+
+            $user->status   = 'approved';
+            $user->password = Hash::make($plainPassword);
+
+            if (Schema::hasColumn('users', 'password_set_at')) {
+                $user->password_set_at = now();
+                $user->last_login_at   = null; // reset so cleanup timer restarts
+            }
+
+            $user->save();
+
+            try {
+                Mail::to($user->email)->send(new AccountReactivatedMail($user, $plainPassword));
+            } catch (\Throwable $e) {
+                // Mail failure should not block the response
+            }
+
+            EventLogController::log(
+                'account_reactivated',
+                "Account reactivated for {$user->name} ({$user->email}). New credentials sent via email."
+            );
+
+            return redirect()->back()->with('success', 'Account reactivated. New login credentials have been sent to the user\'s email.');
         }
 
         // 2. Validation
@@ -91,6 +185,18 @@ class AccountController extends Controller
         }
 
         $user->save();
+
+        // Notify the user that their account details were changed
+        try {
+            Mail::to($user->email)->send(new AccountUpdatedMail($user));
+        } catch (\Throwable $e) {
+            // Mail failure should not block the response
+        }
+
+        EventLogController::log(
+            'account_updated',
+            "Account details updated for {$user->name} ({$user->email})."
+        );
 
         return redirect()->back()->with('success', 'Account updated successfully.');
     }

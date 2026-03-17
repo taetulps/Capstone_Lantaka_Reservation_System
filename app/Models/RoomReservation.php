@@ -19,6 +19,7 @@ class RoomReservation extends Model
         'pax',
         'purpose',
         'status',
+        'payment_status',
         'Room_Reservation_Additional_Fees',
         'Room_Reservation_Additional_Fees_Desc'
     ];

@@ -124,10 +124,10 @@
             </div>
           </div>
 
-
-
           <button type="submit" class="proceed-button" style="font-size: 14px;">
+
             {{ isset($reservationId) && $reservationId ? 'UPDATE RESERVATION' : 'PROCEED' }}
+            
           </button>
 
         </form>
@@ -137,6 +137,7 @@
   </div>
 </div>
 @endsection
+
 <script>
   document.addEventListener('DOMContentLoaded', function() {
 

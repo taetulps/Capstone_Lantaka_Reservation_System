@@ -305,7 +305,9 @@
 .modal-container {
   position: relative;
   width: 100%;
-  max-width: 520px;
+  max-width: 1230px;
+  display: flex;
+  justify-content: center;
 }
 
 /* Modal Content */

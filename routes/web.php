@@ -8,6 +8,7 @@ use App\Http\Controllers\RoomVenueController;
 use App\Http\Controllers\ReservationController;
 use App\Http\Controllers\FoodController;
 use App\Http\Controllers\EventLogController;
+use App\Http\Controllers\NotificationController;
 // use App\Http\Controllers\CalendarStreamController;
 
 
@@ -34,6 +35,7 @@ Route::get('/booking/prepare', [RoomVenueController::class, 'prepareBooking'])->
 
 /* Food AJAX (used by both client and employee booking flows) */
 Route::get('/foods/ajax/list', [FoodController::class, 'getFoodsAjax'])->name('foods.ajax.list');
+Route::get('/view/{category}/{id}', [RoomVenueController::class, 'show'])->name('client.show');
 
 /* TEST ONLY — DO NOT TOUCH */
 Route::get('/test_client_room_venue_viewing', function () {
@@ -51,6 +53,7 @@ Route::prefix('employee')
 
         /* ── Shared: Admin + Staff ── */
         Route::post('/reservations/{id}/status', [ReservationController::class, 'updateStatus'])->name('reservations.updateStatus');
+        Route::post('/reservations/{id}/mark-paid', [ReservationController::class, 'markAsPaid'])->name('reservations.markPaid');
         Route::get('/dashboard', action: fn() => view('employee.dashboard'))->name('dashboard');
         Route::get('/dashboard', [ReservationController::class, 'displayStatistics'])->name('dashboard');
         Route::get('/dashboard', [ReservationController::class, 'showReservationsCalendar'])->name('dashboard');
@@ -70,8 +73,11 @@ Route::prefix('employee')
         Route::middleware(['role:admin'])->group(function () {
             Route::get('/accounts', [AccountController::class, 'index'])->name('accounts');
             Route::post('/accounts/{id}/update-status', [AccountController::class, 'updateStatus'])->name('accounts.updateStatus');
+            // Graceful fallback: redirect stray GET requests back to the accounts list
+            Route::get('/accounts/{id}/update-status', fn($id) => redirect()->route('employee.accounts'));
             Route::post('/accounts/{id}/update', [AccountController::class, 'update'])->name('employee.accounts.update');
-         
+            // Revert a paid reservation back to unpaid — admin only
+            Route::post('/reservations/{id}/mark-unpaid', [ReservationController::class, 'markAsUnpaid'])->name('reservations.markUnpaid');
         });
     });
 
@@ -94,11 +100,17 @@ Route::middleware(['role:admin,staff'])->group(function () {
     Route::get('/employee/calendar-data', [ReservationController::class, 'fetchUpdatedCalendarData'])
     ->name('calendar.fetchUpdatedData');
 
-    Route::put('/employee/room-venue/update', [RoomVenueController::class, 'update'])->name('room_venue.update');
-    Route::post('/employee/room_venue/store', [RoomVenueController::class, 'store'])->name('room_venue.store');
-    Route::post('/employee/food/store', [FoodController::class, 'store'])->name('admin.food.store');
-    Route::put('/employee/room_venue/{id}', [FoodController::class, 'update'])->name('admin.food.update');
-    Route::get('/employee/room_venue/{id}/delete', [FoodController::class, 'destroy']);
+    Route::get('/employee/analytics-report-data', [ReservationController::class, 'analyticsReportData'])
+    ->name('employee.analytics.report.data');
+
+    /* ── Admin Only: Room / Venue / Food CRUD ── */
+    Route::middleware(['role:admin'])->group(function () {
+        Route::put('/employee/room-venue/update', [RoomVenueController::class, 'update'])->name('room_venue.update');
+        Route::post('/employee/room_venue/store', [RoomVenueController::class, 'store'])->name('room_venue.store');
+        Route::post('/employee/food/store', [FoodController::class, 'store'])->name('admin.food.store');
+        Route::put('/employee/room_venue/{id}', [FoodController::class, 'update'])->name('admin.food.update');
+        Route::get('/employee/room_venue/{id}/delete', [FoodController::class, 'destroy']);
+    });
      
 });
 
@@ -109,7 +121,7 @@ Route::prefix('client')
     ->name('client.')
     ->middleware(['auth', 'role:client'])       // Clients only
     ->group(function () {
-        Route::get('/view/{category}/{id}', [RoomVenueController::class, 'show'])->name('show');
+       
         Route::get('/my_bookings', [ReservationController::class, 'checkout'])->name('my_bookings');
         Route::get('/my_reservations', [ReservationController::class, 'index'])->name('my_reservations');
         Route::get('/food_option', function () {
@@ -120,6 +132,10 @@ Route::prefix('client')
         // Account page
         Route::get('/account', [AccountController::class, 'showClientAccount'])->name('account');
         Route::put('/account', [AccountController::class, 'updateClientAccount'])->name('account.update');
+
+        // In-system notifications
+        Route::post('/notifications/{id}/read', [NotificationController::class, 'markRead'])->name('notifications.read');
+        Route::post('/notifications/read-all',  [NotificationController::class, 'markAllRead'])->name('notifications.readAll');
     });
 
 

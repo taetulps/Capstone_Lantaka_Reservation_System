@@ -42,28 +42,16 @@
         </div>
 
         <div class="updatefood-group">
-          <label>Food Type</label>
-          <div class="updatefood-radio">
-            <label class="updatefood-radio-label">
-              <input type="radio" name="type" value="breakfast">
-              <span>Breakfast</span>
-            </label>
-
-            <label class="updatefood-radio-label">
-              <input type="radio" name="type" value="snack">
-              <span>Snack</span>
-            </label>
-
-            <label class="updatefood-radio-label">
-              <input type="radio" name="type" value="lunch">
-              <span>Lunch</span>
-            </label>
-
-            <label class="updatefood-radio-label">
-              <input type="radio" name="type" value="dinner">
-              <span>Dinner</span>
-            </label>
-          </div>
+          <label for="updateFoodType">Food Category</label>
+          <select id="updateFoodType" name="type" required>
+            <option value="rice">Rice</option>
+            <option value="set_viand">Set Viand</option>
+            <option value="sidedish">Side Dish</option>
+            <option value="drinks">Drinks</option>
+            <option value="desserts">Desserts</option>
+            <option value="snacks">Snacks</option>
+            <option value="other_viand">Other Viand</option>
+          </select>
         </div>
 
         <div class="updatefood-group">

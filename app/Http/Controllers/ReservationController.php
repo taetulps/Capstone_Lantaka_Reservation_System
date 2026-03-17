@@ -13,6 +13,12 @@ use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use Carbon\Carbon;
+use App\Models\EventLog;
+use App\Http\Controllers\EventLogController;
+use App\Mail\ReservationConfirmedMail;
+use App\Mail\ReservationCheckedInMail;
+use App\Mail\ReservationCancelledMail;
+use App\Mail\ReservationRejectedMail;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Illuminate\Support\Facades\DB;
@@ -443,18 +449,55 @@ class ReservationController extends Controller
             return $item;
         });
 
-        $reservations = $rooms->concat($venues)->sortByDesc('created_at');
+        // Priority order: pending > confirmed > checked-in > completed/checked-out > rejected/cancelled
+        $clientStatusOrder = [
+            'pending'     => 0,
+            'confirmed'   => 1,
+            'checked-in'  => 2,
+            'completed'   => 3,
+            'checked-out' => 3,
+            'rejected'    => 4,
+            'cancelled'   => 4,
+        ];
+
+        $allReservations = $rooms->concat($venues)
+            ->sortBy(function ($r) use ($clientStatusOrder) {
+                $priority = $clientStatusOrder[strtolower($r->status ?? '')] ?? 99;
+                $ts = optional($r->created_at)->timestamp ?? 0;
+                return [$priority, -$ts];
+            })
+            ->values();
 
         // 5. IMPORTANT: This variable is required for your Status Cards in the blade!
         if ($user && ($user->usertype === 'admin' || $user->usertype === 'staff')) {
             $allForCounts = \App\Models\RoomReservation::select('status')->get()
                 ->concat(\App\Models\VenueReservation::select('status')->get());
 
+            // Paginate for employee view too
+            $perPage     = 15;
+            $currentPage = $request->input('page', 1);
+            $reservations = new \Illuminate\Pagination\LengthAwarePaginator(
+                $allReservations->forPage($currentPage, $perPage),
+                $allReservations->count(),
+                $perPage,
+                $currentPage,
+                ['path' => $request->url(), 'query' => $request->query()]
+            );
+
             return view('employee.reservations', compact('reservations', 'allForCounts'));
         }
 
-        // If not an admin/staff, they are a client. Load the Client UI!
-        // Make sure this file is at resources/views/client/my_reservations.blade.php
+        // Client: paginate with priority order
+        $perPage     = 15;
+        $currentPage = $request->input('page', 1);
+        $reservations = new \Illuminate\Pagination\LengthAwarePaginator(
+            $allReservations->forPage($currentPage, $perPage),
+            $allReservations->count(),
+            $perPage,
+            $currentPage,
+            ['path' => $request->url(), 'query' => $request->query()]
+        );
+
         return view('client.my_reservations', compact('reservations'));
     }
     // 4. Admin List Page
@@ -493,18 +536,28 @@ class ReservationController extends Controller
         // 4. Search & Status (Case-Sensitive Column Names)
         if ($search) {
             // Search Rooms
-            $roomQuery->where(function ($q) use ($search) {
-                $q->whereHas('user', fn($uq) => $uq->where('name', 'ILIKE', "%$search%"))
-                    ->orWhereHas('room', fn($rq) => $rq->where('room_number', 'ILIKE', "%$search%"))
-                    // Use whereRaw to cast BigInt to Text for comparison
-                    ->orWhereRaw('CAST("Room_Reservation_ID" AS TEXT) ILIKE ?', ["%$search%"]);
-            });
+            $term = "%{$search}%";
 
+            $roomQuery->where(function ($q) use ($term) {
+                $q->whereHas('user', fn($uq) => $uq->where('name', 'ILIKE', $term))
+                ->orWhereHas('room', fn($rq) => $rq->where('room_number', 'ILIKE', $term))
+                ->orWhereRaw('CAST("Room_Reservation_ID" AS TEXT) ILIKE ?', [$term])
+                ->orWhereRaw('EXISTS (
+                        SELECT 1
+                        FROM users u
+                        JOIN rooms r ON r."id" = room_reservations."room_id"
+                        WHERE u."id" = room_reservations."Client_ID"
+                        AND (
+                                CONCAT(\'Room \', r."room_number", \' \', u."name") ILIKE ?
+                                OR CONCAT(u."name", \' Room \', r."room_number") ILIKE ?
+                        )
+                    )', [$term, $term]);
+            });
+            
             // Search Venues
             $venueQuery->where(function ($q) use ($search) {
-                $q->whereHas('user', fn($uq) => $uq->where('name', 'ILIKE', "%$search%"))
+                    $q->whereHas('user', fn($uq) => $uq->where('name', 'ILIKE', "%$search%"))
                     ->orWhereHas('venue', fn($vq) => $vq->where('name', 'ILIKE', "%$search%"))
-                    // Use whereRaw to cast BigInt to Text for comparison
                     ->orWhereRaw('CAST("Venue_Reservation_ID" AS TEXT) ILIKE ?', ["%$search%"]);
             });
         }
@@ -553,6 +606,8 @@ class ReservationController extends Controller
 
         return view('employee.reservations', compact('reservations', 'allForCounts'));
     }
+
+
     public function showGuests(\Illuminate\Http\Request $request)
     {
         $status = $request->input('status');
@@ -586,10 +641,22 @@ class ReservationController extends Controller
             $roomQuery->whereHas('user', fn($q) => $q->where('usertype', $clientType));
         }
         if ($search) {
-            $roomQuery->where(function ($q) use ($search) {
-                $q->whereHas('user', fn($u) => $u->where('name', 'LIKE', "%{$search}%"))
-                    ->orWhere('Room_Reservation_ID', 'LIKE', "%{$search}%")
-                    ->orWhereHas('room', fn($r) => $r->where('room_number', 'LIKE', "%{$search}%"));
+            $term = "%{$search}%";
+
+            $roomQuery->where(function ($q) use ($term) {
+                $q->whereHas('user', fn($uq) => $uq->where('name', 'ILIKE', $term))
+                ->orWhereHas('room', fn($rq) => $rq->where('room_number', 'ILIKE', $term))
+                ->orWhereRaw('CAST("Room_Reservation_ID" AS TEXT) ILIKE ?', [$term])
+                ->orWhereRaw('EXISTS (
+                        SELECT 1
+                        FROM users u
+                        JOIN rooms r ON r."id" = room_reservations."room_id"
+                        WHERE u."id" = room_reservations."Client_ID"
+                        AND (
+                                CONCAT(\'Room \', r."room_number", \' \', u."name") ILIKE ?
+                                OR CONCAT(u."name", \' Room \', r."room_number") ILIKE ?
+                        )
+                    )', [$term, $term]);
             });
         }
 
@@ -599,11 +666,22 @@ class ReservationController extends Controller
             $venueQuery->whereHas('user', fn($q) => $q->where('usertype', $clientType));
         }
         if ($search) {
-            $venueQuery->where(function ($q) use ($search) {
-                $q->whereHas('user', fn($u) => $u->where('name', 'LIKE', "%{$search}%"))
-                    ->orWhere('Venue_Reservation_ID', 'LIKE', "%{$search}%")
-                    // Using 'name' for the Venue table search
-                    ->orWhereHas('venue', fn($v) => $v->where('name', 'LIKE', "%{$search}%"));
+            $term = "%{$search}%";
+
+            $venueQuery->where(function ($q) use ($term) {
+                $q->whereHas('user', fn($uq) => $uq->where('name', 'ILIKE', $term))
+                ->orWhereHas('venue', fn($rq) => $rq->where('name', 'ILIKE', $term))
+                ->orWhereRaw('CAST("Venue_Reservation_ID" AS TEXT) ILIKE ?', [$term])
+                ->orWhereRaw('EXISTS (
+                        SELECT 1
+                        FROM users u
+                        JOIN venues v ON v."id" = venue_reservations."venue_id"
+                        WHERE u."id" = venue_reservations."Client_ID"
+                        AND (
+                                CONCAT(v."name", \' \', u."name") ILIKE ?
+                                OR CONCAT(u."name", \' \',v."name") ILIKE ?
+                        )
+                    )', [$term, $term]);
             });
         }
 
@@ -640,10 +718,34 @@ class ReservationController extends Controller
             return $item;
         });
 
-        // 6. Final Merge and Sort
-        $reservations = $rooms->concat($venues)->sortByDesc('created_at');
+        // 6. Final Merge — priority order: confirmed(Pending) > checked-in > checked-out > cancelled
+        $statusOrder = [
+            'confirmed'   => 0,
+            'checked-in'  => 1,
+            'checked-out' => 2,
+            'cancelled'   => 3,
+        ];
 
-        // Counts for status cards (Fetches all to keep counts accurate even when filtering)
+        $allReservations = $rooms->concat($venues)
+            ->sortBy(function ($r) use ($statusOrder) {
+                $priority = $statusOrder[strtolower($r->status ?? '')] ?? 99;
+                $ts = optional($r->created_at)->timestamp ?? 0;
+                return [$priority, -$ts]; // status priority asc, date desc within same group
+            })
+            ->values();
+
+        // Manual pagination (two merged collections can't use ->paginate() directly)
+        $perPage     = 15;
+        $currentPage = $request->input('page', 1);
+        $reservations = new \Illuminate\Pagination\LengthAwarePaginator(
+            $allReservations->forPage($currentPage, $perPage),
+            $allReservations->count(),
+            $perPage,
+            $currentPage,
+            ['path' => $request->url(), 'query' => $request->query()]
+        );
+
+        // Counts for status cards (always fetches ALL to keep numbers accurate even when filtering)
         $allForCounts = \App\Models\RoomReservation::all()->concat(\App\Models\VenueReservation::all());
 
         return view('employee.guest', compact('reservations', 'allForCounts'));
@@ -751,7 +853,7 @@ class ReservationController extends Controller
     }
     public function updateStatus(Request $request, $id)
     {
-        $type = $request->query('type');
+        $type      = $request->query('type');
         $newStatus = strtolower($request->input('status'));
 
         if (!$id || $id === 'null') {
@@ -768,35 +870,178 @@ class ReservationController extends Controller
 
         try {
             if ($type === 'room') {
-                $reservation = \App\Models\RoomReservation::with('user')->findOrFail($id);
+                $reservation = \App\Models\RoomReservation::with(['user', 'room'])->findOrFail($id);
             } else {
-                $reservation = \App\Models\VenueReservation::with('user')->findOrFail($id);
+                $reservation = \App\Models\VenueReservation::with(['user', 'venue'])->findOrFail($id);
             }
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             return redirect()->back()->with('error', 'Reservation not found.');
         }
 
         $reservation->status = $newStatus;
+
+        // Checkout always starts as unpaid — payment is confirmed separately
+        if (in_array($newStatus, ['checked-out', 'completed'])) {
+            $reservation->payment_status = 'unpaid';
+        }
+
         $reservation->save();
 
-        if (in_array($newStatus, ['checked-out', 'completed'])) {
-            if ($reservation->user && $reservation->user->email) {
-                try {
+        // ── Notify client via email + in-system notification ──
+        $this->notifyClientOnStatusChange($reservation, $type, $newStatus);
+
+        return redirect()->back()->with('success', 'Status updated to ' . ucfirst($newStatus) . ' successfully.');
+    }
+
+    /**
+     * Send email + create in-system notification when a reservation status changes.
+     */
+    private function notifyClientOnStatusChange($reservation, string $type, string $status): void
+    {
+        $user = $reservation->user;
+        if (!$user) return;
+
+        // Build a human-readable accommodation label
+        $accName = $type === 'room'
+            ? 'Room ' . ($reservation->room->room_number ?? $reservation->getKey())
+            : ($reservation->venue->Venue_Name ?? $reservation->venue->name ?? 'Venue');
+
+        $notificationMap = [
+            'confirmed'   => [
+                'title' => 'Reservation Confirmed',
+                'msg'   => "Your reservation for {$accName} has been confirmed. Please arrive on time for check-in.",
+            ],
+            'checked-in'  => [
+                'title' => 'Checked In Successfully',
+                'msg'   => "You are now checked in to {$accName}. Enjoy your stay!",
+            ],
+            'checked-out' => [
+                'title' => 'Checked Out',
+                'msg'   => "Your stay at {$accName} has ended. Thank you for choosing Lantaka!",
+            ],
+            'completed'   => [
+                'title' => 'Stay Completed',
+                'msg'   => "Your stay at {$accName} is now complete. Thank you for choosing Lantaka!",
+            ],
+            'cancelled'   => [
+                'title' => 'Reservation Cancelled',
+                'msg'   => "Your reservation for {$accName} has been cancelled. Contact us if you have questions.",
+            ],
+            'rejected'    => [
+                'title' => 'Reservation Not Approved',
+                'msg'   => "Your reservation request for {$accName} was not approved. Please contact Lantaka for details.",
+            ],
+        ];
+
+        if (!isset($notificationMap[$status])) return;
+
+        $title = $notificationMap[$status]['title'];
+        $msg   = $notificationMap[$status]['msg'];
+
+        // 1. Audit log (admin actor, no notifiable_user)
+        EventLogController::log(
+            "reservation_{$status}",
+            "[Admin] {$title} — {$accName} (reservation #{$reservation->getKey()}) for {$user->name}",
+            Auth::id(),
+            null,
+            ['title' => $title, 'type' => $status]
+        );
+
+        // 2. Client notification (surfaced in the bell)
+        try {
+            EventLog::create([
+                'user_id'            => Auth::id(),
+                'notifiable_user_id' => $user->id,
+                'action'             => "reservation_{$status}",
+                'title'              => $title,
+                'message'            => $msg,
+                'type'               => $status,
+                'link'               => '/client/my_reservations',
+                'is_read'            => false,
+            ]);
+        } catch (\Throwable $e) {
+            Log::error("EventLog notification create failed: " . $e->getMessage());
+        }
+
+        // 3. Send email
+        if (!$user->email) return;
+        try {
+            switch ($status) {
+                case 'confirmed':
+                    Mail::to($user->email)->send(new ReservationConfirmedMail($reservation, $type));
+                    break;
+                case 'checked-in':
+                    Mail::to($user->email)->send(new ReservationCheckedInMail($reservation, $type));
+                    break;
+                case 'checked-out':
+                case 'completed':
                     $foodTotal = 0;
                     if ($type === 'venue') {
                         $foodTotal = \App\Models\FoodReservation::where('venue_reservation_id', $reservation->getKey())
                             ->sum('total_price');
                     }
-
-                    \Illuminate\Support\Facades\Mail::to($reservation->user->email)
-                        ->send(new \App\Mail\GuestCheckOutMail($reservation, $type, $foodTotal));
-                } catch (\Exception $e) {
-                    \Log::error("Email Error for Reservation #{$id}: " . $e->getMessage());
-                }
+                    Mail::to($user->email)->send(new \App\Mail\GuestCheckOutMail($reservation, $type, $foodTotal));
+                    break;
+                case 'cancelled':
+                    Mail::to($user->email)->send(new ReservationCancelledMail($reservation, $type));
+                    break;
+                case 'rejected':
+                    Mail::to($user->email)->send(new ReservationRejectedMail($reservation, $type));
+                    break;
             }
+        } catch (\Exception $e) {
+            Log::error("Email failed for reservation #{$reservation->getKey()}: " . $e->getMessage());
+        }
+    }
+
+    /**
+     * Mark an already-checked-out reservation as paid.
+     */
+    public function markAsPaid(\Illuminate\Http\Request $request, $id)
+    {
+        $type = $request->query('type');
+
+        if (!in_array($type, ['room', 'venue'])) {
+            return redirect()->back()->with('error', 'Invalid reservation type.');
         }
 
-        return redirect()->back()->with('success', 'Status updated to ' . ucfirst($newStatus) . ' successfully.');
+        try {
+            $reservation = ($type === 'room')
+                ? \App\Models\RoomReservation::findOrFail($id)
+                : \App\Models\VenueReservation::findOrFail($id);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return redirect()->back()->with('error', 'Reservation not found.');
+        }
+
+        $reservation->payment_status = 'paid';
+        $reservation->save();
+
+        return redirect()->back()->with('success', 'Payment recorded — reservation marked as Paid.');
+    }
+
+    /**
+     * Admin-only: revert a paid reservation back to unpaid.
+     */
+    public function markAsUnpaid(\Illuminate\Http\Request $request, $id)
+    {
+        $type = $request->query('type');
+
+        if (!in_array($type, ['room', 'venue'])) {
+            return redirect()->back()->with('error', 'Invalid reservation type.');
+        }
+
+        try {
+            $reservation = ($type === 'room')
+                ? \App\Models\RoomReservation::findOrFail($id)
+                : \App\Models\VenueReservation::findOrFail($id);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return redirect()->back()->with('error', 'Reservation not found.');
+        }
+
+        $reservation->payment_status = 'unpaid';
+        $reservation->save();
+
+        return redirect()->back()->with('success', 'Payment status reverted to Unpaid.');
     }
 
     public function showReservationsCalendar()
@@ -878,6 +1123,9 @@ class ReservationController extends Controller
         $checkOutsToday = $roomCheckOutsToday->concat($venueCheckOutsToday);
 
         $checkOutsTodayCount = $checkOutsToday->count();
+
+        $changes = $this->computeStatChanges($occupancyRate, $activeGuests);
+
         return view('employee.dashboard', compact(
             'reservations',
             'totalReservations',
@@ -885,47 +1133,19 @@ class ReservationController extends Controller
             'activeGuests',
             'occupancyRate',
             'checkOutsToday',
-            'checkOutsTodayCount'
+            'checkOutsTodayCount',
+            'changes'
         ));
     }
     public function cancel(Request $request, $id)
     {
-        // 1. Ensure we get the type from the JSON body
-        $type = $request->input('type');
-
-        if (!$type) {
-            return response()->json(['message' => 'Type is required'], 400);
-        }
-
-        // 2. Find the reservation
-        if ($type === 'room') {
-            $reservation = \App\Models\RoomReservation::with('room')->find($id);
-            if ($reservation && $reservation->room) {
-                // Set the room back to available
-                $reservation->room->update(['status' => 'Available']);
-            }
-        } else {
-            $reservation = \App\Models\VenueReservation::with('venue')->find($id);
-            if ($reservation && $reservation->venue) {
-                // Set the venue back to available
-                $reservation->venue->update(['status' => 'Available']);
-            }
-        }
-
-        // 3. Security Check: Ensure the user owns this reservation
-        if (!$reservation) {
-            return response()->json(['message' => 'Reservation not found'], 404);
-        }
-
-        if ($reservation->Client_ID !== auth()->id()) {
-            return response()->json(['message' => 'Unauthorized'], 403);
-        }
-
-        // 4. Update and Save
-        $reservation->status = 'cancelled';
-        $reservation->save();
-
-        return response()->json(['success' => true, 'message' => 'Success']);
+        // Cancellations must be handled by Lantaka staff directly.
+        // Clients are directed to contact Lantaka; this endpoint is no longer
+        // used for direct client-side cancellation.
+        return response()->json([
+            'contact' => true,
+            'message' => 'To cancel your reservation, please contact Lantaka directly at lantaka@adzu.edu.ph.',
+        ], 200);
     }
     public function storeReservation(Request $request)
     {
@@ -1039,6 +1259,7 @@ class ReservationController extends Controller
             'check_in' => 'required|date',
             'check_out' => 'required|date|after_or_equal:check_in',
             'pax' => 'required|integer|min:1',
+            'purpose' => 'required|string'
         ]);
 
         // ── Edit mode: reservation_id is present ──
@@ -1090,6 +1311,7 @@ class ReservationController extends Controller
                 'Room_Reservation_Check_Out_Time' => $request->check_out,
                 'pax'                             => $request->pax,
                 'Room_Reservation_Total_Price'    => $totalAmount,
+                'purpose'                         => $request->purpose,
             ]);
 
             return redirect()
@@ -1108,6 +1330,7 @@ class ReservationController extends Controller
                 'Venue_Reservation_Check_Out_Time' => $request->check_out,
                 'pax'                              => $request->pax,
                 'Venue_Reservation_Total_Price'    => $totalAmount,
+                'purpose'                          => $request->purpose,
             ]);
 
             // ── Snapshot existing food selections BEFORE deleting ──
@@ -1321,220 +1544,310 @@ class ReservationController extends Controller
 
         $reservations = collect();
 
+        // ── Build line items ──────────────────────────────────────────────────
         foreach ($roomReservations as $r) {
-            $checkIn = Carbon::parse($r->Room_Reservation_Check_In_Time);
+            $checkIn  = Carbon::parse($r->Room_Reservation_Check_In_Time);
             $checkOut = Carbon::parse($r->Room_Reservation_Check_Out_Time);
-            $days = $checkIn->diffInDays($checkOut) ?: 1;
+            $nights   = max(1, $checkIn->diffInDays($checkOut));
 
-            $additionalFees = (float) ($r->Room_Reservation_Additional_Fees ?? 0);
-            $baseAmount = (float) ($r->Room_Reservation_Total_Price ?? 0) - $additionalFees;
+            $addFees    = (float) ($r->Room_Reservation_Additional_Fees ?? 0);
+            $baseAmount = (float) ($r->Room_Reservation_Total_Price ?? 0) - $addFees;
+            $ratePerNight = $nights > 0 ? $baseAmount / $nights : $baseAmount;
 
             $reservations->push([
-                'date' => $checkIn->format('d/m/Y'),
-                'name' => 'Room ' . ($r->room->Room_Number ?? $r->room->room_number ?? 'Room'),
-                'pax' => $r->pax,
-                'days' => $days,
-                'rate' => $days > 0 ? $baseAmount / $days : $baseAmount,
-                'amount' => $baseAmount,
-                'is_subitem' => false,
+                'date'        => $checkIn->format('F d, Y'),
+                'particulars' => 'Room ' . ($r->room->Room_Number ?? $r->room->room_number ?? 'Room'),
+                'qty'         => $nights,
+                'unit'        => 'night',
+                'rate'        => $ratePerNight,
+                'amount'      => $baseAmount,
+                'is_subitem'  => false,
+                'is_discount' => false,
             ]);
 
             $rawItems = json_decode($r->Room_Reservation_Additional_Fees_Desc ?? '[]', true) ?? [];
-
             foreach ($rawItems as $item) {
-                $parts = explode(':', $item);
-
-                $desc = $parts[0] ?? '';
-                $qty = (int) ($parts[1] ?? 1);
-                $rate = (float) ($parts[2] ?? 0);
-                $chargeDate = !empty($parts[3]) ? Carbon::parse($parts[3])->format('d/m/Y') : '';
-                $lineTotal = $qty * $rate;
-
+                $parts     = explode(':', $item);
+                $desc      = trim($parts[0] ?? '');
+                $qty       = (int) ($parts[1] ?? 1);
+                $unitRate  = (float) ($parts[2] ?? 0);
+                $chDate    = !empty($parts[3]) ? Carbon::parse($parts[3])->format('F d, Y') : '';
                 $reservations->push([
-                    'date' => $chargeDate,
-                    'name' => '+ ' . $desc,
-                    'pax' => $qty,
-                    'days' => '',
-                    'rate' => $rate,
-                    'amount' => $lineTotal,
-                    'is_subitem' => true,
+                    'date'        => $chDate,
+                    'particulars' => $desc,
+                    'qty'         => $qty,
+                    'unit'        => 'lot',
+                    'rate'        => $unitRate,
+                    'amount'      => $qty * $unitRate,
+                    'is_subitem'  => true,
+                    'is_discount' => false,
                 ]);
             }
         }
 
         foreach ($venueReservations as $v) {
-            $checkIn = Carbon::parse($v->Venue_Reservation_Check_In_Time);
+            $checkIn  = Carbon::parse($v->Venue_Reservation_Check_In_Time);
             $checkOut = Carbon::parse($v->Venue_Reservation_Check_Out_Time);
-            $days = $checkIn->diffInDays($checkOut) ?: 1;
+            $days     = max(1, $checkIn->diffInDays($checkOut));
 
-            $additionalFees = (float) ($v->Venue_Reservation_Additional_Fees ?? 0);
-            $discount = (float) ($v->Venue_Reservation_Discount ?? 0);
-            $baseAmount = (float) ($v->Venue_Reservation_Total_Price ?? 0) - $additionalFees + $discount;
+            $addFees    = (float) ($v->Venue_Reservation_Additional_Fees ?? 0);
+            $discount   = (float) ($v->Venue_Reservation_Discount ?? 0);
+            $baseAmount = (float) ($v->Venue_Reservation_Total_Price ?? 0) - $addFees + $discount;
+            $ratePerDay = $days > 0 ? $baseAmount / $days : $baseAmount;
 
             $reservations->push([
-                'date' => $checkIn->format('d/m/Y'),
-                'name' => 'Venue ' . ($v->venue->Venue_Name ?? $v->venue->name ?? 'Venue'),
-                'pax' => $v->pax,
-                'days' => $days,
-                'rate' => $days > 0 ? $baseAmount / $days : $baseAmount,
-                'amount' => $baseAmount,
-                'is_subitem' => false,
+                'date'        => $checkIn->format('F d, Y'),
+                'particulars' => 'Venue: ' . ($v->venue->Venue_Name ?? $v->venue->name ?? 'Venue'),
+                'qty'         => $days,
+                'unit'        => 'day',
+                'rate'        => $ratePerDay,
+                'amount'      => $baseAmount,
+                'is_subitem'  => false,
+                'is_discount' => false,
             ]);
 
             $rawItems = json_decode($v->Venue_Reservation_Additional_Fees_Desc ?? '[]', true) ?? [];
-
             foreach ($rawItems as $item) {
-                $parts = explode(':', $item);
-
-                $desc = $parts[0] ?? '';
-                $qty = (int) ($parts[1] ?? 1);
-                $rate = (float) ($parts[2] ?? 0);
-                $chargeDate = !empty($parts[3]) ? Carbon::parse($parts[3])->format('d/m/Y') : '';
-                $lineTotal = $qty * $rate;
-
+                $parts    = explode(':', $item);
+                $desc     = trim($parts[0] ?? '');
+                $qty      = (int) ($parts[1] ?? 1);
+                $unitRate = (float) ($parts[2] ?? 0);
+                $chDate   = !empty($parts[3]) ? Carbon::parse($parts[3])->format('F d, Y') : '';
                 $reservations->push([
-                    'date' => $chargeDate,
-                    'name' => '+ ' . $desc,
-                    'pax' => $qty,
-                    'days' => '',
-                    'rate' => $rate,
-                    'amount' => $lineTotal,
-                    'is_subitem' => true,
+                    'date'        => $chDate,
+                    'particulars' => $desc,
+                    'qty'         => $qty,
+                    'unit'        => 'lot',
+                    'rate'        => $unitRate,
+                    'amount'      => $qty * $unitRate,
+                    'is_subitem'  => true,
+                    'is_discount' => false,
                 ]);
             }
 
             if ($discount > 0) {
                 $reservations->push([
-                    'date' => '',
-                    'name' => '- Discount',
-                    'pax' => 1,
-                    'days' => '',
-                    'rate' => $discount,
-                    'amount' => $discount,
-                    'is_subitem' => true,
+                    'date'        => '',
+                    'particulars' => 'Discount',
+                    'qty'         => 1,
+                    'unit'        => 'lot',
+                    'rate'        => $discount,
+                    'amount'      => $discount,
+                    'is_subitem'  => true,
                     'is_discount' => true,
                 ]);
             }
         }
 
-        /*
-                ===============================
-                LOAD EXCEL TEMPLATE
-                ===============================
-                */
-
+        // ── Load template ────────────────────────────────────────────────────
         $templatePath = resource_path('templates/SOA_Template_Final.xlsx');
-
         if (!file_exists($templatePath)) {
             abort(500, 'SOA template not found.');
         }
 
         $spreadsheet = IOFactory::load($templatePath);
-        $sheet = $spreadsheet->getActiveSheet();
+        $sheet       = $spreadsheet->getActiveSheet();
 
-        /*
-                ===============================
-                HEADER INFORMATION
-                ===============================
-                */
+        // ── Template constants ───────────────────────────────────────────────
+        // The uploaded template uses columns C–J for the data table:
+        //   C = DATE | D = PARTICULARS | E = QTY | F = UNIT | G = RATE | J = AMOUNT
+        // Static header rows in the template:
+        //   C11 = Date line       C13 = "Statement of Account"
+        //   C15 = "To:"           C16 = client name
+        //   C22 = table header row (DATE, PARTICULARS …)
+        //   Row 23 = first data row  (template has 4 data rows: 23–26)
+        //   Row 29 = Total row    Row 32 = Total Amount Due
+        //   Row 39 = Prepared by  Row 42 = Approved by
+        $DATA_HEADER_ROW   = 22;
+        $DATA_START_ROW    = 23;
+        $TEMPLATE_DATA_ROWS = 4;   // rows 23-26 pre-filled in template
 
-        $sheet->setCellValue('A15', 'Date: ' . now()->format('d/m/Y'));
-        $sheet->setCellValue('A17', 'To:');
-        $sheet->setCellValue('A18', $client->name);
+        // ── Header ───────────────────────────────────────────────────────────
+        $sheet->setCellValue('C11', 'Date: ' . now()->format('F d, Y'));
+        $sheet->setCellValue('C15', 'To:');
+        $sheet->setCellValue('C16', $client->name);
 
-        /*
-                ===============================
-                INSERT RESERVATIONS
-                TABLE STARTS AT ROW 25
-                ===============================
-                */
+        // ── Dynamic row insertion ────────────────────────────────────────────
+        $numItems  = $reservations->count();
+        $extraRows = max(0, $numItems - $TEMPLATE_DATA_ROWS);
 
-        $startRow = 25;
-        $currentRow = $startRow;
+        if ($extraRows > 0) {
+            // Insert after the last pre-built data row so template rows shift down
+            $sheet->insertNewRowBefore($DATA_START_ROW + $TEMPLATE_DATA_ROWS, $extraRows);
+        }
 
-        $startRow = 25;
-        $currentRow = $startRow;
+        // ── Write data rows ──────────────────────────────────────────────────
+        $subtotal          = 0.0;
+        $totalAdditionalFees = 0.0;
+        $totalDiscounts    = 0.0;
+        $pesoFmt           = '"₱"#,##0.00';
 
-        $subtotal = 0;
-        $totalAdditionalFees = 0;
-        $totalDiscounts = 0;
-        $lastExportDate = null;
-
-        foreach ($reservations as $r) {
-            $date = $r['date'] ?? '';
-            $name = $r['name'] ?? '';
-            $qty = $r['pax'] ?? '';
-            $days = $r['days'] ?? '';
-            $rate = $r['rate'] ?? 0;
+        foreach ($reservations as $i => $r) {
+            $row    = $DATA_START_ROW + $i;
             $amount = (float) ($r['amount'] ?? 0);
 
-            // Only print the date when it changes (dedup same-date rows)
-            $printDate = ($date !== '' && $date !== $lastExportDate) ? $date : '';
-            if ($date !== '') $lastExportDate = $date;
+            $sheet->setCellValue("C{$row}", $r['date'] ?? '');
+            $sheet->setCellValue("D{$row}", $r['particulars'] ?? '');
+            $sheet->setCellValue("E{$row}", $r['qty'] ?? '');
+            $sheet->setCellValue("F{$row}", $r['unit'] ?? '');
+            $sheet->setCellValue("G{$row}", (float) ($r['rate'] ?? 0));
+            $sheet->setCellValue("J{$row}", $amount);
 
-            $sheet->setCellValue("A{$currentRow}", $printDate);
-            $sheet->setCellValue("B{$currentRow}", $name);
-            $sheet->setCellValue("C{$currentRow}", $qty);
-            $sheet->setCellValue("D{$currentRow}", $days !== '' ? $days . ' day' : '');
-            $sheet->setCellValue("E{$currentRow}", $rate);
-            $sheet->setCellValue("F{$currentRow}", $amount);
+            // Currency formatting
+            $sheet->getStyle("G{$row}")->getNumberFormat()->setFormatCode($pesoFmt);
+            $sheet->getStyle("J{$row}")->getNumberFormat()->setFormatCode($pesoFmt);
 
-            if (($r['is_subitem'] ?? false) === true) {
-                if (($r['is_discount'] ?? false) === true) {
-                    $totalDiscounts += $amount;
-                } else {
-                    $totalAdditionalFees += $amount;
-                }
+            // Apply basic border to the row (matching template style)
+            $borderStyle = [
+                'borders' => [
+                    'allBorders' => [
+                        'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                        'color'       => ['argb' => 'FFD9D9D9'],
+                    ],
+                ],
+            ];
+            $sheet->getStyle("C{$row}:J{$row}")->applyFromArray($borderStyle);
+
+            // Accumulate totals
+            if ($r['is_discount'] ?? false) {
+                $totalDiscounts += $amount;
+            } elseif ($r['is_subitem'] ?? false) {
+                $totalAdditionalFees += $amount;
             } else {
                 $subtotal += $amount;
             }
-
-            $currentRow++;
         }
 
-        /*
-                ===============================
-                SUMMARY BOX
-                Column E = labels
-                Column F = values
-                ===============================
-                */
-
-        $sheet->setCellValue('F15', $subtotal);
-        $sheet->setCellValue('F16', $totalAdditionalFees);
-        $sheet->setCellValue('F17', $totalDiscounts);
-        $sheet->setCellValue('F18', $subtotal + $totalAdditionalFees - $totalDiscounts);
-        /*
-                ===============================
-                CURRENCY FORMAT
-                ===============================
-                */
-
-        for ($row = $startRow; $row < $currentRow; $row++) {
-            $sheet->getStyle("E{$row}")
-                ->getNumberFormat()
-                ->setFormatCode('"₱"#,##0.00');
-
-            $sheet->getStyle("F{$row}")
-                ->getNumberFormat()
-                ->setFormatCode('"₱"#,##0.00');
+        // Clear any unused template data rows (when numItems < TEMPLATE_DATA_ROWS)
+        for ($i = $numItems; $i < $TEMPLATE_DATA_ROWS; $i++) {
+            $row = $DATA_START_ROW + $i;
+            foreach (['C', 'D', 'E', 'F', 'G', 'H', 'J'] as $col) {
+                $sheet->setCellValue("{$col}{$row}", '');
+            }
         }
 
-        $sheet->getStyle('F15:F18')
-            ->getNumberFormat()
-            ->setFormatCode('"₱"#,##0.00');
+        // ── Summary section ──────────────────────────────────────────────────
+        // After row insertion the original template rows shift by $extraRows.
+        // Template: Total=29, blank=30, blank=31, TotalAmtDue=32
+        // We repurpose those rows for a 4-row summary.
+        $dataEndRow      = $DATA_START_ROW + $numItems - 1;
+        $summaryBase     = 29 + $extraRows;  // first summary row
 
-        /*
-                ===============================
-                EXPORT FILE
-                ===============================
-                */
+        $boldFont = ['font' => ['bold' => true, 'size' => 11]];
+        $totalFont = ['font' => ['bold' => true, 'size' => 12]];
 
-        $fileName = 'SOA_' . str_replace(' ', '_', $client->name) . '.xlsx';
+        // Row 1 – Subtotal
+        $sheet->setCellValue("G{$summaryBase}", 'Subtotal:');
+        $sheet->setCellValue("J{$summaryBase}", $subtotal);
+        $sheet->getStyle("G{$summaryBase}")->applyFromArray($boldFont);
+        $sheet->getStyle("J{$summaryBase}")->getNumberFormat()->setFormatCode($pesoFmt);
+        $sheet->getStyle("J{$summaryBase}")->applyFromArray($boldFont);
+
+        // Row 2 – Additional Fees
+        $r2 = $summaryBase + 1;
+        $sheet->setCellValue("G{$r2}", 'Additional Fees:');
+        $sheet->setCellValue("J{$r2}", $totalAdditionalFees);
+        $sheet->getStyle("G{$r2}")->applyFromArray($boldFont);
+        $sheet->getStyle("J{$r2}")->getNumberFormat()->setFormatCode($pesoFmt);
+
+        // Row 3 – Discounts
+        $r3 = $summaryBase + 2;
+        $sheet->setCellValue("G{$r3}", 'Discounts:');
+        $sheet->setCellValue("J{$r3}", $totalDiscounts);
+        $sheet->getStyle("G{$r3}")->applyFromArray($boldFont);
+        $sheet->getStyle("J{$r3}")->getNumberFormat()->setFormatCode($pesoFmt);
+
+        // Row 4 – Total Amount Due
+        $r4 = $summaryBase + 3;
+        $total = $subtotal + $totalAdditionalFees - $totalDiscounts;
+        $sheet->setCellValue("G{$r4}", 'Total Amount Due:');
+        $sheet->setCellValue("J{$r4}", $total);
+        $sheet->getStyle("G{$r4}")->applyFromArray($totalFont);
+        $sheet->getStyle("J{$r4}")->getNumberFormat()->setFormatCode($pesoFmt);
+        $sheet->getStyle("J{$r4}")->applyFromArray($totalFont);
+
+        // ── Export ───────────────────────────────────────────────────────────
+        $fileName = 'SOA_' . str_replace(' ', '_', $client->name) . '_' . now()->format('Ymd') . '.xlsx';
         $tempFile = tempnam(sys_get_temp_dir(), 'soa');
 
         $writer = new Xlsx($spreadsheet);
         $writer->save($tempFile);
+
+        // ── Restore DrawingML shapes (text boxes, logo) ───────────────────────
+        // PhpSpreadsheet silently discards all DrawingML shapes when loading an
+        // .xlsx template. We re-inject them at the ZIP level after saving so the
+        // AdZU letterhead (text boxes + logo image) is preserved in the output.
+        try {
+            $tplZip = new \ZipArchive();
+            $outZip = new \ZipArchive();
+
+            if ($tplZip->open($templatePath) === true && $outZip->open($tempFile) === true) {
+
+                // 1. Copy every drawing / media file verbatim from the template
+                $drawingAssets = [
+                    'xl/drawings/drawing1.xml',
+                    'xl/drawings/_rels/drawing1.xml.rels',
+                    'xl/media/image1.png',
+                ];
+                foreach ($drawingAssets as $asset) {
+                    $bytes = $tplZip->getFromName($asset);
+                    if ($bytes !== false) {
+                        $outZip->deleteName($asset); // remove if PhpSpreadsheet wrote a stub
+                        $outZip->addFromString($asset, $bytes);
+                    }
+                }
+
+                // 2. Add the drawing Override to [Content_Types].xml if missing
+                $ctName = '[Content_Types].xml';
+                $ct = $outZip->getFromName($ctName);
+                if ($ct && strpos($ct, '/xl/drawings/drawing1.xml') === false) {
+                    $drawingCt = '<Override PartName="/xl/drawings/drawing1.xml"'
+                               . ' ContentType="application/vnd.openxmlformats-officedocument.drawing+xml"/>';
+                    $ct = str_replace('</Types>', $drawingCt . '</Types>', $ct);
+                    $outZip->deleteName($ctName);
+                    $outZip->addFromString($ctName, $ct);
+                }
+
+                // 3. Add drawing relationship to xl/worksheets/_rels/sheet1.xml.rels
+                $relsFile = 'xl/worksheets/_rels/sheet1.xml.rels';
+                $rels = $outZip->getFromName($relsFile);
+                $drawingRelId = 'rId_soa_drw';
+                $drawingRel   = '<Relationship Id="' . $drawingRelId . '"'
+                              . ' Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/drawing"'
+                              . ' Target="../drawings/drawing1.xml"/>';
+
+                if ($rels) {
+                    if (strpos($rels, 'drawings/drawing1.xml') === false) {
+                        $rels = str_replace('</Relationships>', $drawingRel . '</Relationships>', $rels);
+                        $outZip->deleteName($relsFile);
+                        $outZip->addFromString($relsFile, $rels);
+                    }
+                } else {
+                    $newRels = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' . "\n"
+                             . '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+                             . $drawingRel . '</Relationships>';
+                    $outZip->addFromString($relsFile, $newRels);
+                    $drawingRelId = $drawingRelId; // still correct
+                }
+
+                // 4. Add <drawing r:id="..."/> to the worksheet XML before </worksheet>
+                // (the xmlns:r prefix is already declared on the root <worksheet> element)
+                $sheetFile = 'xl/worksheets/sheet1.xml';
+                $sheetXml  = $outZip->getFromName($sheetFile);
+                if ($sheetXml && strpos($sheetXml, '<drawing') === false) {
+                    $drawingTag = '<drawing r:id="' . $drawingRelId . '"/>';
+                    $sheetXml = str_replace('</worksheet>', $drawingTag . '</worksheet>', $sheetXml);
+                    $outZip->deleteName($sheetFile);
+                    $outZip->addFromString($sheetFile, $sheetXml);
+                }
+
+                $tplZip->close();
+                $outZip->close();
+            }
+        } catch (\Throwable $e) {
+            // Non-fatal: export still works, just without shapes
+            \Illuminate\Support\Facades\Log::warning('SOA drawing restore failed: ' . $e->getMessage());
+        }
 
         return response()->download($tempFile, $fileName)->deleteFileAfterSend(true);
     }
@@ -1551,7 +1864,7 @@ class ReservationController extends Controller
                 'user' => $item->user ? [
                     'name' => $item->user->name
                 ] : null,
-                'label' => $item->room ? 'Room ' . $item->room->Room_Number : 'Room N/A',
+                'label' => $item->room ? 'Room ' . $item->room->room_number : 'Room N/A',
                 'type' => 'room',
             ];
         });
@@ -1565,7 +1878,7 @@ class ReservationController extends Controller
                 'user' => $item->user ? [
                     'name' => $item->user->name
                 ] : null,
-                'label' => $item->venue ? $item->venue->Venue_Name : 'Venue N/A',
+                'label' => $item->venue ? $item->venue->name : 'Venue N/A',
                 'type' => 'venue',
             ];
         });
@@ -1617,15 +1930,193 @@ class ReservationController extends Controller
 
         $checkOutsTodayCount = $checkOutsTodayRooms + $checkOutsTodayVenues;
 
+        $changes = $this->computeStatChanges($occupancyRate, $activeGuests);
+
         return response()->json([
             'reservations' => $reservations,
             'stats' => [
-                'totalReservations' => $totalReservations,
-                'totalRevenue' => $totalRevenue,
-                'activeGuests' => $activeGuests,
-                'occupancyRate' => round($occupancyRate, 1),
-                'checkOutsTodayCount' => $checkOutsTodayCount,
-            ]
+                'totalReservations'  => $totalReservations,
+                'totalRevenue'       => $totalRevenue,
+                'activeGuests'       => $activeGuests,
+                'occupancyRate'      => round($occupancyRate, 1),
+                'checkOutsTodayCount'=> $checkOutsTodayCount,
+            ],
+            'changes' => $changes,
         ]);
+    }
+
+    /* ─────────────────────────────────────────────────────────────
+     * Compute month-over-month % change for each dashboard stat.
+     * "This month"  = current calendar month (1st → today)
+     * "Last month"  = full previous calendar month
+     * Occupancy     = current 30-day window vs previous 30-60 days
+     * ───────────────────────────────────────────────────────────── */
+    public function analyticsReportData(Request $request)
+    {
+        $month = (int) $request->input('month', Carbon::now()->month);
+        $year  = (int) $request->input('year',  Carbon::now()->year);
+
+        $start     = Carbon::createFromDate($year, $month, 1)->startOfMonth();
+        $end       = Carbon::createFromDate($year, $month, 1)->endOfMonth();
+        $prevStart = Carbon::createFromDate($year, $month, 1)->subMonth()->startOfMonth();
+        $prevEnd   = Carbon::createFromDate($year, $month, 1)->subMonth()->endOfMonth();
+
+        $pct = function (float $cur, float $prev): float {
+            if ($prev == 0) return $cur > 0 ? 100.0 : 0.0;
+            return round((($cur - $prev) / $prev) * 100, 1);
+        };
+
+        // ── Summary ──
+        $roomCount      = RoomReservation::whereBetween('created_at', [$start, $end])->count();
+        $venueCount     = VenueReservation::whereBetween('created_at', [$start, $end])->count();
+        $prevRoomCount  = RoomReservation::whereBetween('created_at', [$prevStart, $prevEnd])->count();
+        $prevVenueCount = VenueReservation::whereBetween('created_at', [$prevStart, $prevEnd])->count();
+        $totalRes       = $roomCount + $venueCount;
+        $prevTotalRes   = $prevRoomCount + $prevVenueCount;
+
+        $roomRevThis    = (float) RoomReservation::whereBetween('created_at', [$start, $end])->sum('Room_Reservation_Total_Price');
+        $venueRevThis   = (float) VenueReservation::whereBetween('created_at', [$start, $end])->sum('Venue_Reservation_Total_Price');
+        $roomRevPrev    = (float) RoomReservation::whereBetween('created_at', [$prevStart, $prevEnd])->sum('Room_Reservation_Total_Price');
+        $venueRevPrev   = (float) VenueReservation::whereBetween('created_at', [$prevStart, $prevEnd])->sum('Venue_Reservation_Total_Price');
+        $totalRevenue   = $roomRevThis + $venueRevThis;
+        $prevRevenue    = $roomRevPrev + $venueRevPrev;
+
+        // ── Status Breakdown ──
+        $statuses      = ['pending', 'confirmed', 'checked-in', 'checked-out', 'completed', 'cancelled'];
+        $roomStatuses  = RoomReservation::whereBetween('created_at', [$start, $end])
+                            ->selectRaw('status, count(*) as cnt')->groupBy('status')
+                            ->pluck('cnt', 'status');
+        $venueStatuses = VenueReservation::whereBetween('created_at', [$start, $end])
+                            ->selectRaw('status, count(*) as cnt')->groupBy('status')
+                            ->pluck('cnt', 'status');
+        $statusBreakdown = [];
+        foreach ($statuses as $s) {
+            $statusBreakdown[$s] = ($roomStatuses[$s] ?? 0) + ($venueStatuses[$s] ?? 0);
+        }
+
+        // ── Daily Breakdown ──
+        $daysInMonth = $end->day;
+        $roomDaily   = RoomReservation::whereBetween('created_at', [$start, $end])
+                        ->selectRaw('EXTRACT(DAY FROM created_at)::int as day, count(*) as cnt, sum("Room_Reservation_Total_Price") as rev')
+                        ->groupByRaw('EXTRACT(DAY FROM created_at)')->get()->keyBy('day');
+        $venueDaily  = VenueReservation::whereBetween('created_at', [$start, $end])
+                        ->selectRaw('EXTRACT(DAY FROM created_at)::int as day, count(*) as cnt, sum("Venue_Reservation_Total_Price") as rev')
+                        ->groupByRaw('EXTRACT(DAY FROM created_at)')->get()->keyBy('day');
+
+        $dailyData = [];
+        for ($d = 1; $d <= $daysInMonth; $d++) {
+            $dailyData[] = [
+                'day'          => $d,
+                'reservations' => (int)(($roomDaily[$d]->cnt ?? 0) + ($venueDaily[$d]->cnt ?? 0)),
+                'revenue'      => (float)(($roomDaily[$d]->rev ?? 0) + ($venueDaily[$d]->rev ?? 0)),
+            ];
+        }
+
+        // ── Top Rooms ──
+        $topRooms = RoomReservation::with('room')
+            ->whereBetween('created_at', [$start, $end])
+            ->selectRaw('"room_id", count(*) as bookings, sum("Room_Reservation_Total_Price") as revenue')
+            ->groupBy('room_id')->orderByDesc('revenue')->limit(5)->get()
+            ->map(fn($r) => [
+                'name'     => $r->room ? 'Room ' . $r->room->Room_Number : 'Room #' . $r->Room_ID,
+                'bookings' => (int)$r->bookings,
+                'revenue'  => (float)$r->revenue,
+            ]);
+
+        // ── Top Venues ──
+        $topVenues = VenueReservation::with('venue')
+            ->whereBetween('created_at', [$start, $end])
+            ->selectRaw('"venue_id", count(*) as bookings, sum("Venue_Reservation_Total_Price") as revenue')
+            ->groupBy('venue_id')->orderByDesc('revenue')->limit(5)->get()
+            ->map(fn($r) => [
+                'name'     => $r->venue ? $r->venue->Venue_Name : 'Venue #' . $r->Venue_ID,
+                'bookings' => (int)$r->bookings,
+                'revenue'  => (float)$r->revenue,
+            ]);
+
+        return response()->json([
+            'monthLabel'        => Carbon::createFromDate($year, $month, 1)->format('F Y'),
+            'prevMonthLabel'    => Carbon::createFromDate($year, $month, 1)->subMonth()->format('F Y'),
+            'totalReservations' => $totalRes,
+            'totalRevenue'      => $totalRevenue,
+            'prevTotalRes'      => $prevTotalRes,
+            'prevRevenue'       => $prevRevenue,
+            'resPctChange'      => $pct((float)$totalRes, (float)$prevTotalRes),
+            'revPctChange'      => $pct($totalRevenue, $prevRevenue),
+            'statusBreakdown'   => $statusBreakdown,
+            'dailyData'         => $dailyData,
+            'roomCount'         => $roomCount,
+            'venueCount'        => $venueCount,
+            'roomRevenue'       => $roomRevThis,
+            'venueRevenue'      => $venueRevThis,
+            'topRooms'          => $topRooms,
+            'topVenues'         => $topVenues,
+        ]);
+    }
+
+    private function computeStatChanges(float $currentOccupancy, int $activeGuests): array
+    {
+        $thisStart = Carbon::now()->startOfMonth();
+        $thisEnd   = Carbon::now()->endOfMonth();
+        $lastStart = Carbon::now()->subMonth()->startOfMonth();
+        $lastEnd   = Carbon::now()->subMonth()->endOfMonth();
+
+        // ── Reservations created this month vs last month ──
+        $resThis = RoomReservation::whereBetween('created_at', [$thisStart, $thisEnd])->count()
+                 + VenueReservation::whereBetween('created_at', [$thisStart, $thisEnd])->count();
+
+        $resLast = RoomReservation::whereBetween('created_at', [$lastStart, $lastEnd])->count()
+                 + VenueReservation::whereBetween('created_at', [$lastStart, $lastEnd])->count();
+
+        // ── Revenue booked this month vs last month ──
+        $revThis = RoomReservation::whereBetween('created_at', [$thisStart, $thisEnd])->sum('Room_Reservation_Total_Price')
+                 + VenueReservation::whereBetween('created_at', [$thisStart, $thisEnd])->sum('Venue_Reservation_Total_Price');
+
+        $revLast = RoomReservation::whereBetween('created_at', [$lastStart, $lastEnd])->sum('Room_Reservation_Total_Price')
+                 + VenueReservation::whereBetween('created_at', [$lastStart, $lastEnd])->sum('Venue_Reservation_Total_Price');
+
+        // ── Occupancy: previous 30-60 day rolling window ──
+        $totalRooms = Room::count();
+        $prevRoomNights = $totalRooms * 30;
+        $prevRoomNightsSold = RoomReservation::where('status', 'checked-in')
+            ->whereBetween('Room_Reservation_Check_In_Time', [
+                Carbon::now()->subDays(60),
+                Carbon::now()->subDays(30),
+            ])->count();
+        $prevOccupancy = $prevRoomNights > 0
+            ? ($prevRoomNightsSold / $prevRoomNights) * 100
+            : 0;
+
+        // ── Active guests: pax checked-in during last month (volume proxy) ──
+        $activeGuestsLast = RoomReservation::where('status', 'checked-in')
+                ->whereBetween('Room_Reservation_Check_In_Time', [$lastStart, $lastEnd])->sum('pax')
+            + VenueReservation::where('status', 'checked-in')
+                ->whereBetween('Venue_Reservation_Check_In_Time', [$lastStart, $lastEnd])->sum('pax');
+
+        // ── Check-outs: this month vs last month ──
+        $checkOutsThis = RoomReservation::whereDate('Room_Reservation_Check_Out_Time', '>=', $thisStart)
+                ->whereDate('Room_Reservation_Check_Out_Time', '<=', $thisEnd)->count()
+            + VenueReservation::whereDate('Venue_Reservation_Check_Out_Time', '>=', $thisStart)
+                ->whereDate('Venue_Reservation_Check_Out_Time', '<=', $thisEnd)->count();
+
+        $checkOutsLast = RoomReservation::whereDate('Room_Reservation_Check_Out_Time', '>=', $lastStart)
+                ->whereDate('Room_Reservation_Check_Out_Time', '<=', $lastEnd)->count()
+            + VenueReservation::whereDate('Venue_Reservation_Check_Out_Time', '>=', $lastStart)
+                ->whereDate('Venue_Reservation_Check_Out_Time', '<=', $lastEnd)->count();
+
+        // ── Percent-change helper ──
+        $pct = function (float $cur, float $prev): float {
+            if ($prev == 0) return $cur > 0 ? 100.0 : 0.0;
+            return round((($cur - $prev) / $prev) * 100, 1);
+        };
+
+        return [
+            'totalReservations' => $pct($resThis,            $resLast),
+            'revenue'           => $pct($revThis,            $revLast),
+            'occupancyRate'     => $pct($currentOccupancy,   $prevOccupancy),
+            'activeGuests'      => $pct((float)$activeGuests, (float)$activeGuestsLast),
+            'checkOutsToday'    => $pct($checkOutsThis,      $checkOutsLast),
+            'lastMonthLabel'    => Carbon::now()->subMonth()->format('M Y'),
+        ];
     }
 }

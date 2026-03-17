@@ -4,9 +4,25 @@
                 <button class="menu-toggle">☰</button>
             </div>
             <div class="header-right">
-                <button class="icon-btn">
-                  <img src="{{ asset('images/logo/topnav/notification-bell.svg') }}" alt="reservations">
-                </button>
+                @php
+                    // Employee bell shows total un-reviewed audit entries from today
+                    $empUnread = \App\Models\EventLog::whereNull('notifiable_user_id')
+                        ->whereDate('created_at', today())->count();
+                @endphp
+                <a href="{{ route('employee.eventlogs') }}" class="icon-btn" style="position:relative;text-decoration:none;" title="View Action Logs">
+                    <img src="{{ asset('images/logo/topnav/notification-bell.svg') }}" alt="Action Logs">
+                    @if($empUnread > 0)
+                        <span style="
+                            position:absolute; top:-3px; right:-3px;
+                            background:#dc2626; color:#fff;
+                            font-size:10px; font-weight:700;
+                            min-width:16px; height:16px;
+                            border-radius:8px; display:flex;
+                            align-items:center; justify-content:center;
+                            padding:0 3px; pointer-events:none; line-height:1;
+                        ">{{ $empUnread > 9 ? '9+' : $empUnread }}</span>
+                    @endif
+                </a>
                 <div class="user-profile" id="open-modal">
                     <div class="user-avatar">
                       <img src="{{ asset(path: 'images/logo/topnav/user-avatar.svg') }}" alt="reservations">

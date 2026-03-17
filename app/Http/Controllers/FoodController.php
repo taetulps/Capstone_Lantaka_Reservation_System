@@ -51,7 +51,7 @@ class FoodController extends Controller
         $request->validate([
             'food_name' => 'required|string|max:255',
             'status' => 'required|in:available,unavailable',
-            'type' => 'required|in:breakfast,snack,lunch,dinner',
+            'type' => 'required|string|in:rice,set_viand,sidedish,drinks,desserts,other_viand,snacks',
             'food_price' => 'required|numeric|min:0',
         ]);
 

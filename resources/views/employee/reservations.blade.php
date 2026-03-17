@@ -63,7 +63,7 @@
               <div class="filter-group">
                 <select name="client_type" class="filter-select" onchange="this.form.submit()">
                   <option value="">Client Type</option>
-                  <option value="Internal" {{ request('client_type') == 'Internal' ? 'selected' : '' }}>Internal</option>
+                    <option value="Internal" {{ request('client_type') == 'Internal' ? 'selected' : '' }}>Internal</option>
                   <option value="External" {{ request('client_type') == 'External' ? 'selected' : '' }}>External</option>
                 </select>
               </div>
@@ -77,7 +77,7 @@
 
               {{-- Clear Filters Button --}}
               @if(request()->anyFilled(['search', 'date', 'client_type', 'accommodation_type', 'status']))
-                <a href="{{ url()->current() }}" style="text-decoration:none; color:#d9534f; margin-left:15px; font-weight:bold;">✕ Clear All Filters</a>
+                <a href="{{ url()->current() }}" style="text-decoration: none; color: #e74c3c; font-size: 14px; font-weight: bold; margin-left: 10px;">✕ Clear </a>
               @endif
             </div>
         </form>
@@ -212,7 +212,8 @@
                                       'accommodation_id' => $isRoom ? $reservation->room_id : $reservation->venue_id,
                                       'userId' => $reservation->Client_ID,
                                       'purpose' => $reservation->purpose ?? '',
-                                      'foods' => $reservation->foods ?? []
+                                      'foods' => $reservation->foods ?? [],
+                                      'payment_status' => $reservation->payment_status ?? null
                                   ]) }}">
                               ⤢
                           </button>

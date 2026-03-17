@@ -111,17 +111,19 @@
 
                 <button class="expand-button"
                     data-info="{{ json_encode([
-                        // Use the actual primary key names defined in your Models
-                        'real_id' => $res->type === 'room' ? $res->Room_Reservation_ID : $res->Venue_Reservation_ID,
-                        'display_id' => str_pad($res->type === 'room' ? $res->Room_Reservation_ID : $res->Venue_Reservation_ID, 5, '0', STR_PAD_LEFT),
-                        'type' => $res->type, 
-                        'accommodation' => $accName,
-                        'pax' => $res->pax,
-                        'check_in' => \Carbon\Carbon::parse($res->Room_Reservation_Check_In_Time ?? $res->Venue_Reservation_Check_In_Time)->format('F d, Y'),
-                        'check_out' => \Carbon\Carbon::parse($res->Room_Reservation_Check_Out_Time ?? $res->Venue_Reservation_Check_Out_Time)->format('F d, Y'),
-                        'total' => number_format($res->Room_Reservation_Total_Price ?? $res->Venue_Reservation_Total_Price ?? 0, 2),
-                        'foods' => $res->foods,
-                        'status' => $res->status
+                        'real_id'        => $res->type === 'room' ? $res->Room_Reservation_ID : $res->Venue_Reservation_ID,
+                        'display_id'     => str_pad($res->type === 'room' ? $res->Room_Reservation_ID : $res->Venue_Reservation_ID, 5, '0', STR_PAD_LEFT),
+                        'type'           => $res->type,
+                        'accommodation'  => $accName,
+                        'pax'            => $res->pax,
+                        'check_in'       => \Carbon\Carbon::parse($res->Room_Reservation_Check_In_Time  ?? $res->Venue_Reservation_Check_In_Time)->format('F d, Y'),
+                        'check_out'      => \Carbon\Carbon::parse($res->Room_Reservation_Check_Out_Time ?? $res->Venue_Reservation_Check_Out_Time)->format('F d, Y'),
+                        'check_in_raw'   => \Carbon\Carbon::parse($res->Room_Reservation_Check_In_Time  ?? $res->Venue_Reservation_Check_In_Time)->toDateString(),
+                        'check_out_raw'  => \Carbon\Carbon::parse($res->Room_Reservation_Check_Out_Time ?? $res->Venue_Reservation_Check_Out_Time)->toDateString(),
+                        'total'          => number_format($res->Room_Reservation_Total_Price ?? $res->Venue_Reservation_Total_Price ?? 0, 2),
+                        'payment_status' => $res->payment_status ?? null,
+                        'foods'          => $res->foods,
+                        'status'         => $res->status,
                     ]) }}">
                     ⤡
                 </button>
@@ -137,7 +139,10 @@
           @endforelse
         </tbody>
       </table>
+      <div style="margin-top: 16px; padding: 0 4px;">
+        {{ $reservations->links('vendor.pagination.simple') }}
+      </div>
     </div>
-  
+
   <x-my_reservations_modal/>
 @endsection

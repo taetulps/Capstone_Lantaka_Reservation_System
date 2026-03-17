@@ -76,7 +76,16 @@ a{
 .stat-change {
   font-size: 12px;
   color: #999;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
 }
+
+.chg-positive { color: #16a34a; font-weight: 700; }
+.chg-negative { color: #dc2626; font-weight: 700; }
+.chg-neutral  { color: #6b7280; font-weight: 600; }
+.chg-label    { color: #999; }
 
 /* Calendar Section */
 .calendar-section {
@@ -268,7 +277,7 @@ a{
   display: flex;
   color: black;
   border: 1px solid rgba(0, 0, 0, 0);
-  border-radius: 5px;
+  border-radius: 2px;
   justify-content: start;
   width: 100%;
   font-size: 10px;
@@ -281,15 +290,16 @@ a{
 }
 
 .event-label.confirmed {
-  background-color: #53e087;
+  background-color: rgb(255, 193, 7);
 }
 
 .event-label.checked-in {
-  background-color: #14b8a6;
+  background-color: #53e087;
 }
 
 .event-label.checked-out {
-  background-color: #9ca3af;
+  background-color: #9ca1a9;
+  color: #b3b3b3;
 }
 
 .event-label.completed {
@@ -387,6 +397,7 @@ a{
 /* Export Button */
 .export-btn {
   position: fixed;
+  justify-content: center;
   bottom: 32px;
   right: 32px;
   background-color: #ffc107;
@@ -394,6 +405,7 @@ a{
   border: none;
   padding: 12px 28px;
   border-radius: 6px;
+  width: 180px;
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
@@ -405,6 +417,11 @@ a{
   background-color: #ffb300;
   box-shadow: 0 6px 16px rgba(255, 193, 7, 0.4);
   transform: translateY(-2px);
+}
+.export-btn-container{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 /* Responsive */
@@ -503,7 +520,7 @@ a{
 }
 
 .legend-dot.confirmed {
-  background-color: #22c55e;
+  background-color: rgb(255, 193, 7);
 }
 
 .legend-dot.completed {
@@ -515,9 +532,10 @@ a{
 }
 
 .legend-dot.checked-in {
-  background-color: #14b8a6;
+  background-color: #95e977;
 }
 
 .legend-dot.checked-out {
-  background-color: #9ca3af;
+  background-color: #9ca1a9;
+  color: #b3b3b3;
 }

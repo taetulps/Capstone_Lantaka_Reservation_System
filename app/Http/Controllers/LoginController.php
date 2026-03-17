@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash; // Needed for password checking
+use Illuminate\Support\Facades\Schema;
 use App\Models\User;
 
 class LoginController extends Controller
@@ -71,6 +72,13 @@ class LoginController extends Controller
         // 5. If all checks pass, log the user in
         Auth::login($user);
         $request->session()->regenerate();
+
+        // Track first-ever login (enables cleanup of never-logged-in approved accounts)
+        if (Schema::hasColumn('users', 'last_login_at') && empty($user->last_login_at)) {
+            $user->last_login_at = now();
+            $user->save();
+        }
+
         $role = strtolower($user->role);
 
         // 6. Redirect based on role

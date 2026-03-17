@@ -1,4 +1,4 @@
-@extends('layouts.employee')
+  @extends('layouts.employee')
     <title>Guest Management Dashboard</title>
     <link rel="stylesheet" href="{{ asset('css/employee_reservations.css') }}">
     @vite('resources/js/employee_reservations.js')
@@ -204,9 +204,11 @@
                                 ? ($res->Room_Reservation_Additional_Fees ?? 0) 
                                 : ($res->Venue_Reservation_Additional_Fees ?? 0),
                                 
-                            'additional_fees_desc' => ($res->type === 'room') 
-                                ? ($res->Room_Reservation_Additional_Fees_Desc ?? '') 
-                                : ($res->Venue_Reservation_Additional_Fees_Desc ?? '')
+                            'additional_fees_desc' => ($res->type === 'room')
+                                ? ($res->Room_Reservation_Additional_Fees_Desc ?? '')
+                                : ($res->Venue_Reservation_Additional_Fees_Desc ?? ''),
+
+                            'payment_status' => $res->payment_status ?? null
                         ]) }}">
                           ⤢
                       </button>
@@ -222,9 +224,12 @@
               @endforelse
             </tbody>
           </table>
+          <div style="margin-top: 16px;">
+            {{ $reservations->links('vendor.pagination.simple') }}
+          </div>
         </div>
       </div>
-      
+
       <x-modal_e_reservations/>
 </main>
 @endsection
