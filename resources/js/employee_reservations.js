@@ -34,27 +34,27 @@ document.addEventListener('DOMContentLoaded', () => {
       const qty = qtyInput ? (parseFloat(qtyInput.value) || 1) : 1;
       extra += (parseFloat(input.value) || 0) * qty;
     });
-    let multiplier = mode == "venue" ? currentDays : currentNights; 
+    let multiplier = mode == "venue" ? currentDays : currentNights;
     const totalPriceWithCurrenNights = base * multiplier;
     const modalNightsEl = document.getElementById('night-price');
-    if (modalNightsEl) modalNightsEl.textContent =  `₱${Number(totalPriceWithCurrenNights).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+    if (modalNightsEl) modalNightsEl.textContent = `₱${Number(totalPriceWithCurrenNights).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
-  
+
     console.log(mode + multiplier);
-    
+
     const grandTotal = ((base * multiplier) + food + extra) - disc;
 
     // Debugging: Check your F12 console to see these numbers!
     console.log(`Calculation: Base(${base}) + Food(${food}) + Extra(${extra}) - Disc(${disc}) = ${grandTotal}`);
 
     const summaryExtra = document.getElementById('summaryExtra');
-    if (summaryExtra) summaryExtra.textContent = `₱ ${extra.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+    if (summaryExtra) summaryExtra.textContent = `₱ ${extra.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
     const summaryDiscount = document.getElementById('summaryDiscount');
-    if (summaryDiscount) summaryDiscount.textContent = `₱ ${disc.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+    if (summaryDiscount) summaryDiscount.textContent = `₱ ${disc.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
     const totalAmountEl = document.getElementById('totalAmount');
-    if (totalAmountEl) totalAmountEl.textContent = `₱${grandTotal.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+    if (totalAmountEl) totalAmountEl.textContent = `₱${grandTotal.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
 
   if (discInput) {
@@ -68,18 +68,18 @@ document.addEventListener('DOMContentLoaded', () => {
     editLinkBtn.addEventListener('click', function () {
       const d = window.currentModalData;
       console.log("hereserser");
-      
+
       console.log(d);
       if (!d) return;
 
-      const category    = d.accommodationType || 'Room';  // "Room" or "Venue"
-      const idx         = d.idx;
-      const userId      = d.userId;
+      const category = d.accommodationType || 'Room';  // "Room" or "Venue"
+      const idx = d.idx;
+      const userId = d.userId;
       const reservationId = d.id;
-      const checkIn     = d.check_in_raw || d.check_in;
-      const checkOut    = d.check_out_raw || d.check_out;
-      const pax         = d.pax || 1;
-      const purpose     = d.purpose || '';
+      const checkIn = d.check_in_raw || d.check_in;
+      const checkOut = d.check_out_raw || d.check_out;
+      const pax = d.pax || 1;
+      const purpose = d.purpose || '';
 
       const url = `/employee/create_reservation?` +
         `category=${encodeURIComponent(category)}` +
@@ -100,11 +100,16 @@ document.addEventListener('DOMContentLoaded', () => {
       const data = JSON.parse(this.getAttribute('data-info'));
       // Store so the Edit button can read it
       window.currentModalData = data;
+
+      // Reset left column visibility so previous modal state doesn't bleed into the next open
+      const leftCol = document.querySelector('.modal-left-column');
+      if (leftCol) leftCol.style.display = 'flex';
+
       if (chargesContainer) {
         chargesContainer.innerHTML = '';
-  
+
         let descriptions = [];
-  
+
         try {
           descriptions = typeof data.additional_fees_desc === 'string'
             ? JSON.parse(data.additional_fees_desc)
@@ -112,11 +117,11 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (e) {
           descriptions = [];
         }
-  
+
         if (!Array.isArray(descriptions)) {
           descriptions = [];
         }
-  
+
         if (descriptions.length > 0) {
           descriptions.forEach((item) => {
 
@@ -124,7 +129,7 @@ document.addEventListener('DOMContentLoaded', () => {
             let qty = 1;
             let amount = 0;
             let date = '';
-          
+
             if (typeof item === 'string' && item.includes(':')) {
               const parts = item.split(':');
 
@@ -150,43 +155,43 @@ document.addEventListener('DOMContentLoaded', () => {
       console.log('modalResId =', resIdField?.value);
       console.log('modalResType =', resTypeField?.value);
       console.log('full data =', data);
- 
+
       const checkIn = new Date(data.check_in);
       const checkOut = new Date(data.check_out);
-      
+
       // milliseconds → days
       const diffDays = Math.ceil((checkOut - checkIn) / (1000 * 60 * 60 * 24));
-      
+
       console.log(diffDays);
 
       console.log(checkIn + "check in");
-      
+
       console.log(checkOut + "check Out");
       const modalNightsEl = document.getElementById('modalNights');
       mode = resTypeField.value;
       if (resTypeField?.value === "room") {
-          currentNights = diffDays || 1;
-          currentDays = 1;
-          console.log('nights =', data.nights);
-          if (modalNightsEl) modalNightsEl.textContent = currentNights;
+        currentNights = diffDays || 1;
+        currentDays = 1;
+        console.log('nights =', data.nights);
+        if (modalNightsEl) modalNightsEl.textContent = currentNights;
       } else if (resTypeField?.value === "venue") {
-          currentDays = (diffDays + 1) || 1;
-          currentNights = 1;
-          console.log("Current Days:" + currentDays);
-          if (modalNightsEl) modalNightsEl.textContent = currentDays;
+        currentDays = (diffDays + 1) || 1;
+        currentNights = 1;
+        console.log("Current Days:" + currentDays);
+        if (modalNightsEl) modalNightsEl.textContent = currentDays;
       }
-  
 
-      
- 
+
+
+
 
       const nightsLabelEl = document.getElementById('nightsLabel');
       if (nightsLabelEl) nightsLabelEl.textContent = data.accommodationType === 'Venue' ? 'Days' : 'Nights';
 
       updateSoaLink(data.userId);
 
-      const currentStatus  = data.status          ? data.status.toLowerCase().trim()          : '';
-      const currentPayment = data.payment_status  ? data.payment_status.toLowerCase().trim() : '';
+      const currentStatus = data.status ? data.status.toLowerCase().trim() : '';
+      const currentPayment = data.payment_status ? data.payment_status.toLowerCase().trim() : '';
 
       // --- Hide ALL action panels first ---
       const allPanels = [
@@ -200,10 +205,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // --- Show the correct panel for the current status ---
       const statusGroups = {
-        'pending':    'pendingActions',
-        'rejected':   'pendingActions',
-        'confirmed':  'confirmedActions',
-        'cancelled':  'confirmedActions',
+        'pending': 'pendingActions',
+        'rejected': 'pendingActions',
+        'confirmed': 'confirmedActions',
+        'cancelled': 'confirmedActions',
         'checked-in': 'checkedInActions',
       };
 
@@ -215,7 +220,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (payPanel) payPanel.style.display = 'flex';
 
         // Stash IDs so doMarkAsPaid / doMarkAsUnpaid can use them
-        window._paymentResId   = data.id;
+        window._paymentResId = data.id;
         window._paymentResType = data.res_type;
 
       } else if (statusGroups[currentStatus]) {
@@ -226,14 +231,14 @@ document.addEventListener('DOMContentLoaded', () => {
         if (fallback) fallback.style.display = 'flex';
       }
 
-      const blockCheckin    = document.getElementById('confirmedActions');
-      const blockCheckout   = document.getElementById('checkedInActions');
-      const blockAccept     = document.getElementById('pendingActions');
-      const showSOA         = document.getElementById('exportSection');
+      const blockCheckin = document.getElementById('confirmedActions');
+      const blockCheckout = document.getElementById('checkedInActions');
+      const blockAccept = document.getElementById('pendingActions');
+      const showSOA = document.getElementById('exportSection');
       const showAddChSection = document.getElementById('modal-bottom');
-      
 
-      const discountSection   = document.getElementById('discountSection');
+
+      const discountSection = document.getElementById('discountSection');
       const checkAccomodation = data.accommodationType;
       const row = this.closest('tr');
       const badge = row.querySelector('.badge');
@@ -270,7 +275,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       console.log(data);
-      
+
       let fullName = data.name || 'Unknown';
       let nameParts = fullName.trim().split(' ');
 
@@ -298,27 +303,27 @@ document.addEventListener('DOMContentLoaded', () => {
             el.textContent = 'None';
           });
         }
-    } else {
+      } else {
         document.getElementById('meal-container-left').style.display = "none";
         document.querySelector('.modal-body').classList.add('room-mode');
-    }
-     
+      }
+
       document.getElementById('fullName_r').textContent = fullName;
       document.getElementById('phoneNumber_r').textContent = data.phone || '';
       document.getElementById('email_r').textContent = data.email || '';
       document.getElementById('affiliation_r').textContent = data.type || '';
       const purposeEl = document.getElementById('purpose_r');
       if (purposeEl) purposeEl.textContent = data.purpose || '';
-  
+
 
       const basePrice = data.price || data.total_amount || 0;
       const unitPriceEl = document.getElementById('unit-price');
-      if (unitPriceEl) unitPriceEl.textContent = `₱${parseFloat(basePrice).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+      if (unitPriceEl) unitPriceEl.textContent = `₱${parseFloat(basePrice).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
       // 2. Fix the Food Total (This explicitly updates the food text so the math works)
       const foodTotal = data.food_total || 0;
       const summaryFoodEl = document.getElementById('summaryFood');
-      if (summaryFoodEl) summaryFoodEl.textContent = `₱${parseFloat(foodTotal).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+      if (summaryFoodEl) summaryFoodEl.textContent = `₱${parseFloat(foodTotal).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
       // 3. Fix the Discount (Targets both possible ID variations safely)
       const discountValue = data.discount || 0;
@@ -327,7 +332,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (discInputEl) discInputEl.value = discountValue;
       if (discInputAlt) discInputAlt.value = discountValue;
 
-      // 4. Update the User ID
+      // 4. Update the Account ID
       const userIdEl = document.getElementById('userId');
       if (userIdEl) userIdEl.value = data.userId || '';
 
@@ -366,6 +371,7 @@ document.addEventListener('DOMContentLoaded', () => {
       form.action = `/employee/reservations/${resId}/status?type=${resType}`;
 
       console.log("Submitting to:", form.action); // Debugging line
+      window.showEmailToast && window.showEmailToast('sending');
       form.submit();
     } else {
       console.error("Form or Reservation ID missing!");
@@ -374,7 +380,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // --- Mark an already-checked-out reservation as paid ---
   window.doMarkAsPaid = function () {
-    const id   = window._paymentResId;
+    const id = window._paymentResId;
     const type = window._paymentResType;
     if (!id || !type) {
       console.error('markAsPaid: missing id or type');
@@ -386,11 +392,11 @@ document.addEventListener('DOMContentLoaded', () => {
     form.action = `/employee/reservations/${id}/mark-paid?type=${type}`;
 
     const csrf = document.createElement('input');
-    csrf.type  = 'hidden';
-    csrf.name  = '_token';
+    csrf.type = 'hidden';
+    csrf.name = '_token';
     csrf.value = document.querySelector('meta[name="csrf-token"]')?.content
-                 || document.querySelector('input[name="_token"]')?.value
-                 || '';
+      || document.querySelector('input[name="_token"]')?.value
+      || '';
     form.appendChild(csrf);
 
     document.body.appendChild(form);
@@ -399,7 +405,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // --- Revert a paid reservation back to unpaid (admin only, enforced server-side) ---
   window.doMarkAsUnpaid = function () {
-    const id   = window._paymentResId;
+    const id = window._paymentResId;
     const type = window._paymentResType;
     if (!id || !type) {
       console.error('markAsUnpaid: missing id or type');
@@ -411,11 +417,11 @@ document.addEventListener('DOMContentLoaded', () => {
     form.action = `/employee/reservations/${id}/mark-unpaid?type=${type}`;
 
     const csrf = document.createElement('input');
-    csrf.type  = 'hidden';
-    csrf.name  = '_token';
+    csrf.type = 'hidden';
+    csrf.name = '_token';
     csrf.value = document.querySelector('meta[name="csrf-token"]')?.content
-                 || document.querySelector('input[name="_token"]')?.value
-                 || '';
+      || document.querySelector('input[name="_token"]')?.value
+      || '';
     form.appendChild(csrf);
 
     document.body.appendChild(form);
@@ -514,15 +520,15 @@ function groupFoodsByDate(foods) {
   const grouped = {};
 
   foods.forEach(food => {
-    // pivot.serving_time is the date ("2026-03-19"), not a meal label
-    const rawDate = food.pivot?.serving_time;
+    // pivot.Food_Reservation_Serving_Date is the date ("2026-03-19"), not a meal label
+    const rawDate = food.pivot?.Food_Reservation_Serving_Date;
 
     const date = rawDate
       ? new Date(rawDate).toLocaleDateString('en-US', {
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric'
-        })
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      })
       : 'No Date';
 
     if (!grouped[date]) {
@@ -537,8 +543,8 @@ function groupFoodsByDate(foods) {
 
 /**
  * Populate the food table from the foods array in data-info.
- * Each food has: food_name, food_category, pivot.serving_time (date),
- *               pivot.meal_time (Breakfast / AM Snack / Lunch / PM Snack / Dinner)
+ * Each food has: Food_Name, Food_Category, pivot.Food_Reservation_Serving_Date (date),
+ *               pivot.Food_Reservation_Meal_time (Breakfast / AM Snack / Lunch / PM Snack / Dinner)
  *
  * Columns (th order): Rice=1, Set Viand=2, Sidedish=3,
  *                     Drinks=4, Desserts=5, Other Viand=6, Snack=7
@@ -546,24 +552,24 @@ function groupFoodsByDate(foods) {
  */
 function createFoodTables(foods) {
   const container = document.getElementById('foodTablesContainer');
-  const template  = document.querySelector('.food-table');
+  const template = document.querySelector('.food-table');
 
   if (!container || !template) return;
 
   container.innerHTML = '';
 
-  // food_category values stored in DB (lowercase / snake_case)
+  // Food_Category values stored in DB (lowercase / snake_case)
   const categoryColMap = {
-    rice:        1,
-    set_viand:   2,
-    sidedish:    3,
-    drinks:      4,
-    desserts:    5,
+    rice: 1,
+    set_viand: 2,
+    sidedish: 3,
+    drinks: 4,
+    desserts: 5,
     other_viand: 6,
-    snack:       7,
+    snack: 7,
   };
 
-  // ── Group foods by pivot.serving_time (the date) ──
+  // ── Group foods by pivot.Food_Reservation_Serving_Date (the date) ──
   const groupedByDate = groupFoodsByDate(foods);
 
   Object.entries(groupedByDate).forEach(([date, foodList]) => {
@@ -583,13 +589,13 @@ function createFoodTables(foods) {
     const dateEl = newTable.querySelector('.food-date');
     if (dateEl) dateEl.textContent = date;
 
-    // ── Populate columns by meal_time + food_category ──
+    // ── Populate columns by Food_Reservation_Meal_time + Food_Category ──
     foodList.forEach(food => {
-      const category = food.food_category?.toLowerCase().trim();
-      const name     = food.food_name;
-      // meal_time stored in DB: e.g. "breakfast", "am_snack", "lunch", "pm_snack", "dinner"
+      const category = food.Food_Category?.toLowerCase().trim();
+      const name = food.Food_Name;
+      // Food_Reservation_Meal_time stored in DB: e.g. "breakfast", "am_snack", "lunch", "pm_snack", "dinner"
       // Match against the visible .meal-name text (case-insensitive, underscore → space)
-      const mealTimeRaw = food.pivot?.meal_time;
+      const mealTimeRaw = food.pivot?.Food_Reservation_Meal_time;
 
       if (!category || !name) return;
 
@@ -613,7 +619,7 @@ function createFoodTables(foods) {
         });
       }
 
-      // Fallback: if meal_time not found, put it in the first row
+      // Fallback: if Food_Reservation_Meal_time not found, put it in the first row
       if (!targetRow) {
         targetRow = newTable.querySelector('tbody .meal-row');
       }

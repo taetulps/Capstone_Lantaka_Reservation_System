@@ -1,4 +1,4 @@
-<link rel="stylesheet" href="{{ asset('css/employee_top_nav.css') }}">     
+<link rel="stylesheet" href="{{ asset('css/employee_top_nav.css') }}">
 @vite(['resources/js/top_nav.js'])
             <div class="header-left">
                 <button class="menu-toggle">☰</button>
@@ -6,7 +6,7 @@
             <div class="header-right">
                 @php
                     // Employee bell shows total un-reviewed audit entries from today
-                    $empUnread = \App\Models\EventLog::whereNull('notifiable_user_id')
+                    $empUnread = \App\Models\EventLog::whereNull('Event_Logs_Notifiable_User_ID')
                         ->whereDate('created_at', today())->count();
                 @endphp
                 <a href="{{ route('employee.eventlogs') }}" class="icon-btn" style="position:relative;text-decoration:none;" title="View Action Logs">
@@ -28,9 +28,9 @@
                       <img src="{{ asset(path: 'images/logo/topnav/user-avatar.svg') }}" alt="reservations">
                     </div>
                     <div class="user-info">
-                        <p class="user-name">Welcome, {{ Auth::user()->name }}!</p>
-                        
-                        <p class="user-role">{{ ucfirst(Auth::user()->role) }}</p>
+                        <p class="user-name">Welcome, {{ Auth::user()->Account_Name }}!</p>
+
+                        <p class="user-role">{{ ucfirst(Auth::user()->Account_Role) }}</p>
                     </div>
                 </div>
 

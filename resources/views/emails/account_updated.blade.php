@@ -24,28 +24,46 @@
           <tr>
             <td style="background:#ffffff;padding:36px 40px;">
 
-              <p style="margin:0 0 6px;font-size:15px;color:#374151;font-weight:600;">Hello, {{ $user->name }}</p>
+              <p style="margin:0 0 6px;font-size:15px;color:#374151;font-weight:600;">Hello, {{ $user->Account_Name }}</p>
               <p style="margin:0 0 24px;font-size:14px;color:#6b7280;line-height:1.6;">
                 This is to inform you that your account details have been updated by a system administrator.
               </p>
 
-              {{-- Account info block --}}
+              {{-- What changed --}}
+              @if(!empty($changedFields))
+              <table width="100%" cellpadding="0" cellspacing="0" style="background:#f0f7ff;border:1px solid #bfdbfe;border-radius:8px;margin-bottom:24px;">
+                <tr>
+                  <td style="padding:20px 24px;">
+                    <p style="margin:0 0 12px;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:#3b82f6;font-weight:700;">Fields Updated</p>
+                    @foreach($changedFields as $field)
+                      <p style="margin:0 0 4px;font-size:13px;color:#1e3a5f;">✔ {{ $field }}</p>
+                    @endforeach
+                  </td>
+                </tr>
+              </table>
+              @endif
+
+              {{-- Current account info --}}
               <table width="100%" cellpadding="0" cellspacing="0" style="background:#f8fafc;border:1px solid #e5e7eb;border-radius:8px;margin-bottom:24px;">
                 <tr>
                   <td style="padding:20px 24px;">
                     <p style="margin:0 0 12px;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:#9ca3af;font-weight:700;">Current Account Information</p>
                     <table cellpadding="0" cellspacing="0">
                       <tr>
-                        <td style="font-size:13px;color:#6b7280;padding:4px 0;min-width:90px;">Name</td>
-                        <td style="font-size:13px;color:#1f2937;font-weight:600;padding:4px 0;">{{ $user->name }}</td>
+                        <td style="font-size:13px;color:#6b7280;padding:4px 0;min-width:110px;">Name</td>
+                        <td style="font-size:13px;color:#1f2937;font-weight:600;padding:4px 0;">{{ $user->Account_Name }}</td>
                       </tr>
                       <tr>
                         <td style="font-size:13px;color:#6b7280;padding:4px 0;">Username</td>
-                        <td style="font-size:13px;color:#1f2937;font-weight:600;padding:4px 0;">{{ $user->username }}</td>
+                        <td style="font-size:13px;color:#1f2937;font-weight:600;padding:4px 0;">{{ $user->Account_Username }}</td>
                       </tr>
                       <tr>
                         <td style="font-size:13px;color:#6b7280;padding:4px 0;">Email</td>
-                        <td style="font-size:13px;color:#1f2937;font-weight:600;padding:4px 0;">{{ $user->email }}</td>
+                        <td style="font-size:13px;color:#1f2937;font-weight:600;padding:4px 0;">{{ $user->Account_Email }}</td>
+                      </tr>
+                      <tr>
+                        <td style="font-size:13px;color:#6b7280;padding:4px 0;">Phone</td>
+                        <td style="font-size:13px;color:#1f2937;font-weight:600;padding:4px 0;">{{ $user->Account_Phone ?? '—' }}</td>
                       </tr>
                     </table>
                   </td>

@@ -12,11 +12,13 @@ class AccountUpdatedMail extends Mailable
 
     public $user;
     public $campusName;
+    public $changedFields;
 
-    public function __construct($user)
+    public function __construct($user, array $changedFields = [])
     {
-        $this->user       = $user;
-        $this->campusName = env('CAMPUS_NAME', 'Lantaka Reservation System');
+        $this->user          = $user;
+        $this->campusName    = env('CAMPUS_NAME', 'Lantaka Reservation System');
+        $this->changedFields = $changedFields;
     }
 
     public function build()

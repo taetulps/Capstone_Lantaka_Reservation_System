@@ -1,7 +1,7 @@
 <link rel="stylesheet" href="{{ asset('css/employee_food.css') }}">
 
 @php
-  $isAdmin = auth()->user()->role === 'admin';
+  $isAdmin = auth()->user()->Account_Role === 'admin';
   $categories = [
     'rice'       => 'Rice',
     'set_viand'  => 'Set Viand',
@@ -62,20 +62,20 @@
             <div class="fm-list">
               @foreach($foods[$key] as $food)
                 <div
-                  class="fm-item {{ $food->status === 'unavailable' ? 'fm-item--unavailable' : '' }} {{ $isAdmin ? 'fm-item--editable' : '' }}"
-                  data-id="{{ $food->food_id }}"
-                  data-name="{{ $food->food_name }}"
-                  data-status="{{ $food->status }}"
-                  data-type="{{ $food->food_category }}"
-                  data-price="{{ $food->food_price }}"
+                  class="fm-item {{ $food->Food_Status === 'unavailable' ? 'fm-item--unavailable' : '' }} {{ $isAdmin ? 'fm-item--editable' : '' }}"
+                  data-id="{{ $food->Food_ID }}"
+                  data-name="{{ $food->Food_Name }}"
+                  data-status="{{ $food->Food_Status }}"
+                  data-type="{{ $food->Food_Category }}"
+                  data-price="{{ $food->Food_Price }}"
                 >
                   <div class="fm-item-left">
-                    <span class="fm-item-dot {{ $food->status === 'unavailable' ? 'dot--off' : 'dot--on' }}"></span>
-                    <span class="fm-item-name">{{ $food->food_name }}</span>
+                    <span class="fm-item-dot {{ $food->Food_Status === 'unavailable' ? 'dot--off' : 'dot--on' }}"></span>
+                    <span class="fm-item-name">{{ $food->Food_Name }}</span>
                   </div>
                   <div class="fm-item-right">
-                    <span class="fm-item-price">₱ {{ number_format($food->food_price, 2) }}</span>
-                    @if($food->status === 'unavailable')
+                    <span class="fm-item-price">₱ {{ number_format($food->Food_Price, 2) }}</span>
+                    @if($food->Food_Status === 'unavailable')
                       <span class="fm-badge fm-badge--off">Unavailable</span>
                     @else
                       <span class="fm-badge fm-badge--on">Available</span>

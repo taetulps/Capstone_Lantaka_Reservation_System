@@ -8,11 +8,11 @@
   <div class="rv-modal-content">
 
     <div class="rv-modal-header">
-      <h2>@if(auth()->user()->role === 'admin') Edit Room / Venue Details @else Room / Venue Details @endif</h2>
+      <h2>@if(auth()->user()->Account_Role === 'admin') Edit Room / Venue Details @else Room / Venue Details @endif</h2>
       <button class="rv-close-btn" id="rvCloseModal" type="button">&times;</button>
     </div>
 
-    @php $isAdmin = auth()->user()->role === 'admin'; @endphp
+    @php $isAdmin = auth()->user()->Account_Role === 'admin'; @endphp
     <form class="rv-modal-form" id="rvUpdateForm" action="{{ route('room_venue.update') }}" method="POST" enctype="multipart/form-data">
       @csrf
       @method('PUT')
@@ -98,9 +98,12 @@
             <label>External Pricing</label>
             <input type="number" name="external_price" placeholder="₱ 0" class="form-input" {{ $isAdmin ? '' : 'readonly' }}>
           </div>
+
+            <label>External Pricing</label>
+            <input type="number" name="external_price" placeholder="₱ 0" class="form-input" {{ $isAdmin ? '' : 'readonly' }}>
+          </div>
          
           <div class="form-row">
-            
               @if($isAdmin)
                 <div class="form-group">
                   <label>Status</label>
@@ -148,7 +151,6 @@
           Create Reservation
         </button>
 
-    
         @if($isAdmin)
         <button type="button" class="rv-btn rv-btn-secondary" id="rvCancelBtn">
           CANCEL

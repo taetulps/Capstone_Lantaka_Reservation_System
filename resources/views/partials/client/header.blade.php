@@ -14,7 +14,7 @@
         </a>
 
         <nav class="nav">
-            <a href="{{ route('client.room_venue') }}" 
+            <a href="{{ route('client.room_venue') }}"
                class="nav-link nav-item {{ request()->routeIs('client.room_venue') ? 'active' : '' }}">
                Accommodation
             </a>
@@ -24,21 +24,21 @@
             @endguest
 
             @auth
-                <a href="{{ route('client.my_bookings') }}" 
+                <a href="{{ route('client.my_bookings') }}"
                    class="nav-link nav-item {{ request()->routeIs('client.my_bookings') ? 'active' : '' }}">
                    My Booking
                 </a>
-                
-                <a href="{{ route('client.my_reservations') }}" 
+
+                <a href="{{ route('client.my_reservations') }}"
                    class="nav-link nav-item {{ request()->routeIs('client.my_reservations') ? 'active' : '' }}">
                    My Reservations
                 </a>
 
                 {{-- ── Notification Bell (powered by event_logs) ── --}}
                 @php
-                    $unreadCount  = \App\Models\EventLog::where('notifiable_user_id', Auth::id())
-                                        ->where('is_read', false)->count();
-                    $recentNotifs = \App\Models\EventLog::where('notifiable_user_id', Auth::id())
+                    $unreadCount  = \App\Models\EventLog::where('Event_Logs_Notifiable_User_ID', Auth::id())
+                                        ->where('Event_Logs_isRead', false)->count();
+                    $recentNotifs = \App\Models\EventLog::where('Event_Logs_Notifiable_User_ID', Auth::id())
                                         ->orderByDesc('created_at')->limit(10)->get();
                 @endphp
                 <div class="notif-wrap" id="notifWrap">
@@ -61,13 +61,13 @@
                         </div>
                         <div class="notif-list">
                             @forelse($recentNotifs as $notif)
-                                <a href="{{ $notif->link ?? '/client/my_reservations' }}"
-                                   class="notif-item {{ $notif->is_read ? 'notif-read' : 'notif-unread' }}"
-                                   onclick="markNotifRead({{ $notif->id }}, this, event)">
-                                    <span class="notif-dot notif-dot--{{ $notif->type ?? 'default' }}"></span>
+                                <a href="{{ $notif->Event_Logs_Link ?? '/client/my_reservations' }}"
+                                   class="notif-item {{ $notif->Event_Logs_isRead ? 'notif-read' : 'notif-unread' }}"
+                                   onclick="markNotifRead({{ $notif->Event_Logs_ID }}, this, event)">
+                                    <span class="notif-dot notif-dot--{{ $notif->Event_Logs_Type ?? 'default' }}"></span>
                                     <div class="notif-text">
-                                        <p class="notif-title">{{ $notif->title ?? ucfirst(str_replace('_', ' ', $notif->action)) }}</p>
-                                        <p class="notif-msg">{{ Str::limit($notif->message, 70) }}</p>
+                                        <p class="notif-title">{{ $notif->Event_Logs_Title ?? ucfirst(str_replace('_', ' ', $notif->Event_Logs_Action)) }}</p>
+                                        <p class="notif-msg">{{ Str::limit($notif->Event_Logs_Message, 70) }}</p>
                                         <p class="notif-time">{{ $notif->created_at->diffForHumans() }}</p>
                                     </div>
                                 </a>
@@ -220,7 +220,7 @@
                         <img src="{{ asset(path: 'images/logo/topnav/user-avatar.svg') }}" alt="reservations">
                     </div>
                     <div class="user-info">
-                        <p class="user-name">{{ Auth::user()->username ?? 'Client' }}</p>
+                        <p class="user-name">{{ Auth::user()->Account_Username ?? 'Client' }}</p>
                     </div>
                 </div>
 

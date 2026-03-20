@@ -1,8 +1,8 @@
 document.addEventListener('DOMContentLoaded', () => {
 
   /* ── References ── */
-  const overlay    = document.getElementById('crmOverlay');
-  const closeBtn   = document.getElementById('crmClose');
+  const overlay = document.getElementById('crmOverlay');
+  const closeBtn = document.getElementById('crmClose');
   const expandBtns = document.querySelectorAll('.expand-button');
 
   /* ── Helpers ── */
@@ -19,12 +19,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function calcDuration(rawIn, rawOut, type) {
     if (!rawIn || !rawOut) return '—';
-    const d1   = new Date(rawIn);
-    const d2   = new Date(rawOut);
+    const d1 = new Date(rawIn);
+    const d2 = new Date(rawOut);
     const diff = Math.round((d2 - d1) / 86400000);
     if (diff <= 0) return '—';
     const unit = type === 'venue'
-      ? (diff === 1 ? 'day'   : 'days')
+      ? (diff === 1 ? 'day' : 'days')
       : (diff === 1 ? 'night' : 'nights');
     return `${diff} ${unit}`;
   }
@@ -36,9 +36,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const grouped = {};
     foods.forEach(f => {
-      const raw  = f.pivot?.serving_time || f.serving_time || null;
-      const name = f.food_name || f.name || 'Unknown item';
-      const meal = f.pivot?.meal_time || f.meal_time || null;
+      const raw = f.pivot?.Food_Reservation_Serving_Date || f.Food_Reservation_Serving_Date || null;
+      const name = f.Food_Name || f.name || 'Unknown item';
+      const meal = f.pivot?.Food_Reservation_Meal_time || f.Food_Reservation_Meal_time || null;
       if (!raw) return;
 
       const dateKey = raw.substring(0, 10); // "YYYY-MM-DD"
@@ -72,13 +72,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function infoNoteText(status) {
     const notes = {
-      'pending':     "Your reservation is awaiting review. We'll notify you once it's confirmed.",
-      'confirmed':   'Your reservation is confirmed! Please arrive on time for check-in.',
-      'checked-in':  "You're currently checked in. Enjoy your stay!",
+      'pending': "Your reservation is awaiting review. We'll notify you once it's confirmed.",
+      'confirmed': 'Your reservation is confirmed! Please arrive on time for check-in.',
+      'checked-in': "You're currently checked in. Enjoy your stay!",
       'checked-out': 'Your stay has ended. Thank you for choosing Lantaka!',
-      'completed':   'Your stay has ended. Thank you for choosing Lantaka!',
-      'cancelled':   'This reservation has been cancelled.',
-      'rejected':    'This reservation was not approved. Please contact us for details.',
+      'completed': 'Your stay has ended. Thank you for choosing Lantaka!',
+      'cancelled': 'This reservation has been cancelled.',
+      'rejected': 'This reservation was not approved. Please contact us for details.',
     };
     return notes[status?.toLowerCase()] ?? '';
   }
@@ -95,14 +95,14 @@ document.addEventListener('DOMContentLoaded', () => {
       const statusEl = el('crmStatusBadge');
       const s = data.status || '';
       statusEl.textContent = s.charAt(0).toUpperCase() + s.slice(1);
-      statusEl.className   = 'crm-status-badge ' + statusClass(s);
+      statusEl.className = 'crm-status-badge ' + statusClass(s);
 
       /* Details */
       el('crmAccommodation').textContent = data.accommodation || '—';
-      el('crmPax').textContent           = data.pax           || '—';
-      el('crmCheckIn').textContent       = data.check_in      || '—';
-      el('crmCheckOut').textContent      = data.check_out     || '—';
-      el('crmDuration').textContent      = calcDuration(data.check_in_raw, data.check_out_raw, data.type);
+      el('crmPax').textContent = data.pax || '—';
+      el('crmCheckIn').textContent = data.check_in || '—';
+      el('crmCheckOut').textContent = data.check_out || '—';
+      el('crmDuration').textContent = calcDuration(data.check_in_raw, data.check_out_raw, data.type);
 
       /* Total */
       el('crmTotal').textContent = `₱ ${data.total || '0.00'}`;
@@ -114,14 +114,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const badge = el('crmPaymentBadge');
         const ps = data.payment_status.toLowerCase();
         badge.textContent = ps.charAt(0).toUpperCase() + ps.slice(1);
-        badge.className   = 'crm-payment-badge ' + ps;
+        badge.className = 'crm-payment-badge ' + ps;
       }
 
       /* Food */
       el('crmFoodList').innerHTML = buildFoodHtml(data.foods);
 
       /* Info note */
-      const note    = infoNoteText(s);
+      const note = infoNoteText(s);
       const noteBox = el('crmInfoNote');
       if (note) {
         el('crmInfoText').textContent = note;
@@ -142,8 +142,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   /* ── Close modal ── */
   function closeModal() { overlay.classList.remove('open'); }
-  if (closeBtn)  closeBtn.addEventListener('click', closeModal);
-  if (overlay)   overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
+  if (closeBtn) closeBtn.addEventListener('click', closeModal);
+  if (overlay) overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
 
   // Cancel is handled by contacting Lantaka — no client-side AJAX needed.

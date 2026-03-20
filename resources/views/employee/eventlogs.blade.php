@@ -54,10 +54,10 @@
       <tbody>
         @forelse($logs as $log)
           @php
-            $slug  = \Illuminate\Support\Str::slug($log->action, '-');
-            $label = ucwords(str_replace('_', ' ', $log->action));
-            $actor = $log->user?->name ?? 'System';
-            $role  = $log->user?->role ? ucfirst($log->user->role) : '—';
+            $slug  = \Illuminate\Support\Str::slug($log->Event_Logs_Action, '-');
+            $label = ucwords(str_replace('_', ' ', $log->Event_Logs_Action));
+            $actor = $log->user?->Account_Name ?? 'System';
+            $role  = $log->user?->Account_Role ? ucfirst($log->user->Account_Role) : '—';
           @endphp
           <tr>
             {{-- Action badge --}}
@@ -67,7 +67,7 @@
 
             {{-- Description --}}
             <td style="max-width:380px;">
-              <span style="font-size:13px;color:#374151;line-height:1.4;">{{ $log->message }}</span>
+              <span style="font-size:13px;color:#374151;line-height:1.4;">{{ $log->Event_Logs_Message }}</span>
             </td>
 
             {{-- Performed by --}}

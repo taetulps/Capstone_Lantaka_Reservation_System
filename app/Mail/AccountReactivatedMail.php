@@ -2,7 +2,7 @@
 
 namespace App\Mail;
 
-use App\Models\User;
+use App\Models\Account;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
@@ -11,10 +11,10 @@ class AccountReactivatedMail extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public User $user;
+    public Account $user;
     public string $plainPassword;
 
-    public function __construct(User $user, string $plainPassword)
+    public function __construct(Account $user, string $plainPassword)
     {
         $this->user          = $user;
         $this->plainPassword = $plainPassword;

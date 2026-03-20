@@ -28,24 +28,24 @@ body{margin:0;padding:0;background:#f4f6f9;font-family:'Segoe UI',Arial,sans-ser
   </div>
   <div class="banner">✗ &nbsp;Reservation Cancelled</div>
   <div class="body">
-    <p>Hello, <strong>{{ $reservation->user->name }}</strong>.</p>
+    <p>Hello, <strong>{{ $reservation->user->Account_Name}}</strong>.</p>
     <p>We regret to inform you that your reservation has been <strong>cancelled</strong>. Please review the details below.</p>
     @php
       if ($type === 'room') {
-        $accLabel = 'Room ' . ($reservation->room->room_number ?? 'N/A');
+        $accLabel = $reservation->room->Room_Number ?? 'N/A';
         $checkIn  = $reservation->Room_Reservation_Check_In_Time;
         $checkOut = $reservation->Room_Reservation_Check_Out_Time;
       } else {
-        $accLabel = $reservation->venue->Venue_Name ?? $reservation->venue->name ?? 'Venue';
+        $accLabel = $reservation->venue->Venue_Name ?? 'Venue';
         $checkIn  = $reservation->Venue_Reservation_Check_In_Time;
         $checkOut = $reservation->Venue_Reservation_Check_Out_Time;
       }
     @endphp
     <div class="detail-box">
-      <div class="detail-row"><span class="detail-label">{{ ucfirst($type) }}</span><span class="detail-value">{{ $accLabel }}</span></div>
-      <div class="detail-row"><span class="detail-label">Check-in</span><span class="detail-value">{{ \Carbon\Carbon::parse($checkIn)->format('F d, Y') }}</span></div>
-      <div class="detail-row"><span class="detail-label">Check-out</span><span class="detail-value">{{ \Carbon\Carbon::parse($checkOut)->format('F d, Y') }}</span></div>
-      <div class="detail-row"><span class="detail-label">Status</span><span class="detail-value" style="color:#dc2626">Cancelled</span></div>
+      <div class="detail-row"><span class="detail-label">{{ ucfirst($type) . ": "}}</span><span class="detail-value">{{ $accLabel }}</span></div>
+      <div class="detail-row"><span class="detail-label">Check-in: </span><span class="detail-value">{{ " " . \Carbon\Carbon::parse($checkIn)->format('F d, Y') }}</span></div>
+      <div class="detail-row"><span class="detail-label">Check-out: </span><span class="detail-value">{{ " " . \Carbon\Carbon::parse($checkOut)->format('F d, Y') }}</span></div>
+      <div class="detail-row"><span class="detail-label">Status: </span><span class="detail-value" style="color:#dc2626">Cancelled</span></div>
     </div>
     <div class="info">If you believe this cancellation was made in error or have any questions, please contact us at <strong>lantaka@adzu.edu.ph</strong> and we will assist you.</div>
     <p>We hope to serve you again in the future.<br><strong>Lantaka Reservation System Team</strong></p>
