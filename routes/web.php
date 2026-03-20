@@ -53,11 +53,6 @@ Route::prefix('employee')
         /* ── Shared: Admin + Staff ── */
         Route::post('/reservations/{id}/status', [ReservationController::class, 'updateStatus'])->name('reservations.updateStatus');
         Route::post('/reservations/{id}/mark-paid', [ReservationController::class, 'markAsPaid'])->name('reservations.markPaid');
-<<<<<<< HEAD
-        Route::get('/dashboard', action: fn() => view('employee.dashboard'))->name('dashboard');
-        Route::get('/dashboard', [ReservationController::class, 'displayStatistics'])->name('dashboard');
-=======
->>>>>>> 0ea1a0d (SEMI CHANGES (PLS CHECK CODE AND STUDY))
         Route::get('/dashboard', [ReservationController::class, 'showReservationsCalendar'])->name('dashboard');
         Route::get('/reservations', [ReservationController::class, 'adminIndex'])->name('reservations');
         
@@ -77,15 +72,6 @@ Route::prefix('employee')
 
         /* ── Admin Only ── */
         Route::middleware(['role:admin'])->group(function () {
-<<<<<<< HEAD
-            Route::get('/accounts', [AccountController::class, 'index'])->name('accounts');
-            Route::post('/accounts/{id}/update-status', [AccountController::class, 'updateStatus'])->name('accounts.updateStatus');
-            // Graceful fallback: redirect stray GET requests back to the accounts list
-            Route::get('/accounts/{id}/update-status', fn($id) => redirect()->route('employee.accounts'));
-            Route::post('/accounts/{id}/update', [AccountController::class, 'update'])->name('employee.accounts.update');
-            // Revert a paid reservation back to unpaid — admin only
-            Route::post('/reservations/{id}/mark-unpaid', [ReservationController::class, 'markAsUnpaid'])->name('reservations.markUnpaid');
-=======
         Route::get('/accounts', [AccountController::class, 'index'])->name('accounts');
         Route::post('/accounts/{id}/update-status', [AccountController::class, 'updateStatus'])->name('accounts.updateStatus');
         // Graceful fallback: redirect stray GET requests back to the accounts list
@@ -93,7 +79,6 @@ Route::prefix('employee')
         Route::put('/accounts/{id}/update', [AccountController::class, 'update'])->name('employee.accounts.update');
         // Revert a paid reservation back to unpaid — admin only
         Route::post('/reservations/{id}/mark-unpaid', [ReservationController::class, 'markAsUnpaid'])->name('reservations.markUnpaid');
->>>>>>> 0ea1a0d (SEMI CHANGES (PLS CHECK CODE AND STUDY))
         });
     });
 
@@ -109,15 +94,6 @@ Route::middleware(['role:admin,staff'])->group(function () {
     Route::get('/employee/calendar-data', [ReservationController::class, 'fetchUpdatedCalendarData'])->name('calendar.fetchUpdatedData');
     Route::get('/employee/analytics-report-data', [ReservationController::class, 'analyticsReportData'])->name('employee.analytics.report.data');
 
-<<<<<<< HEAD
-    Route::get('/employee/calendar-data', [ReservationController::class, 'fetchUpdatedCalendarData'])
-    ->name('calendar.fetchUpdatedData');
-
-    Route::get('/employee/analytics-report-data', [ReservationController::class, 'analyticsReportData'])
-    ->name('employee.analytics.report.data');
-
-=======
->>>>>>> 0ea1a0d (SEMI CHANGES (PLS CHECK CODE AND STUDY))
     /* ── Admin Only: Room / Venue / Food CRUD ── */
     Route::middleware(['role:admin'])->group(function () {
         Route::put('/employee/room-venue/update', [RoomVenueController::class, 'update'])->name('room_venue.update');
@@ -126,10 +102,6 @@ Route::middleware(['role:admin,staff'])->group(function () {
         Route::put('/employee/room_venue/{id}', [FoodController::class, 'update'])->name('admin.food.update');
         Route::get('/employee/room_venue/{id}/delete', [FoodController::class, 'destroy']);
     });
-<<<<<<< HEAD
-     
-=======
->>>>>>> 0ea1a0d (SEMI CHANGES (PLS CHECK CODE AND STUDY))
 });
 
 /* --- 3. Client Routes (logged-in clients only) --- */
