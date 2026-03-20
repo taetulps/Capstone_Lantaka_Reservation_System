@@ -238,6 +238,10 @@ document.addEventListener('DOMContentLoaded', () => {
       const showAddChSection = document.getElementById('modal-bottom');
 
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 0ea1a0d (SEMI CHANGES (PLS CHECK CODE AND STUDY))
       const discountSection   = document.getElementById('discountSection');
       const checkAccomodation = data.accommodationType;
       const row = this.closest('tr');

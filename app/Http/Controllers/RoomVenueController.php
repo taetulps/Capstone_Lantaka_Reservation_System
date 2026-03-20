@@ -9,6 +9,7 @@ use App\Models\VenueReservation;
 use App\Models\Room;
 use App\Models\Venue;
 use App\Models\Account;
+use App\Models\Account;
 use App\Models\Food;
 use Carbon\CarbonPeriod;
 
@@ -75,8 +76,32 @@ class RoomVenueController extends Controller
             $folder    = $request->category === 'Room' ? 'rooms' : 'venues';
             $imagePath = $this->processAndStoreImage($request->file('image'), $folder);
         }
+<<<<<<< HEAD
+
+        $commonData = [
+            'user_id'        => Auth::id(),
+            'capacity'       => $request->capacity,
+            'price'          => $request->internal_price,
+            'external_price' => $request->external_price,
+            'status'         => 'Available',
+            'description'    => $request->description,
+            'image'          => $imagePath,
+        ];
+=======
+>>>>>>> 0ea1a0d (SEMI CHANGES (PLS CHECK CODE AND STUDY))
 
         if ($request->category === 'Room') {
+            Room::create([
+                'user_id'              => Auth::id(),
+                'Room_Number'          => $request->name,
+                'Room_Type'            => $request->type ?? 'Standard',
+                'Room_Capacity'        => $request->capacity,
+                'Room_Internal_Price'  => $request->internal_price,
+                'Room_External_Price'  => $request->external_price,
+                'Room_Status'          => 'Available',
+                'Room_Description'     => $request->description,
+                'Room_Image'           => $imagePath,
+            ]);
             Room::create([
                 'user_id'              => Auth::id(),
                 'Room_Number'          => $request->name,
@@ -99,6 +124,16 @@ class RoomVenueController extends Controller
                 'Venue_Description'    => $request->description,
                 'Venue_Image'          => $imagePath,
             ]);
+            Venue::create([
+                'user_id'              => Auth::id(),
+                'Venue_Name'           => $request->name,
+                'Venue_Capacity'       => $request->capacity,
+                'Venue_Internal_Price' => $request->internal_price,
+                'Venue_External_Price' => $request->external_price,
+                'Venue_Status'         => 'Available',
+                'Venue_Description'    => $request->description,
+                'Venue_Image'          => $imagePath,
+            ]);
         }
 
         return redirect()->back()->with('success', $request->category . ' added successfully!');
@@ -111,13 +146,23 @@ class RoomVenueController extends Controller
             ->when($request->capacity, function ($query, $capacity) {
                 if ($capacity == '50+') return $query->where('Room_Capacity', '>=', 50);
                 return $query->where('Room_Capacity', '>=', (int)$capacity);
+                if ($capacity == '50+') return $query->where('Room_Capacity', '>=', 50);
+                return $query->where('Room_Capacity', '>=', (int)$capacity);
             })
             ->when($request->availability == 'Available Now', function ($query) {
+                return $query->where('Room_Status', 'Available');
                 return $query->where('Room_Status', 'Available');
             })
             ->get()
             ->map(function($room) {
                 $room->category = 'Room';
+                $room->id = $room->Room_ID;
+                $room->display_name = "Room " . $room->Room_Number . " (" . $room->Room_Type . ")";
+                $room->capacity = $room->Room_Capacity;
+                $room->internal_price = $room->Room_Internal_Price;
+                $room->external_price = $room->Room_External_Price;
+                $room->image = $room->Room_Image;
+
                 $room->id = $room->Room_ID;
                 $room->display_name = "Room " . $room->Room_Number . " (" . $room->Room_Type . ")";
                 $room->capacity = $room->Room_Capacity;
@@ -133,13 +178,23 @@ class RoomVenueController extends Controller
             ->when($request->capacity, function ($query, $capacity) {
                 if ($capacity == '50+') return $query->where('Venue_Capacity', '>=', 50);
                 return $query->where('Venue_Capacity', '>=', (int)$capacity);
+                if ($capacity == '50+') return $query->where('Venue_Capacity', '>=', 50);
+                return $query->where('Venue_Capacity', '>=', (int)$capacity);
             })
             ->when($request->availability == 'Available Now', function ($query) {
+                return $query->where('Venue_Status', 'Available');
                 return $query->where('Venue_Status', 'Available');
             })
             ->get()
             ->map(function($venue) {
                 $venue->category = 'Venue';
+                $venue->id = $venue->Venue_ID;
+                $venue->display_name = $venue->Venue_Name;
+                $venue->capacity = $venue->Venue_Capacity;
+                $venue->internal_price = $venue->Venue_Internal_Price;
+                $venue->external_price = $venue->Venue_External_Price;
+                $venue->image = $venue->Venue_Image;
+
                 $venue->id = $venue->Venue_ID;
                 $venue->display_name = $venue->Venue_Name;
                 $venue->capacity = $venue->Venue_Capacity;
@@ -161,6 +216,8 @@ class RoomVenueController extends Controller
         }
         //  dd($all_accommodations);
 
+        //  dd($all_accommodations);
+
         return view('client.room_venue', compact('all_accommodations'));
     }
     public function adminIndex(Request $request)
@@ -172,8 +229,11 @@ class RoomVenueController extends Controller
             ->when($search, function ($query) use ($search) {
                 $query->where('Room_Number', 'ilike', "%{$search}%")
                     ->orWhere('Room_Type', 'ilike', "%{$search}%");
+                $query->where('Room_Number', 'ilike', "%{$search}%")
+                    ->orWhere('Room_Type', 'ilike', "%{$search}%");
             })
             ->when($status, function ($query) use ($status) {
+                $query->where('Room_Status', $status);
                 $query->where('Room_Status', $status);
             })
             ->get();
@@ -181,8 +241,10 @@ class RoomVenueController extends Controller
         $venues = Venue::query()
             ->when($search, function ($query) use ($search) {
                 $query->where('Venue_Name', 'ilike', "%{$search}%");
+                $query->where('Venue_Name', 'ilike', "%{$search}%");
             })
             ->when($status, function ($query) use ($status) {
+                $query->where('Venue_Status', $status);
                 $query->where('Venue_Status', $status);
             })
             ->get();
@@ -190,11 +252,43 @@ class RoomVenueController extends Controller
         // FIX: Group the food items by category and make keys lowercase
         $foods = Food::all()->groupBy(function($item) {
             return strtolower($item->Food_Category);
+            return strtolower($item->Food_Category);
         });
 
         return view('employee.room_venue', compact('rooms', 'venues', 'foods'));
         }
+        }
         public function show($category, $id)
+        {
+            // 1. Find the correct item based on category
+            if (strtolower($category) === 'room') {
+                $data = Room::findOrFail($id);
+                $data->id = $data->Room_ID;
+                $data->display_name = "Room " . ($data->Room_Number ?? $id);
+                $data->capacity= $data->Room_Capacity;
+                $data->internal_price = $data->Room_Internal_Price;
+                $data->external_price = $data->Room_External_Price;
+                $data->status = $data->Room_Status;
+                $data->description = $data->Room_Description;
+                $data->image = $data->Room_Image;
+
+                // Use RoomReservation model
+                $reservations = RoomReservation::where('Room_Reservation_ID', $id)
+                    ->whereIn('Room_Reservation_Status', ['pending', 'confirmed', 'checked-in'])
+                    ->get();
+
+                $dateFieldIn = 'Room_Reservation_Check_In_Time';
+                $dateFieldOut = 'Room_Reservation_Check_Out_Time';
+            } else {
+                $data = Venue::findOrFail($id); 
+                $data->id = $data->Venue_ID;
+                $data->display_name = $data->Venue_Name;
+                $data->capacity= $data->Venue_Capacity;
+                $data->internal_price = $data->Venue_Internal_Price;
+                $data->external_price = $data->Venue_External_Price;
+                $data->status = $data->Venue_Status;
+                $data->description = $data->Venue_Description;
+                $data->image = $data->Venue_Image;
         {
             // 1. Find the correct item based on category
             if (strtolower($category) === 'room') {
@@ -234,7 +328,25 @@ class RoomVenueController extends Controller
                 $dateFieldIn = 'Venue_Reservation_Check_In_Time';
                 $dateFieldOut = 'Venue_Reservation_Check_Out_Time';
             }
+                // Use VenueReservation model
+                $reservations = VenueReservation::where('Venue_ID', $id)
+                    ->whereIn('Venue_Reservation_Status', ['pending', 'confirmed', 'checked-in'])
+                    ->get();
 
+                $dateFieldIn = 'Venue_Reservation_Check_In_Time';
+                $dateFieldOut = 'Venue_Reservation_Check_Out_Time';
+            }
+
+            // 2. Map the occupied dates
+            $occupiedDates = [];
+            foreach ($reservations as $res) {
+                $period = CarbonPeriod::create($res->$dateFieldIn, $res->$dateFieldOut);
+                foreach ($period as $date) {
+                    $occupiedDates[] = $date->format('Y-m-d');
+                }
+            }
+            // Remove duplicate dates just in case, and reset array keys
+            $occupiedDates = array_values(array_unique($occupiedDates));
             // 2. Map the occupied dates
             $occupiedDates = [];
             foreach ($reservations as $res) {
@@ -250,9 +362,14 @@ class RoomVenueController extends Controller
             return view('client.room_venue_viewing', compact('data', 'category', 'occupiedDates'));
         }
     public function prepareBooking(Request $request)
+            // 3. Pass the data AND the occupiedDates to the view
+            return view('client.room_venue_viewing', compact('data', 'category', 'occupiedDates'));
+        }
+    public function prepareBooking(Request $request)
     {
         // Grab all the data the user just submitted (dates, pax, accommodation_id, type)
         $bookingData = $request->all();
+        // dd($bookingData);
         // dd($bookingData);
 
         // 1. If it's a Room, skip food and go straight to Checkout
@@ -263,7 +380,10 @@ class RoomVenueController extends Controller
         // 2. If it's a Venue, fetch the food and go to the Food Options page
         if ($request->type === 'venue') {
 
+
             // FETCH THE AVAILABLE FOOD HERE
+//            $foods = Food::where('status', 'available')->get()->groupBy('Food_Category');
+                $foods = Food::where('Food_Status', 'available')->get()->groupBy('Food_Category');
 //            $foods = Food::where('status', 'available')->get()->groupBy('Food_Category');
                 $foods = Food::where('Food_Status', 'available')->get()->groupBy('Food_Category');
 
@@ -291,6 +411,15 @@ class RoomVenueController extends Controller
             $room = Room::findOrFail($request->id);
 
             $data = [
+<<<<<<< HEAD
+                'room_number'    => $request->name,
+                'room_type'      => $request->type ?? 'Standard',
+                'capacity'       => $request->capacity,
+                'price'          => $request->internal_price,
+                'external_price' => $request->external_price,
+                'status'         => $request->status,
+                'description'    => $request->description,
+=======
                 'Room_Number'         => $request->name,
                 'Room_Type'           => $request->type ?? 'Standard',
                 'Room_Capacity'       => $request->capacity,
@@ -298,15 +427,24 @@ class RoomVenueController extends Controller
                 'Room_External_Price' => $request->external_price,
                 'Room_Status'         => $request->status,
                 'Room_Description'    => $request->description,
+>>>>>>> 0ea1a0d (SEMI CHANGES (PLS CHECK CODE AND STUDY))
             ];
 
             if ($request->hasFile('image') && $request->file('image')->isValid()) {
                 // Delete old image file if it exists
+<<<<<<< HEAD
+                if ($room->image) {
+                    $old = storage_path('app/public/' . $room->image);
+                    if (file_exists($old)) @unlink($old);
+                }
+                $data['image'] = $this->processAndStoreImage($request->file('image'), 'rooms');
+=======
                 if ($room->Room_Image) {
                     $old = storage_path('app/public/' . $room->Room_Image);
                     if (file_exists($old)) @unlink($old);
                 }
                 $data['Room_Image'] = $this->processAndStoreImage($request->file('image'), 'rooms');
+>>>>>>> 0ea1a0d (SEMI CHANGES (PLS CHECK CODE AND STUDY))
             }
 
             $room->update($data);
@@ -315,6 +453,22 @@ class RoomVenueController extends Controller
             $venue = Venue::findOrFail($request->id);
 
             $data = [
+<<<<<<< HEAD
+                'name'           => $request->name,
+                'capacity'       => $request->capacity,
+                'price'          => $request->internal_price,
+                'external_price' => $request->external_price,
+                'status'         => $request->status,
+                'description'    => $request->description,
+            ];
+
+            if ($request->hasFile('image') && $request->file('image')->isValid()) {
+                if ($venue->Venue_Image) {
+                    $old = storage_path('app/public/' . $venue->Venue_Image);
+                    if (file_exists($old)) @unlink($old);
+                }
+                $data['image'] = $this->processAndStoreImage($request->file('image'), 'venues');
+=======
                 'Venue_Name'           => $request->name,
                 'Venue_Capacity'       => $request->capacity,
                 'Venue_Internal_Price' => $request->internal_price,
@@ -329,6 +483,7 @@ class RoomVenueController extends Controller
                     if (file_exists($old)) @unlink($old);
                 }
                 $data['Venue_Image'] = $this->processAndStoreImage($request->file('image'), 'venues');
+>>>>>>> 0ea1a0d (SEMI CHANGES (PLS CHECK CODE AND STUDY))
             }
 
             $venue->update($data);
@@ -357,6 +512,17 @@ class RoomVenueController extends Controller
             $reservations = RoomReservation::where('Room_ID', $id)
                 ->get(['Room_Reservation_Check_In_Time', 'Room_Reservation_Check_Out_Time']);
 
+            $data->id           = $data->Room_ID;
+            $data->display_name = "Room " . $data->Room_Number . " (" . $data->Room_Type . ")";
+            $data->capacity     = $data->Room_Capacity;
+            $data->status       = $data->Room_Status;
+            $data->external_price = $data->Room_External_Price;
+            $data->description  = $data->Room_Description;
+            $data->image        = $data->Room_Image;
+
+            $reservations = RoomReservation::where('Room_ID', $id)
+                ->get(['Room_Reservation_Check_In_Time', 'Room_Reservation_Check_Out_Time']);
+
         } else {
             $data = Venue::findOrFail($id);
             $data->id           = $data->Venue_ID;
@@ -369,8 +535,19 @@ class RoomVenueController extends Controller
 
             $reservations = VenueReservation::where('Venue_ID', $id)
                 ->get(['Venue_Reservation_Check_In_Time', 'Venue_Reservation_Check_Out_Time']);
+            $data->id           = $data->Venue_ID;
+            $data->display_name = $data->Venue_Name;
+            $data->capacity     = $data->Venue_Capacity;
+            $data->status       = $data->Venue_Status;
+            $data->external_price = $data->Venue_External_Price;
+            $data->description  = $data->Venue_Description;
+            $data->image        = $data->Venue_Image;
+
+            $reservations = VenueReservation::where('Venue_ID', $id)
+                ->get(['Venue_Reservation_Check_In_Time', 'Venue_Reservation_Check_Out_Time']);
         }
 
+        $client = Account::findOrFail($userId);
         $client = Account::findOrFail($userId);
 
         // Prefill data for edit mode (passed via query string from the employee modal)
@@ -420,6 +597,16 @@ class RoomVenueController extends Controller
             if (!$checkIn || !$checkOut) continue;
 
             $period = CarbonPeriod::create($checkIn, $checkOut);
+            $checkIn  = $category === 'Room'
+                ? $res->Room_Reservation_Check_In_Time
+                : $res->Venue_Reservation_Check_In_Time;
+            $checkOut = $category === 'Room'
+                ? $res->Room_Reservation_Check_Out_Time
+                : $res->Venue_Reservation_Check_Out_Time;
+
+            if (!$checkIn || !$checkOut) continue;
+
+            $period = CarbonPeriod::create($checkIn, $checkOut);
             foreach ($period as $date) {
                 $dateStr = $date->format('Y-m-d');
                 // Skip dates that belong to the reservation being edited
@@ -437,4 +624,5 @@ class RoomVenueController extends Controller
         ));
     }
 }
+
 

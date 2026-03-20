@@ -9,7 +9,11 @@
 
   <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f6f9;padding:40px 0;">
     <tr>
+<<<<<<< HEAD
+      <td align="center">
+=======
       <td style= "align-items: center">
+>>>>>>> 0ea1a0d (SEMI CHANGES (PLS CHECK CODE AND STUDY))
         <table width="580" cellpadding="0" cellspacing="0" style="max-width:580px;width:100%;">
 
           {{-- Header --}}
@@ -24,7 +28,11 @@
           <tr>
             <td style="background:#ffffff;padding:36px 40px;">
 
+<<<<<<< HEAD
+              <p style="margin:0 0 6px;font-size:15px;color:#374151;font-weight:600;">Hello, {{ $user->name }}</p>
+=======
               <p style="margin:0 0 6px;font-size:15px;color:#374151;font-weight:600;">Hello, {{ $user->Account_Name }}</p>
+>>>>>>> 0ea1a0d (SEMI CHANGES (PLS CHECK CODE AND STUDY))
               <p style="margin:0 0 24px;font-size:14px;color:#6b7280;line-height:1.6;">
                 Your registration request has been reviewed and approved. You may now access the Lantaka Room and Venue Reservation System using the credentials below.
               </p>
@@ -36,11 +44,19 @@
                     <p style="margin:0 0 12px;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:#9ca3af;font-weight:700;">Your Login Credentials</p>
                     <table cellpadding="0" cellspacing="0">
                       <tr>
+<<<<<<< HEAD
+                        <td style="font-size:13px;color:#6b7280;padding:4px 0;min-width:90px;">Username</td>
+                        <td style="font-size:13px;color:#1f2937;font-weight:600;padding:4px 0;">{{ $user->username }}</td>
+                      </tr>
+                      <tr>
+                        <td style="font-size:13px;color:#6b7280;padding:4px 0;">Password</td>
+=======
                         <td style="font-size:13px;color:#6b7280;padding:4px 0;min-width:90px;">Username: </td>
                         <td style="font-size:13px;color:#1f2937;font-weight:600;padding:4px 0;">{{ $user->username }}</td>
                       </tr>
                       <tr>
                         <td style="font-size:13px;color:#6b7280;padding:4px 0;">Password: </td>
+>>>>>>> 0ea1a0d (SEMI CHANGES (PLS CHECK CODE AND STUDY))
                         <td style="padding:4px 0;">
                           <span style="display:inline-block;background:#1e3a5f;color:#ffffff;font-family:'Courier New',monospace;font-size:15px;font-weight:700;letter-spacing:2px;padding:6px 14px;border-radius:5px;">{{ $plainPassword }}</span>
                         </td>

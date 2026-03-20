@@ -14,12 +14,28 @@ document.addEventListener('DOMContentLoaded', function () {
       if (!userData) return;
 
       const user = JSON.parse(userData);
+<<<<<<< HEAD
+
+      // 1. UPDATE FORM ACTION
+      if (updateForm && user.id) {
+        updateForm.setAttribute('action', `/employee/accounts/${user.id}/update`);
+=======
       console.log(user);
       
       // 1. UPDATE FORM ACTION
       if (updateForm && user.Account_ID) {
         updateForm.setAttribute('action', `/employee/accounts/${user.Account_ID}/update`);
+>>>>>>> 0ea1a0d (SEMI CHANGES (PLS CHECK CODE AND STUDY))
       }
+ 
+
+      console.log(user);
+      
+      // 2. TOGGLE BUTTONS based on account status
+      const isDeactivated = user.Account_Status === 'deactivate';
+      if (btnDeactivate) btnDeactivate.style.display = isDeactivated ? 'none'  : '';
+      if (btnReactivate) btnReactivate.style.display = isDeactivated ? ''      : 'none';
+      if (btnSave)       btnSave.style.display       = isDeactivated ? 'none'  : '';
 
       // 2. TOGGLE BUTTONS based on account status
       const isDeactivated = user.Account_Status === 'deactivate';
@@ -28,6 +44,7 @@ document.addEventListener('DOMContentLoaded', function () {
       if (btnSave)       btnSave.style.display       = isDeactivated ? 'none'  : '';
 
       // 2. SPLIT NAME CAREFULLY
+      const fullName = user.Account_Name || '';
       const fullName = user.Account_Name || '';
       const firstSpaceIndex = fullName.indexOf(' ');
 
@@ -47,11 +64,35 @@ document.addEventListener('DOMContentLoaded', function () {
       document.getElementById('view_username').value = user.Account_Username || '';
       document.getElementById('view_email').value = user.Account_Email || '';
       document.getElementById('view_phone').value = user.Account_Phone || '';
+      document.getElementById('view_username').value = user.Account_Username || '';
+      document.getElementById('view_email').value = user.Account_Email || '';
+      document.getElementById('view_phone').value = user.Account_Phone || '';
 
       const idPreview     = document.getElementById('view_id_preview');
       const idPlaceholder = document.getElementById('view_id_placeholder');
       const idFileInput   = document.getElementById('view_id_file');
+      const idPreview     = document.getElementById('view_id_preview');
+      const idPlaceholder = document.getElementById('view_id_placeholder');
+      const idFileInput   = document.getElementById('view_id_file');
 
+<<<<<<< HEAD
+      const imgElement = document.getElementById('view_id_image');
+      const noIdText = document.getElementById('view_no_id');
+
+      if (user.valid_id_path) {
+        // Ensure the path is correctly prefixed with your storage link
+        imgElement.src = `/storage/${user.valid_id_path}`;
+        imgElement.style.display = 'block';
+        if (noIdText) noIdText.style.display = 'none';
+      } else {
+        imgElement.style.display = 'none';
+        if (noIdText) noIdText.style.display = 'block';
+      }
+
+      const idInfoField = document.getElementById('view_id_info');
+      if (idInfoField) {
+        idInfoField.value = user.id_info || '';
+=======
       if (idFileInput) idFileInput.value = '';
 
       if (idPreview && idPlaceholder) {
@@ -64,6 +105,7 @@ document.addEventListener('DOMContentLoaded', function () {
           idPreview.style.display = 'none';
           idPlaceholder.style.display = 'inline';
         }
+>>>>>>> 0ea1a0d (SEMI CHANGES (PLS CHECK CODE AND STUDY))
       }
 
       viewModal.classList.add('active');
@@ -78,3 +120,4 @@ document.addEventListener('DOMContentLoaded', function () {
     if (e.target === viewModal) viewModal.classList.remove('active');
   });
 });
+

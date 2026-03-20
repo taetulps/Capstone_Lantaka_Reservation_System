@@ -5,6 +5,7 @@
   @vite('resources/js/client_my_reservations.js')
 
 @section('content')
+@section('content')
   <h1 class="page-title">My Reservations</h1>
 
     <form action="{{ route('client.my_reservations') }}" method="GET" class="search-filters">
@@ -31,6 +32,8 @@
             <option value="confirmed" {{ request('status') == 'confirmed' ? 'selected' : '' }}>Confirmed</option>
             <option value="checked-in" {{ request('status') == 'checked-in' ? 'selected' : '' }}>Checked-in</option>
             <option value="checked-out" {{ request('status') == 'checked-out' ? 'selected' : '' }}>Checked-out</option>
+            <option value="checked-in" {{ request('status') == 'checked-in' ? 'selected' : '' }}>Checked-in</option>
+            <option value="checked-out" {{ request('status') == 'checked-out' ? 'selected' : '' }}>Checked-out</option>
             <option value="cancelled" {{ request('status') == 'cancelled' ? 'selected' : '' }}>Cancelled</option>
         </select>
     </div>
@@ -46,6 +49,7 @@
             <th>No. of Pax</th>
             <th>Checkout Amount</th>
             <th style="display:flex; align-items: center; justify-content:center;">Status</th>
+            <th style="display:flex; align-items: center; justify-content:center;">Status</th>
             <th></th>
           </tr>
         </thead>
@@ -57,10 +61,12 @@
                   @if($res->type === 'room' && $res->room)
                       <strong style="font-size: 1.1em;">
                         Room {{ $res->room->Room_Number}}
+                        Room {{ $res->room->Room_Number}}
                       </strong>
                       <small style="display:block; color: #666;">Accommodation Room</small>
                   @elseif($res->type === 'venue' && $res->venue)
                       <strong style="font-size: 1.1em;">
+                      {{ $res->venue->Venue_Name }}
                       {{ $res->venue->Venue_Name }}
                       </strong>
                       <small style="display:block; color: #666;">Event Venue</small>
@@ -69,9 +75,12 @@
                   @endif
               </td>
 
+
               {{-- Date Formatting --}}
                 <td>
                     {{ \Carbon\Carbon::parse(
+                        $res->Room_Reservation_Check_In_Time ??
+                        $res->Venue_Reservation_Check_In_Time ??
                         $res->Room_Reservation_Check_In_Time ??
                         $res->Venue_Reservation_Check_In_Time ??
                         now()
@@ -83,9 +92,13 @@
                     {{ \Carbon\Carbon::parse(
                         $res->Room_Reservation_Check_Out_Time ??
                         $res->Venue_Reservation_Check_Out_Time ??
+                        $res->Room_Reservation_Check_Out_Time ??
+                        $res->Venue_Reservation_Check_Out_Time ??
                         now()
                     )->format('m/d/Y') }}
                 </td>
+
+                <td>{{ $res->Room_Reservation_Pax ?? $res->Venue_Reservation_Pax }}</td>
 
                 <td>{{ $res->Room_Reservation_Pax ?? $res->Venue_Reservation_Pax }}</td>
                 <td class="amount">
@@ -93,8 +106,13 @@
                         $res->Room_Reservation_Total_Price ??
                         $res->Venue_Reservation_Total_Price ??
                         0, 2)
+                        $res->Room_Reservation_Total_Price ??
+                        $res->Venue_Reservation_Total_Price ??
+                        0, 2)
                     }}
                 </td>
+
+              <td style="display:flex; align-items: center; justify-content:center; width:100%">
 
               <td style="display:flex; align-items: center; justify-content:center; width:100%">
                   {{-- Dynamic Class for Status Color (pending, confirmed, cancelled) --}}
@@ -107,11 +125,30 @@
                         {{ ucfirst($res->Venue_Reservation_Status) }}
                     </span>
                   @endif
+                  @if($res->type === 'room' && $res->room)
+                    <span class="status-badge {{ strtolower($res->Room_Reservation_Status) }}">
+                        {{ ucfirst($res->Room_Reservation_Status) }}
+                    </span>
+                  @elseif($res->type === 'venue' && $res->venue)
+                    <span class="status-badge {{ strtolower($res->Venue_Reservation_Status) }}">
+                        {{ ucfirst($res->Venue_Reservation_Status) }}
+                    </span>
+                  @endif
               </td>
+
 
               <td class="action-cell">
                 @php
                     $accName = '';
+                    if($res->type === 'room' && $res->room){
+                      $accName = 'Room' . ' ' . $res->room->Room_Number;
+                      $res->pax = $res->Room_Reservation_Pax;
+                    }
+
+                    elseif($res->type === 'venue' && $res->venue){
+                      $accName = $res->venue->Venue_Name;
+                      $res->pax = $res->Venue_Reservation_Pax;
+                    }
                     if($res->type === 'room' && $res->room){
                       $accName = 'Room' . ' ' . $res->room->Room_Number;
                       $res->pax = $res->Room_Reservation_Pax;
@@ -135,7 +172,11 @@
                         'check_in_raw'   => \Carbon\Carbon::parse($res->Room_Reservation_Check_In_Time  ?? $res->Venue_Reservation_Check_In_Time)->toDateString(),
                         'check_out_raw'  => \Carbon\Carbon::parse($res->Room_Reservation_Check_Out_Time ?? $res->Venue_Reservation_Check_Out_Time)->toDateString(),
                         'total'          => number_format($res->Room_Reservation_Total_Price ?? $res->Venue_Reservation_Total_Price ?? 0, 2),
+<<<<<<< HEAD
+                        'payment_status' => $res->payment_status ?? null,
+=======
                         'payment_status' => $res->Room_Reservation_Payment_Status ?? $res->Venue_Reservation_Payment_Status ?? null,
+>>>>>>> 0ea1a0d (SEMI CHANGES (PLS CHECK CODE AND STUDY))
                         'foods'          => $res->foods,
                         'status'         => $res->status,
                     ]) }}">
@@ -160,3 +201,4 @@
 
   <x-my_reservations_modal/>
 @endsection
+

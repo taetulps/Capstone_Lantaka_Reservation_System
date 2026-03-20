@@ -3,9 +3,15 @@ import dayjs from 'dayjs';
 
 let view = dayjs();
 let reservationData = window.reservations || [];
+<<<<<<< HEAD
+
+const monthHeader = document.getElementById("calendar-month-header");
+const weekHeader = document.getElementById("calendar-week-header");
+=======
 console.log(reservationData);
 const monthHeader = document.getElementById('calendar-month-header');
 const weekHeader = document.getElementById('calendar-week-header');
+>>>>>>> 0ea1a0d (SEMI CHANGES (PLS CHECK CODE AND STUDY))
 
 const displayDayContainerMonth = document.querySelector('.days-container-month');
 const displayDayContainerWeek = document.querySelector('.days-container-week');
@@ -50,6 +56,29 @@ function getRedirectAndStatus(res) {
 }
 
 function paintReservationsMonth(data) {
+<<<<<<< HEAD
+    document.querySelectorAll(".date-cell-month").forEach((cell) => {
+        const date = cell.dataset.iso;
+        const container = cell.querySelector(".event-label-month-container");
+        container.innerHTML = "";
+        console.log(data);
+        
+        data.forEach((res) => {
+            const { status, redirect } = getRedirectAndStatus(res);
+            const label = res.label || "N/A";
+            // const accName = res.room.room_number;
+            console.log(res.id + " " + label)
+            if (date >= res.check_in && date <= res.check_out && status) {
+                container.innerHTML += `
+                    <a href="${redirect}?search=${encodeURIComponent(
+                            label + " " + res.user.name
+                            )}" class="event-label ${status}">
+                        ${label} ${res.user ? res.user.name : "Unknown"}
+                    </a>`;  
+            }
+        });
+    });
+=======
   document.querySelectorAll('.date-cell-month').forEach(cell => {
     const date = cell.dataset.iso;
     const container = cell.querySelector('.event-label-month-container');
@@ -67,6 +96,7 @@ function paintReservationsMonth(data) {
       }
     })
   });
+>>>>>>> 0ea1a0d (SEMI CHANGES (PLS CHECK CODE AND STUDY))
 }
 
 function paintReservationsWeek(data) {
@@ -188,6 +218,16 @@ function updateStats(stats) {
 }
 
 function changeHtml(val, labelText) {
+<<<<<<< HEAD
+    const v = Number(val ?? 0);
+    let badge = "";
+    if (v > 0) badge = `<span class="chg-positive">↑ ${v}%</span>`;
+    else if (v < 0)
+        badge = `<span class="chg-negative">↓ ${Math.abs(v)}%</span>`;
+    else badge = `<span class="chg-neutral">—</span>`;
+    return `${badge} <span class="chg-label">${labelText}</span>`;
+}
+=======
   const v = Number(val ?? 0);
   let badge = '';
   if (v > 0)      badge = `<span class="chg-positive">↑ ${v}%</span>`;
@@ -195,6 +235,27 @@ function changeHtml(val, labelText) {
   else            badge = `<span class="chg-neutral">—</span>`;
   return `${badge} <span class="chg-label">${labelText}</span>`;
 }
+
+function updateChanges(changes) {
+  if (!changes) return;
+  const lbl = changes.lastMonthLabel || 'last month';
+  const map = {
+    changeTotalReservations: [changes.totalReservations, `vs ${lbl}`],
+    changeOccupancyRate:     [changes.occupancyRate,     'vs prev 30 days'],
+    changeRevenue:           [changes.revenue,            `vs ${lbl}`],
+    changeActiveGuests:      [changes.activeGuests,       `vs ${lbl}`],
+    changeCheckOuts:         [changes.checkOutsToday,     `vs ${lbl}`],
+  };
+  Object.entries(map).forEach(([id, [val, label]]) => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = changeHtml(val, label);
+  });
+}
+
+refresh.addEventListener('click', () => {
+  btnWeekly.classList.remove('active');
+  btnMonthly.classList.add('active');
+>>>>>>> 0ea1a0d (SEMI CHANGES (PLS CHECK CODE AND STUDY))
 
 function updateChanges(changes) {
   if (!changes) return;
@@ -296,6 +357,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const weekVisible = !document.querySelector('.calendar-grid-week')?.classList.contains('hide');
 
+            if (weekVisible) {
+                renderWeek();
+            } else {
+                renderMonth();
+            }
+        } catch (err) {
+            console.warn("Failed to fetch calendar data:", err);
+        }
+<<<<<<< HEAD
+=======
+      });
+
+      if (!res.ok) {
+        throw new Error(`HTTP error! Status: ${res.status}`);
+      }
+
+      const data = await res.json();
+
+      reservationData = data.reservations || [];
+      updateStats(data.stats || {});
+      updateChanges(data.changes || window.statChanges || {});
+
+      const weekVisible = !document.querySelector('.calendar-grid-week')?.classList.contains('hide');
+
       if (weekVisible) {
         renderWeek();
       } else {
@@ -303,8 +388,8 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     } catch (err) {
       console.warn('Failed to fetch calendar data:', err);
+>>>>>>> 0ea1a0d (SEMI CHANGES (PLS CHECK CODE AND STUDY))
     }
-  }
 
   fetchReservations();
   setInterval(fetchReservations, 10000);

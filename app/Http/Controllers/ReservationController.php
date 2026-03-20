@@ -10,6 +10,7 @@ use App\Models\Room;
 use App\Models\Venue;
 use App\Models\Food;
 use App\Models\Account;
+use App\Models\Account;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use Carbon\Carbon;
@@ -31,10 +32,13 @@ class ReservationController extends Controller
     public function checkout(Request $request)
     {
         $account = auth()->user();
+        $account = auth()->user();
         $allBookings = session('pending_bookings', []);
 
         //  
+        //  
         if ($request->has('accommodation_id')) {
+            $newEntry = $request->all();    
             $newEntry = $request->all();    
 
             $uniqueKey = $newEntry['type'] . '_' . $newEntry['accommodation_id'] . '_' . $newEntry['check_in'] . '_' . $newEntry['check_out'];
@@ -61,6 +65,7 @@ class ReservationController extends Controller
             if ($item['type'] === 'room') {
                 $model = Room::find($item['accommodation_id']);
                 
+                
                 if (!$model) {
                     continue;
                 }
@@ -70,9 +75,16 @@ class ReservationController extends Controller
                     $price = $model->Room_External_Price;
                 }
                 $name = "Room " . ($model->Room_Number ?? '');
+                if($account->Account_Type == 'Internal'){
+                    $price = $model->Room_Internal_Price;
+                }else{
+                    $price = $model->Room_External_Price;
+                }
+                $name = "Room " . ($model->Room_Number ?? '');
                 $img = $model->Room_Image ?? null;
             } else {
                 $model = Venue::find($item['accommodation_id']);
+            
             
                 if (!$model) {
                     continue;
@@ -84,9 +96,17 @@ class ReservationController extends Controller
                     $price = $model->Venue_External_Price;
                 }
                 $name = $model->Venue_Name ?? 'Venue';
+              
+                if($account->Account_Type == 'Internal'){
+                    $price = $model->Venue_Internal_Price;
+                }else{
+                    $price = $model->Venue_External_Price;
+                }
+                $name = $model->Venue_Name ?? 'Venue';
                 $img = $model->Venue_Image ?? null;
             }
             $accommodationTotal = $price * $days;
+            
             
             $foodTotal = 0;
 
@@ -130,6 +150,7 @@ class ReservationController extends Controller
 
                 if (!empty($allFoodIds)) {
                     $selectedFoods = Food::whereIn('Food_ID', $allFoodIds)->get()->keyBy('Food_ID');
+                    $selectedFoods = Food::whereIn('Food_ID', $allFoodIds)->get()->keyBy('Food_ID');
 
                     foreach ($foodSelections as $date => $meals) {
                         if (($foodEnabled[$date] ?? '1') != '1') {
@@ -160,6 +181,7 @@ class ReservationController extends Controller
                                     continue;
                                 }
 
+                                $foodPrice = $food->Food_Price ?? 0;
                                 $foodPrice = $food->Food_Price ?? 0;
                                 $foodTotal += $foodPrice * ($item['pax'] ?? 1);
                             }
@@ -198,6 +220,8 @@ class ReservationController extends Controller
                 'food_total' => $foodTotal,
             ];
         }
+
+        // dd($processedItems);
 
         // dd($processedItems);
 
@@ -298,13 +322,17 @@ class ReservationController extends Controller
                     if ($item['type'] === 'room') {
                         $reservation = RoomReservation::create([
                             'Room_ID' => $item['id'],
+                            'Room_ID' => $item['id'],
                             'Client_ID' => Auth::id(),
                             'Room_Reservation_Date' => now(),
                             'Room_Reservation_Check_In_Time' => $item['check_in'],
                             'Room_Reservation_Check_Out_Time' => $item['check_out'],
                             'Room_Reservation_Pax' => $item['pax'],
                             'Room_Reservation_Purpose' => $item['purpose'] ?? null,
+                            'Room_Reservation_Pax' => $item['pax'],
+                            'Room_Reservation_Purpose' => $item['purpose'] ?? null,
                             'Room_Reservation_Total_Price' => $item['total_amount'],
+                            'Room_Reservation_Status' => 'pending',
                             'Room_Reservation_Status' => 'pending',
                         ]);
 
@@ -316,13 +344,17 @@ class ReservationController extends Controller
                     if ($item['type'] === 'venue') {
                         $reservation = VenueReservation::create([
                             'Venue_ID' => $item['id'],
+                            'Venue_ID' => $item['id'],
                             'Client_ID' => Auth::id(),
                             'Venue_Reservation_Date' => now(),
                             'Venue_Reservation_Check_In_Time' => $item['check_in'],
                             'Venue_Reservation_Check_Out_Time' => $item['check_out'],
                             'Venue_Reservation_Pax' => $item['pax'],
                             'Venue_Reservation_Purpose' => $item['purpose'] ?? null,
+                            'Venue_Reservation_Pax' => $item['pax'],
+                            'Venue_Reservation_Purpose' => $item['purpose'] ?? null,
                             'Venue_Reservation_Total_Price' => $item['total_amount'],
+                            'Venue_Reservation_Status' => 'pending',
                             'Venue_Reservation_Status' => 'pending',
                         ]);
 
@@ -342,8 +374,15 @@ class ReservationController extends Controller
 
                                         if ($food) {
                                             $price = $food->Food_Price ?? 0;
+                                            $price = $food->Food_Price ?? 0;
 
                                             FoodReservation::create([
+                                                'Food_ID' => $foodId,
+                                                'Venue_Reservation_ID' => $reservation->Venue_Reservation_ID,
+                                                'Client_ID' => Auth::id(),
+                                                'Food_Reservation_Serving_Date' => $date,
+                                                'Food_Reservation_Meal_time' => $mealType,
+                                                'Food_Reservation_Total_Price' => $price * $item['pax'],
                                                 'Food_ID' => $foodId,
                                                 'Venue_Reservation_ID' => $reservation->Venue_Reservation_ID,
                                                 'Client_ID' => Auth::id(),
@@ -363,6 +402,7 @@ class ReservationController extends Controller
             });
 
             try {
+                Mail::to(auth()->user()->Account_Email)->send(
                 Mail::to(auth()->user()->Account_Email)->send(
                     new \App\Mail\ReservationConfirmationMail($savedReservations)
                 );
@@ -403,10 +443,22 @@ class ReservationController extends Controller
             ->where('Client_ID', $user->Account_ID);
            
           
+        $roomQuery = RoomReservation::with(['room', 'user'])
+            ->where('Client_ID', $user->Account_ID);
+        $venueQuery = VenueReservation::with(['venue', 'user', 'foods'])
+            ->where('Client_ID', $user->Account_ID);
+           
+          
         // 3. Apply Filters
         foreach ([$roomQuery, $venueQuery] as $query) {
 
+
             // Status Filter
+            if ($status){
+                $isRoom = $query->getModel() instanceof RoomReservation;
+                $statusColumn = $isRoom ? 'Room_Reservation_Status' : 'Venue_Reservation_Status';
+                $query->where($statusColumn, $status);
+            }
             if ($status){
                 $isRoom = $query->getModel() instanceof RoomReservation;
                 $statusColumn = $isRoom ? 'Room_Reservation_Status' : 'Venue_Reservation_Status';
@@ -415,6 +467,7 @@ class ReservationController extends Controller
 
             // Client Type Filter
             if ($clientType) {
+                $query->whereHas('user', fn($q) => $q->where('Account_Type', $clientType));
                 $query->whereHas('user', fn($q) => $q->where('Account_Type', $clientType));
             }
 
@@ -428,6 +481,7 @@ class ReservationController extends Controller
                 };
                 if ($date) {
                     $dateCol = ($query->getModel() instanceof RoomReservation)
+                    $dateCol = ($query->getModel() instanceof RoomReservation)
                         ? 'Room_Reservation_Date'
                         : 'Venue_Reservation_Date';
                     $query->where($dateCol, '>=', $date);
@@ -439,11 +493,45 @@ class ReservationController extends Controller
                 $query->where(function ($q) use ($search) {
                     $isRoom = ($q->getModel() instanceof RoomReservation);
             
+                    $isRoom = ($q->getModel() instanceof RoomReservation);
+            
                     $idCol = $isRoom ? 'Room_Reservation_ID' : 'Venue_Reservation_ID';
             
                     $q->orWhereRaw("CAST(\"{$idCol}\" AS TEXT) ILIKE ?", ["%{$search}%"]);
             
+            
+                    $q->orWhereRaw("CAST(\"{$idCol}\" AS TEXT) ILIKE ?", ["%{$search}%"]);
+            
                     if ($isRoom) {
+                        $q->orWhere('Room_Reservation_Status', 'ILIKE', "%{$search}%");
+            
+                        $q->orWhereHas('user', function ($uq) use ($search) {
+                            $uq->where('Account_Name', 'ILIKE', "%{$search}%");
+                        });
+            
+                        $q->orWhereHas('room', function ($rq) use ($search) {
+                            $rq->where('Room_Number', 'ILIKE', "%{$search}%")
+                               ->orWhereRaw(
+                                   'CONCAT(\'Room \', COALESCE("Room_Number"::text, \'\')) ILIKE ?',
+                                   ["%{$search}%"]
+                               );
+                        });
+            
+                        $q->orWhereRaw('EXISTS (
+                            SELECT 1
+                            FROM "users" u
+                            JOIN "Room" r ON r."Room_ID" = "Room_Reservation"."Room_ID"
+                            WHERE u."id" = "Room_Reservation"."Client_ID"
+                            AND CONCAT(
+                                COALESCE(u."Account_Name", \'\'),
+                                \' \',
+                                \'Room \',
+                                COALESCE(r."Room_Number"::text, \'\'),
+                                \' \',
+                                COALESCE("Room_Reservation"."Room_Reservation_Status", \'\')
+                            ) ILIKE ?
+                        )', ["%{$search}%"]);
+            
                         $q->orWhere('Room_Reservation_Status', 'ILIKE', "%{$search}%");
             
                         $q->orWhereHas('user', function ($uq) use ($search) {
@@ -497,6 +585,29 @@ class ReservationController extends Controller
                                 COALESCE("Venue_Reservation"."Venue_Reservation_Status", \'\')
                             ) ILIKE ?
                         )', ["%{$search}%"]);
+                        $q->orWhere('Venue_Reservation_Status', 'ILIKE', "%{$search}%");
+            
+                        $q->orWhereHas('user', function ($uq) use ($search) {
+                            $uq->where('Account_Name', 'ILIKE', "%{$search}%");
+                        });
+            
+                        $q->orWhereHas('venue', function ($vq) use ($search) {
+                            $vq->where('Venue_Name', 'ILIKE', "%{$search}%");
+                        });
+            
+                        $q->orWhereRaw('EXISTS (
+                            SELECT 1
+                            FROM "users" u
+                            JOIN "Venue" v ON v."Venue_ID" = "Venue_Reservation"."Venue_ID"
+                            WHERE u."id" = "Venue_Reservation"."Client_ID"
+                            AND CONCAT(
+                                COALESCE(u."Account_Name", \'\'),
+                                \' \',
+                                COALESCE(v."Venue_Name", \'\'),
+                                \' \',
+                                COALESCE("Venue_Reservation"."Venue_Reservation_Status", \'\')
+                            ) ILIKE ?
+                        )', ["%{$search}%"]);
                     }
                 });
             }
@@ -507,12 +618,14 @@ class ReservationController extends Controller
             $item->display_type = 'room';
             $item->type = 'room';
             $item->status = $item->Room_Reservation_Status;
+            $item->status = $item->Room_Reservation_Status;
             return $item;
         });
 
         $venues = ($accType === 'room') ? collect() : $venueQuery->get()->map(function ($item) {
             $item->display_type = 'venue';
             $item->type = 'venue';
+            $item->status = $item->Venue_Reservation_Status;
             $item->status = $item->Venue_Reservation_Status;
             return $item;
         });
@@ -527,6 +640,17 @@ class ReservationController extends Controller
             'rejected'    => 4,
             'cancelled'   => 4,
         ];
+<<<<<<< HEAD
+
+        $allReservations = $rooms->concat($venues)
+            ->sortBy(function ($r) use ($clientStatusOrder) {
+                $priority = $clientStatusOrder[strtolower($r->status ?? '')] ?? 99;
+                $ts = optional($r->created_at)->timestamp ?? 0;
+                return [$priority, -$ts];
+            })
+            ->values();
+=======
+>>>>>>> 0ea1a0d (SEMI CHANGES (PLS CHECK CODE AND STUDY))
 
         $allReservations = $rooms->concat($venues)
             ->sortBy(function ($r) use ($clientStatusOrder) {
@@ -541,6 +665,9 @@ class ReservationController extends Controller
         if ($user && ($user->Account_Role === 'admin' || $user->Account_Role === 'staff')) {
             $allForCounts = RoomReservation::select('Room_Reservation_Status as status')->get()
                 ->concat(VenueReservation::select('Venue_Reservation_Status as status')->get());
+        if ($user && ($user->Account_Role === 'admin' || $user->Account_Role === 'staff')) {
+            $allForCounts = RoomReservation::select('Room_Reservation_Status as status')->get()
+                ->concat(VenueReservation::select('Venue_Reservation_Status as status')->get());
 
             // Paginate for employee view too
             $perPage     = 15;
@@ -552,6 +679,24 @@ class ReservationController extends Controller
                 $currentPage,
                 ['path' => $request->url(), 'query' => $request->query()]
             );
+<<<<<<< HEAD
+
+            return view('employee.reservations', compact('reservations', 'allForCounts'));
+        }
+
+        // Client: paginate with priority order
+        $perPage     = 15;
+        $currentPage = $request->input('page', 1);
+        $reservations = new \Illuminate\Pagination\LengthAwarePaginator(
+            $allReservations->forPage($currentPage, $perPage),
+            $allReservations->count(),
+            $perPage,
+            $currentPage,
+            ['path' => $request->url(), 'query' => $request->query()]
+        );
+
+        return view('client.my_reservations', compact('reservations'));
+=======
             return view('employee.reservations', compact('reservations', 'allForCounts'));
         }
 
@@ -566,6 +711,7 @@ class ReservationController extends Controller
                 ['path' => $request->url(), 'query' => $request->query()]
             );  
             return view('client.my_reservations', compact('reservations'));
+>>>>>>> 0ea1a0d (SEMI CHANGES (PLS CHECK CODE AND STUDY))
     }
     // 4. Admin List Page
     public function adminIndex(Request $request)
@@ -582,6 +728,8 @@ class ReservationController extends Controller
 
         // 2. Filter by Client Type (Internal/External)
         if ($clientType) {
+            $roomQuery->whereHas('user', fn($q) => $q->where('Account_Type', $clientType));
+            $venueQuery->whereHas('user', fn($q) => $q->where('Account_Type', $clientType));
             $roomQuery->whereHas('user', fn($q) => $q->where('Account_Type', $clientType));
             $venueQuery->whereHas('user', fn($q) => $q->where('Account_Type', $clientType));
         }
@@ -603,23 +751,50 @@ class ReservationController extends Controller
         // 4. Search & Status (Case-Sensitive Column Names)
         if ($search) {
             // Search Rooms
+<<<<<<< HEAD
+            $term = "%{$search}%";
+=======
             $roomQuery->where(function ($q) use ($search) {
                 $q->whereHas('user', fn($uq) => $uq->where('Account_Name', 'ILIKE', "%$search%"))
                     ->orWhereHas('room', fn($rq) => $rq->where('Room_Number', 'ILIKE', "%$search%"))
                     // Use whereRaw to cast BigInt to Text for comparison
                     ->orWhereRaw('CAST("Room_Reservation_ID" AS TEXT) ILIKE ?', ["%$search%"]);
             });
+>>>>>>> 0ea1a0d (SEMI CHANGES (PLS CHECK CODE AND STUDY))
+
+            $roomQuery->where(function ($q) use ($term) {
+                $q->whereHas('user', fn($uq) => $uq->where('name', 'ILIKE', $term))
+                ->orWhereHas('room', fn($rq) => $rq->where('room_number', 'ILIKE', $term))
+                ->orWhereRaw('CAST("Room_Reservation_ID" AS TEXT) ILIKE ?', [$term])
+                ->orWhereRaw('EXISTS (
+                        SELECT 1
+                        FROM users u
+                        JOIN rooms r ON r."id" = room_reservations."room_id"
+                        WHERE u."id" = room_reservations."Client_ID"
+                        AND (
+                                CONCAT(\'Room \', r."room_number", \' \', u."name") ILIKE ?
+                                OR CONCAT(u."name", \' Room \', r."room_number") ILIKE ?
+                        )
+                    )', [$term, $term]);
+            });
 
             // Search Venues
             $venueQuery->where(function ($q) use ($search) {
+<<<<<<< HEAD
+                    $q->whereHas('user', fn($uq) => $uq->where('name', 'ILIKE', "%$search%"))
+                    ->orWhereHas('venue', fn($vq) => $vq->where('name', 'ILIKE', "%$search%"))
+=======
                 $q->whereHas('user', fn($uq) => $uq->where('Account_Name', 'ILIKE', "%$search%"))
                     ->orWhereHas('venue', fn($vq) => $vq->where('Venue_Name', 'ILIKE', "%$search%"))
                     // Use whereRaw to cast BigInt to Text for comparison
+>>>>>>> 0ea1a0d (SEMI CHANGES (PLS CHECK CODE AND STUDY))
                     ->orWhereRaw('CAST("Venue_Reservation_ID" AS TEXT) ILIKE ?', ["%$search%"]);
             });
         }
 
         if ($status) {
+            $roomQuery->where('Room_Reservation_Status', $status);
+            $venueQuery->where('Venue_Reservation_Status', $status);
             $roomQuery->where('Room_Reservation_Status', $status);
             $venueQuery->where('Venue_Reservation_Status', $status);
         }
@@ -633,6 +808,7 @@ class ReservationController extends Controller
                 $item->display_type = 'room';
                 $item->type = 'room'; // Helper for the Blade
                 $item->status = $item->Room_Reservation_Status;
+                $item->status = $item->Room_Reservation_Status;
                 return $item;
             });
         }
@@ -641,6 +817,7 @@ class ReservationController extends Controller
             $venues = $venueQuery->get()->map(function ($item) {
                 $item->display_type = 'venue';
                 $item->type = 'venue'; // Helper for the Blade
+                $item->status = $item->Venue_Reservation_Status;
                 $item->status = $item->Venue_Reservation_Status;
                 return $item;
             });
@@ -662,10 +839,16 @@ class ReservationController extends Controller
         // Status counts for the cards
         $allForCounts = RoomReservation::select('Room_Reservation_Status as status')->get()
             ->concat(VenueReservation::select('Venue_Reservation_Status as status')->get());
+        $allForCounts = RoomReservation::select('Room_Reservation_Status as status')->get()
+            ->concat(VenueReservation::select('Venue_Reservation_Status as status')->get());
 
         return view('employee.reservations', compact('reservations', 'allForCounts'));
     }
 
+<<<<<<< HEAD
+
+    public function showGuests(\Illuminate\Http\Request $request)
+=======
     public function adminIndexSpecificId(Request $request)
     {
         $id = $request->route('id');
@@ -729,6 +912,7 @@ class ReservationController extends Controller
         }
     }
     public function showGuests(Request $request)
+>>>>>>> 0ea1a0d (SEMI CHANGES (PLS CHECK CODE AND STUDY))
     {
         $status = $request->input('status');
         $search = $request->input('search');
@@ -737,6 +921,8 @@ class ReservationController extends Controller
         $dateFilter = $request->input('date');
 
         // 1. Initialize Queries
+        $roomQuery = RoomReservation::with(['user', 'room']);
+        $venueQuery = VenueReservation::with(['user', 'venue', 'foods']);
         $roomQuery = RoomReservation::with(['user', 'room']);
         $venueQuery = VenueReservation::with(['user', 'venue', 'foods']);
 
@@ -757,15 +943,36 @@ class ReservationController extends Controller
 
         // 3. Apply Room Specific Filters
         if ($status) $roomQuery->where('Room_Reservation_Status', $status);
+        if ($status) $roomQuery->where('Room_Reservation_Status', $status);
         if ($clientType) {
+            $roomQuery->whereHas('user', fn($q) => $q->where('Account_Type', $clientType));
             $roomQuery->whereHas('user', fn($q) => $q->where('Account_Type', $clientType));
         }
         if ($search) {
+<<<<<<< HEAD
+            $term = "%{$search}%";
+
+            $roomQuery->where(function ($q) use ($term) {
+                $q->whereHas('user', fn($uq) => $uq->where('name', 'ILIKE', $term))
+                ->orWhereHas('room', fn($rq) => $rq->where('room_number', 'ILIKE', $term))
+                ->orWhereRaw('CAST("Room_Reservation_ID" AS TEXT) ILIKE ?', [$term])
+                ->orWhereRaw('EXISTS (
+                        SELECT 1
+                        FROM users u
+                        JOIN rooms r ON r."id" = room_reservations."room_id"
+                        WHERE u."id" = room_reservations."Client_ID"
+                        AND (
+                                CONCAT(\'Room \', r."room_number", \' \', u."name") ILIKE ?
+                                OR CONCAT(u."name", \' Room \', r."room_number") ILIKE ?
+                        )
+                    )', [$term, $term]);
+=======
             
             $roomQuery->where(function ($q) use ($search) {
                 $q->whereHas('user', fn($u) => $u->where('Account_Name', 'ILIKE', "%{$search}%"))
                     ->orWhere('Room_Reservation_ID', 'ILIKE', "%{$search}%")
                     ->orWhereHas('room', fn($r) => $r->where('Room_Number', 'ILIKE', "%{$search}%"));
+>>>>>>> 0ea1a0d (SEMI CHANGES (PLS CHECK CODE AND STUDY))
             });
 
             
@@ -773,15 +980,36 @@ class ReservationController extends Controller
 
         // 4. Apply Venue Specific Filters
         if ($status) $venueQuery->where('Venue_Reservation_Status', $status);
+        if ($status) $venueQuery->where('Venue_Reservation_Status', $status);
         if ($clientType) {
+            $venueQuery->whereHas('user', fn($q) => $q->where('Account_Type', $clientType));
             $venueQuery->whereHas('user', fn($q) => $q->where('Account_Type', $clientType));
         }
         if ($search) {
+<<<<<<< HEAD
+            $term = "%{$search}%";
+
+            $venueQuery->where(function ($q) use ($term) {
+                $q->whereHas('user', fn($uq) => $uq->where('name', 'ILIKE', $term))
+                ->orWhereHas('venue', fn($rq) => $rq->where('name', 'ILIKE', $term))
+                ->orWhereRaw('CAST("Venue_Reservation_ID" AS TEXT) ILIKE ?', [$term])
+                ->orWhereRaw('EXISTS (
+                        SELECT 1
+                        FROM users u
+                        JOIN venues v ON v."id" = venue_reservations."venue_id"
+                        WHERE u."id" = venue_reservations."Client_ID"
+                        AND (
+                                CONCAT(v."name", \' \', u."name") ILIKE ?
+                                OR CONCAT(u."name", \' \',v."name") ILIKE ?
+                        )
+                    )', [$term, $term]);
+=======
             $venueQuery->where(function ($q) use ($search) {
                 $q->whereHas('user', fn($u) => $u->where('Account_Name', 'LIKE', "%{$search}%"))
                     ->orWhere('Venue_Reservation_ID', 'LIKE', "%{$search}%")
                     // Using 'Venue_Name' for the Venue table search
                     ->orWhereHas('venue', fn($v) => $v->where('Venue_Name', 'LIKE', "%{$search}%"));
+>>>>>>> 0ea1a0d (SEMI CHANGES (PLS CHECK CODE AND STUDY))
             });
         }
 
@@ -790,10 +1018,18 @@ class ReservationController extends Controller
             $item->display_type = 'room';
             $item->type = 'room';
             $item->status = $item->Room_Reservation_Status;
+            $item->status = $item->Room_Reservation_Status;
             $item->check_in = $item->Room_Reservation_Check_In_Time;
             $item->check_out = $item->Room_Reservation_Check_Out_Time;
             $item->total_amount = $item->Room_Reservation_Total_Price;
             $item->id = $item->Room_Reservation_ID;
+            $item->base_room_price = ($item->user && $item->user->Account_Type === 'Internal')
+                ? ($item->room->Room_Internal_Price ?? 0)
+                : ($item->room->Room_External_Price ?? 0);
+            $item->pax = $item->Room_Reservation_Pax ?? 0;
+            $item->discount = $item->Room_Reservation_Discount ?? 0;
+            $item->additional_fees = $item->Room_Reservation_Additional_Fees ?? 0;
+            $item->additional_fees_desc = $item->Room_Reservation_Additional_Fees_Desc ?? '';
             $item->base_room_price = ($item->user && $item->user->Account_Type === 'Internal')
                 ? ($item->room->Room_Internal_Price ?? 0)
                 : ($item->room->Room_External_Price ?? 0);
@@ -810,14 +1046,17 @@ class ReservationController extends Controller
             $item->display_type = 'venue';
             $item->type = 'venue';
             $item->status = $item->Venue_Reservation_Status;
+            $item->status = $item->Venue_Reservation_Status;
             $item->check_in = $item->Venue_Reservation_Check_In_Time;
             $item->check_out = $item->Venue_Reservation_Check_Out_Time;
             $item->total_amount = $item->Venue_Reservation_Total_Price;
             $item->id = $item->Venue_Reservation_ID;
             $item->pax = $item->Venue_Reservation_Pax ?? 0;
+            $item->pax = $item->Venue_Reservation_Pax ?? 0;
             $item->discount = $item->Venue_Reservation_Discount ?? 0;
             $item->additional_fees = $item->additional_fees ?? 0;
             $item->additional_fees_desc = $item->additional_fees_desc ?? '';
+            $item->food_total = $item->foods->sum('pivot.Food_Reservation_Total_Price') ?? 0;
             $item->food_total = $item->foods->sum('pivot.Food_Reservation_Total_Price') ?? 0;
             return $item;
         });
@@ -838,9 +1077,12 @@ class ReservationController extends Controller
             })
             ->values();
 
+<<<<<<< HEAD
+=======
 
            
 
+>>>>>>> 0ea1a0d (SEMI CHANGES (PLS CHECK CODE AND STUDY))
         // Manual pagination (two merged collections can't use ->paginate() directly)
         $perPage     = 15;
         $currentPage = $request->input('page', 1);
@@ -853,8 +1095,12 @@ class ReservationController extends Controller
         );
 
         // Counts for status cards (always fetches ALL to keep numbers accurate even when filtering)
+<<<<<<< HEAD
+        $allForCounts = \App\Models\RoomReservation::all()->concat(\App\Models\VenueReservation::all());
+=======
         $allForCounts = \App\Models\RoomReservation::select('Room_Reservation_Status as status')->get()
             ->concat(\App\Models\VenueReservation::select('Venue_Reservation_Status as status')->get());
+>>>>>>> 0ea1a0d (SEMI CHANGES (PLS CHECK CODE AND STUDY))
 
         return view('employee.guest', compact('reservations', 'allForCounts'));
     }
@@ -873,8 +1119,10 @@ class ReservationController extends Controller
                 $currentTotal = (float) $reservation->Room_Reservation_Total_Price;
                 $currentFees = (float) $reservation->Room_Reservation_Additional_Fees;
                 $currentDiscount = (float) $reservation->Room_Reservation_Discount;
+                $currentDiscount = (float) $reservation->Room_Reservation_Discount;
 
                 // 2. Reverse-engineer the TRUE original room cost (Price x Nights)
+                $trueBookingCost = $currentTotal - $currentFees + $currentDiscount;
                 $trueBookingCost = $currentTotal - $currentFees + $currentDiscount;
 
                 // 3. Get the new values from the form
@@ -904,8 +1152,10 @@ class ReservationController extends Controller
                 $reservation->Room_Reservation_Additional_Fees = $totalExtra;
                 $reservation->Room_Reservation_Additional_Fees_Desc = json_encode($combined);
                 $reservation->Room_Reservation_Discount = $discount;
+                $reservation->Room_Reservation_Discount = $discount;
 
                 // 5. Calculate new total strictly using the True Booking Cost
+                $reservation->Room_Reservation_Total_Price = ($trueBookingCost + $totalExtra) - $discount;
                 $reservation->Room_Reservation_Total_Price = ($trueBookingCost + $totalExtra) - $discount;
                 $reservation->save();
             } elseif ($type === 'venue') {
@@ -915,6 +1165,7 @@ class ReservationController extends Controller
                 $currentTotal = (float) $reservation->Venue_Reservation_Total_Price;
                 $currentFees = (float) $reservation->Venue_Reservation_Additional_Fees;
                 $currentDiscount = (float) $reservation->Venue_Reservation_Discount;
+                $foodTotal = (float) $reservation->foods->sum('pivot.Food_Reservation_Total_Price');
                 $foodTotal = (float) $reservation->foods->sum('pivot.Food_Reservation_Total_Price');
 
                 // 2. Reverse-engineer the TRUE original venue cost
@@ -960,6 +1211,8 @@ class ReservationController extends Controller
         } catch (\Exception $e) {
                 return redirect()->back()->with('error', 'Something went wrong. Please try again.');
             //return dd("Database Error: " . $e->getMessage());
+                return redirect()->back()->with('error', 'Something went wrong. Please try again.');
+            //return dd("Database Error: " . $e->getMessage());
         }
     }
     public function updateStatus(Request $request, $id)
@@ -981,14 +1234,157 @@ class ReservationController extends Controller
 
         try {
             if ($type === 'room') {
+<<<<<<< HEAD
+                $reservation = \App\Models\RoomReservation::with(['user', 'room'])->findOrFail($id);
+            } else {
+                $reservation = \App\Models\VenueReservation::with(['user', 'venue'])->findOrFail($id);
+=======
                 $reservation = RoomReservation::with(['user', 'room'])->findOrFail($id);
             } else {
                 $reservation = VenueReservation::with(['user', 'venue'])->findOrFail($id);
+>>>>>>> 0ea1a0d (SEMI CHANGES (PLS CHECK CODE AND STUDY))
             }
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             return redirect()->back()->with('error', 'Reservation not found.');
         }
 
+<<<<<<< HEAD
+        $reservation->status = $newStatus;
+
+        // Checkout always starts as unpaid — payment is confirmed separately
+        if (in_array($newStatus, ['checked-out', 'completed'])) {
+            $reservation->$paymentColumn = 'unpaid';
+        }
+
+        $reservation->save();
+        // ── Notify client via email + in-system notification ──
+        $this->notifyClientOnStatusChange($reservation, $type, $newStatus);
+
+        $emailStatuses = ['confirmed', 'checked-in', 'checked-out', 'completed', 'cancelled', 'rejected'];
+        $emailSent = in_array($newStatus, $emailStatuses);
+
+        return redirect()->back()
+            ->with('success', 'Status updated to ' . ucfirst($newStatus) . ' successfully.')
+            ->with('email_sent', $emailSent);
+    }
+
+    /**
+     * Send email + create in-system notification when a reservation status changes.
+     */
+    private function notifyClientOnStatusChange($reservation, string $type, string $status): void
+    {
+        $user = $reservation->user;
+        if (!$user) return;
+
+        // Build a human-readable accommodation label
+        $accName = $type === 'room'
+            ? 'Room ' . ($reservation->room->Room_Number ?? $reservation->getKey())
+            : ($reservation->venue->Venue_Name ?? 'Venue');
+
+        $notificationMap = [
+            'confirmed'   => [
+                'title' => 'Reservation Confirmed',
+                'msg'   => "Your reservation for {$accName} has been confirmed. Please arrive on time for check-in.",
+            ],
+            'checked-in'  => [
+                'title' => 'Checked In Successfully',
+                'msg'   => "You are now checked in to {$accName}. Enjoy your stay!",
+            ],
+            'checked-out' => [
+                'title' => 'Checked Out',
+                'msg'   => "Your stay at {$accName} has ended. Thank you for choosing Lantaka!",
+            ],
+            'completed'   => [
+                'title' => 'Stay Completed',
+                'msg'   => "Your stay at {$accName} is now complete. Thank you for choosing Lantaka!",
+            ],
+            'cancelled'   => [
+                'title' => 'Reservation Cancelled',
+                'msg'   => "Your reservation for {$accName} has been cancelled. Contact us if you have questions.",
+            ],
+            'rejected'    => [
+                'title' => 'Reservation Not Approved',
+                'msg'   => "Your reservation request for {$accName} was not approved. Please contact Lantaka for details.",
+            ],
+        ];
+
+        if (!isset($notificationMap[$status])) return;
+
+        $title = $notificationMap[$status]['title'];
+        $msg   = $notificationMap[$status]['msg'];
+
+        // 1. Audit log (admin actor, no notifiable_user)
+        EventLogController::log(
+            "reservation_{$status}",
+            "[Admin] {$title} — {$accName} (reservation #{$reservation->getKey()}) for {$user->Account_Name}",
+            Auth::id(),
+            null,
+            ['title' => $title, 'type' => $status]
+        );
+
+        // 2. Client notification (surfaced in the bell)
+        try {
+            EventLog::create([
+                'user_id'            => Auth::id(),
+                'notifiable_user_id' => $user->Account_ID,
+                'action'             => "reservation_{$status}",
+                'title'              => $title,
+                'message'            => $msg,
+                'type'               => $status,
+                'link'               => '/client/my_reservations',
+                'is_read'            => false,
+            ]);
+        } catch (\Throwable $e) {
+            Log::error("EventLog notification create failed: " . $e->getMessage());
+        }
+
+        // 3. Send email
+        if (!$user->Account_Email) return;
+        try {
+            switch ($status) {
+                case 'confirmed':
+                    Mail::to($user->Account_Email)->send(new ReservationConfirmedMail($reservation, $type));
+                    break;
+                case 'checked-in':
+                    Mail::to($user->Account_Email)->send(new ReservationCheckedInMail($reservation, $type));
+                    break;
+                case 'checked-out':
+                case 'completed':
+                    $foodTotal = 0;
+                    if ($type === 'venue') {
+                        $foodTotal = \App\Models\FoodReservation::where('Venue_Reservation_ID', $reservation->getKey())
+                            ->sum('Food_Reservation_Total_Price');
+                    }
+                    Mail::to($user->Account_Email)->send(new \App\Mail\GuestCheckOutMail($reservation, $type, $foodTotal));
+                    break;
+                case 'cancelled':
+                    Mail::to($user->Account_Email)->send(new ReservationCancelledMail($reservation, $type));
+                    break;
+                case 'rejected':
+                    Mail::to($user->Account_Email)->send(new ReservationRejectedMail($reservation, $type));
+                    break;
+            }
+        } catch (\Exception $e) {
+            Log::error("Email failed for reservation #{$reservation->getKey()}: " . $e->getMessage());
+        }
+    }
+
+    /**
+     * Mark an already-checked-out reservation as paid.
+     */
+    public function markAsPaid(\Illuminate\Http\Request $request, $id)
+    {
+        $type = $request->query('type');
+
+        if (!in_array($type, ['room', 'venue'])) {
+            return redirect()->back()->with('error', 'Invalid reservation type.');
+        }
+
+        try {
+            $reservation = ($type === 'room')
+                ? \App\Models\RoomReservation::findOrFail($id)
+                : \App\Models\VenueReservation::findOrFail($id);
+=======
         $statusColumn  = $type === 'room' ? 'Room_Reservation_Status'        : 'Venue_Reservation_Status';
         $paymentColumn = $type === 'room' ? 'Room_Reservation_Payment_Status' : 'Venue_Reservation_Payment_Status';
 
@@ -1127,11 +1523,15 @@ class ReservationController extends Controller
             $reservation = ($type === 'room')
                 ? RoomReservation::findOrFail($id)
                 : VenueReservation::findOrFail($id);
+>>>>>>> 0ea1a0d (SEMI CHANGES (PLS CHECK CODE AND STUDY))
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             return redirect()->back()->with('error', 'Reservation not found.');
         }
 
+<<<<<<< HEAD
+=======
 
+>>>>>>> 0ea1a0d (SEMI CHANGES (PLS CHECK CODE AND STUDY))
         $reservation->payment_status = 'paid';
         $reservation->save();
 
@@ -1169,6 +1569,7 @@ class ReservationController extends Controller
             return [
                 'id' => $item->Room_Reservation_ID,
                 'status' => strtolower($item->Room_Reservation_Status),
+                'status' => strtolower($item->Room_Reservation_Status),
                 'check_in' => \Carbon\Carbon::parse($item->Room_Reservation_Check_In_Time)->format('Y-m-d'),
                 'check_out' => \Carbon\Carbon::parse($item->Room_Reservation_Check_Out_Time)->format('Y-m-d'),
                 'user' => $item->user,
@@ -1181,6 +1582,7 @@ class ReservationController extends Controller
         $venueRes = VenueReservation::with(['venue', 'user'])->get()->map(function ($item) {
             return [
                 'id' => $item->Venue_Reservation_ID,
+                'status' => strtolower($item->Venue_Reservation_Status),
                 'status' => strtolower($item->Venue_Reservation_Status),
                 'check_in' => \Carbon\Carbon::parse($item->Venue_Reservation_Check_In_Time)->format('Y-m-d'),
                 'check_out' => \Carbon\Carbon::parse($item->Venue_Reservation_Check_Out_Time)->format('Y-m-d'),
@@ -1202,13 +1604,17 @@ class ReservationController extends Controller
 
 
         $activeRoomGuests = RoomReservation::where('Room_Reservation_Status', 'checked-in')
+        $activeRoomGuests = RoomReservation::where('Room_Reservation_Status', 'checked-in')
             ->whereDate('Room_Reservation_Check_In_Time', '<=', $today)
             ->whereDate('Room_Reservation_Check_Out_Time', '>=', $today)
             ->sum('Room_Reservation_Pax');
+            ->sum('Room_Reservation_Pax');
 
+        $activeVenueGuests = VenueReservation::where('Venue_Reservation_Status', 'checked-in')
         $activeVenueGuests = VenueReservation::where('Venue_Reservation_Status', 'checked-in')
             ->whereDate('Venue_Reservation_Check_In_Time', '<=', $today)
             ->whereDate('Venue_Reservation_Check_Out_Time', '>=', $today)
+            ->sum('Venue_Reservation_Pax');
             ->sum('Venue_Reservation_Pax');
 
         $activeGuests = $activeRoomGuests + $activeVenueGuests;
@@ -1218,6 +1624,7 @@ class ReservationController extends Controller
         $totalRooms = Room::count();
         $totalRoomNights = $totalRooms * $days;
 
+        $roomNightsSold = RoomReservation::where('Room_Reservation_Status', 'checked-in')
         $roomNightsSold = RoomReservation::where('Room_Reservation_Status', 'checked-in')
             ->whereBetween('Room_Reservation_Check_In_Time', [
                 Carbon::now()->subDays($days),
@@ -1232,9 +1639,11 @@ class ReservationController extends Controller
         // CHECK-OUTS TODAY
         $roomCheckOutsToday = RoomReservation::with(['room', 'user'])
             ->where('Room_Reservation_Status', 'checked-in')
+            ->where('Room_Reservation_Status', 'checked-in')
             ->whereDate('Room_Reservation_Check_Out_Time', $today)
             ->get();
         $venueCheckOutsToday = VenueReservation::with(['venue', 'user'])
+            ->where('Venue_Reservation_Status', 'checked-in')
             ->where('Venue_Reservation_Status', 'checked-in')
             ->whereDate('Venue_Reservation_Check_Out_Time', $today)
             ->get();
@@ -1244,7 +1653,11 @@ class ReservationController extends Controller
         $checkOutsTodayCount = $checkOutsToday->count();
 
         $changes = $this->computeStatChanges($occupancyRate, $activeGuests);
+<<<<<<< HEAD
+
+=======
         
+>>>>>>> 0ea1a0d (SEMI CHANGES (PLS CHECK CODE AND STUDY))
         return view('employee.dashboard', compact(
             'reservations',
             'totalReservations',
@@ -1270,6 +1683,7 @@ class ReservationController extends Controller
     {
         $request->validate([
             'user_id' => 'required|exists:Account,Account_ID',
+            'user_id' => 'required|exists:Account,Account_ID',
             'accommodation_id' => 'required|integer',
             'type' => 'required|in:room,venue',
             'check_in' => 'required|date',
@@ -1277,6 +1691,8 @@ class ReservationController extends Controller
             'pax' => 'required|integer|min:1',
         ]);
 
+        $checkIn  = Carbon::parse($request->check_in);
+        $checkOut = Carbon::parse($request->check_out);
         $checkIn  = Carbon::parse($request->check_in);
         $checkOut = Carbon::parse($request->check_out);
         $days = $checkIn->diffInDays($checkOut) ?: 1;
@@ -1288,8 +1704,14 @@ class ReservationController extends Controller
                 ? ($room->Room_Internal_Price ?? 0)
                 : ($room->Room_External_Price ?? 0);
             $totalAmount = $price * $days;
+            $client = \App\Models\Account::find($request->user_id);
+            $price = ($client && $client->Account_Type === 'Internal')
+                ? ($room->Room_Internal_Price ?? 0)
+                : ($room->Room_External_Price ?? 0);
+            $totalAmount = $price * $days;
 
             $reservation = \App\Models\RoomReservation::create([
+                'Room_ID' => $request->accommodation_id,
                 'Room_ID' => $request->accommodation_id,
                 'Client_ID' => $request->user_id,
                 'Room_Reservation_Date' => now(),
@@ -1297,7 +1719,10 @@ class ReservationController extends Controller
                 'Room_Reservation_Check_Out_Time' => $request->check_out,
                 'Room_Reservation_Pax' => $request->pax,
                 'Room_Reservation_Purpose' => $request->purpose,
+                'Room_Reservation_Pax' => $request->pax,
+                'Room_Reservation_Purpose' => $request->purpose,
                 'Room_Reservation_Total_Price' => $totalAmount,
+                'Room_Reservation_Status' => 'pending',
                 'Room_Reservation_Status' => 'pending',
             ]);
 
@@ -1312,9 +1737,14 @@ class ReservationController extends Controller
                 $basePrice = ($venueClient && $venueClient->Account_Type === 'Internal')
                     ? ($venue->Venue_Internal_Price ?? 0)
                     : ($venue->Venue_External_Price ?? 0);
+                $venueClient = \App\Models\Account::find($request->user_id);
+                $basePrice = ($venueClient && $venueClient->Account_Type === 'Internal')
+                    ? ($venue->Venue_Internal_Price ?? 0)
+                    : ($venue->Venue_External_Price ?? 0);
                 $totalAmount = $basePrice * $days;
 
                 $reservation = \App\Models\VenueReservation::create([
+                    'Venue_ID' => $request->accommodation_id,
                     'Venue_ID' => $request->accommodation_id,
                     'Client_ID' => $request->user_id,
                     'Venue_Reservation_Date' => now(),
@@ -1322,7 +1752,10 @@ class ReservationController extends Controller
                     'Venue_Reservation_Check_Out_Time' => $request->check_out,
                     'Venue_Reservation_Pax' => $request->pax,
                     'Venue_Reservation_Purpose' => $request->purpose,
+                    'Venue_Reservation_Pax' => $request->pax,
+                    'Venue_Reservation_Purpose' => $request->purpose,
                     'Venue_Reservation_Total_Price' => $totalAmount,
+                    'Venue_Reservation_Status' => 'pending',
                     'Venue_Reservation_Status' => 'pending',
                 ]);
 
@@ -1345,8 +1778,15 @@ class ReservationController extends Controller
 
                         if ($food) {
                             $price = $food->Food_Price ?? 0;
+                            $price = $food->Food_Price ?? 0;
 
                             \App\Models\FoodReservation::create([
+                                'Food_ID'                       => $foodId,
+                                'Venue_Reservation_ID'          => $reservation->Venue_Reservation_ID,
+                                'Client_ID'                     => $reservation->Client_ID,
+                                'Food_Reservation_Serving_Date' => $date,
+                                'Food_Reservation_Meal_time'    => $mealType,
+                                'Food_Reservation_Total_Price'  => $price * $request->pax,
                                 'Food_ID'                       => $foodId,
                                 'Venue_Reservation_ID'          => $reservation->Venue_Reservation_ID,
                                 'Client_ID'                     => $reservation->Client_ID,
@@ -1380,6 +1820,7 @@ class ReservationController extends Controller
     public function prepareEmployeeBooking(Request $request)
     {
         $request->validate([
+            'user_id' => 'required|exists:Account,Account_ID',
             'user_id' => 'required|exists:Account,Account_ID',
             'accommodation_id' => 'required|integer',
             'type' => 'required|in:room,venue',
@@ -1436,13 +1877,23 @@ class ReservationController extends Controller
                 ? ($room->Room_Internal_Price ?? 0)
                 : ($room->Room_External_Price ?? 0);
             $totalAmount = $price * $days;
+            $client = \App\Models\Account::find($reservation->Client_ID);
+            $price = ($client && $client->Account_Type === 'Internal')
+                ? ($room->Room_Internal_Price ?? 0)
+                : ($room->Room_External_Price ?? 0);
+            $totalAmount = $price * $days;
 
             $reservation->update([
                 'Room_Reservation_Check_In_Time'  => $request->check_in,
                 'Room_Reservation_Check_Out_Time' => $request->check_out,
                 'Room_Reservation_Pax'            => $request->pax,
+                'Room_Reservation_Pax'            => $request->pax,
                 'Room_Reservation_Total_Price'    => $totalAmount,
+<<<<<<< HEAD
+                'purpose'                         => $request->purpose,
+=======
                 'Room_Reservation_Purpose'        => $request->purpose,
+>>>>>>> 0ea1a0d (SEMI CHANGES (PLS CHECK CODE AND STUDY))
             ]);
 
             return redirect()
@@ -1457,14 +1908,23 @@ class ReservationController extends Controller
             $basePrice   = ($venueClient && $venueClient->Account_Type === 'Internal')
                 ? ($venue->Venue_Internal_Price ?? 0)
                 : ($venue->Venue_External_Price ?? 0);
+            $venueClient = \App\Models\Account::find($reservation->Client_ID);
+            $basePrice   = ($venueClient && $venueClient->Account_Type === 'Internal')
+                ? ($venue->Venue_Internal_Price ?? 0)
+                : ($venue->Venue_External_Price ?? 0);
             $totalAmount = $basePrice * ($days + 1); // venues are day-inclusive
 
             $reservation->update([
                 'Venue_Reservation_Check_In_Time'  => $request->check_in,
                 'Venue_Reservation_Check_Out_Time' => $request->check_out,
                 'Venue_Reservation_Pax'            => $request->pax,
+                'Venue_Reservation_Pax'            => $request->pax,
                 'Venue_Reservation_Total_Price'    => $totalAmount,
+<<<<<<< HEAD
+                'purpose'                          => $request->purpose,
+=======
                 'Venue_Reservation_Purpose'        => $request->purpose,
+>>>>>>> 0ea1a0d (SEMI CHANGES (PLS CHECK CODE AND STUDY))
             ]);
 
             // ── Snapshot existing food selections BEFORE deleting ──
@@ -1473,7 +1933,12 @@ class ReservationController extends Controller
             $previousMealEnabled    = [];
 
             // Load foods() relationship (withPivot for Food_Reservation_Serving_Date, Food_Reservation_Meal_time)
+            // Load foods() relationship (withPivot for Food_Reservation_Serving_Date, Food_Reservation_Meal_time)
             foreach ($reservation->foods as $food) {
+                $date     = $food->pivot->Food_Reservation_Serving_Date ?? null;
+                $mealType = $food->pivot->Food_Reservation_Meal_time    ?? null;
+                $category = $food->Food_Category       ?? null;
+                $foodId   = $food->Food_ID ?? $food->Food_ID ?? null;
                 $date     = $food->pivot->Food_Reservation_Serving_Date ?? null;
                 $mealType = $food->pivot->Food_Reservation_Meal_time    ?? null;
                 $category = $food->Food_Category       ?? null;
@@ -1488,6 +1953,7 @@ class ReservationController extends Controller
 
             // Clear old food records so the employee can re-select on the food page
             \App\Models\FoodReservation::where(
+                'Venue_Reservation_ID',
                 'Venue_Reservation_ID',
                 $reservation->Venue_Reservation_ID
             )->delete();
@@ -1526,6 +1992,7 @@ class ReservationController extends Controller
                 ->with('error', 'No pending booking found.');
         }
         $foods = Food::orderBy('Food_Category')->get();
+        $foods = Food::orderBy('Food_Category')->get();
 
         return view('employee.create_food_reservation', compact('bookingData', 'foods'));
     }
@@ -1533,14 +2000,17 @@ class ReservationController extends Controller
     public function showSOA($clientId)
     {
         $client = Account::findOrFail($clientId);
+        $client = Account::findOrFail($clientId);
 
         $roomReservations = RoomReservation::with('room')
             ->where('Client_ID', $clientId)
+            ->where('Room_Reservation_Status', 'checked-in')
             ->where('Room_Reservation_Status', 'checked-in')
             ->get();
 
         $venueReservations = VenueReservation::with('venue')
             ->where('Client_ID', $clientId)
+            ->where('Venue_Reservation_Status', 'checked-in')
             ->where('Venue_Reservation_Status', 'checked-in')
             ->get();
 
@@ -1574,18 +2044,23 @@ class ReservationController extends Controller
             $additionalFees = (float) ($r->Room_Reservation_Additional_Fees ?? 0);
             $discount = (float) ($r->Room_Reservation_Discount ?? 0);
             $baseAmount = (float) ($r->Room_Reservation_Total_Price ?? 0) - $additionalFees + $discount;
+            $discount = (float) ($r->Room_Reservation_Discount ?? 0);
+            $baseAmount = (float) ($r->Room_Reservation_Total_Price ?? 0) - $additionalFees + $discount;
 
             $reservations->push([
                 'type' => 'room',
                 'id' => $r->Room_Reservation_ID,
                 'name' => 'Room ' . ($r->room->Room_Number ?? 'Error'),
+                'name' => 'Room ' . ($r->room->Room_Number ?? 'Error'),
                 'check_in' => $checkIn->format('m/d/Y'),
                 'check_out' => $checkOut->format('m/d/Y'),
+                'pax' => $r->Room_Reservation_Pax,
                 'pax' => $r->Room_Reservation_Pax,
                 'days' => $days,
                 'base_price' => $baseAmount,
                 'total_price' => $r->Room_Reservation_Total_Price ?? 0,
                 'additional_fees' => $additionalFees,
+                'discount' => $discount,
                 'discount' => $discount,
                 'additional_fee_items' => $parsedItems,
             ]);
@@ -1624,8 +2099,10 @@ class ReservationController extends Controller
                 'type' => 'venue',
                 'id' => $v->Venue_Reservation_ID,
                 'name' => 'Venue ' . ($v->venue->Venue_Name ?? 'Error'),
+                'name' => 'Venue ' . ($v->venue->Venue_Name ?? 'Error'),
                 'check_in' => $checkIn->format('m/d/Y'),
                 'check_out' => $checkOut->format('m/d/Y'),
+                'pax' => $v->Venue_Reservation_Pax,
                 'pax' => $v->Venue_Reservation_Pax,
                 'days' => $days,
                 'base_price' => $baseAmount,
@@ -1656,9 +2133,11 @@ class ReservationController extends Controller
             ->toArray();
 
         $client = Account::findOrFail($clientId);
+        $client = Account::findOrFail($clientId);
 
         $roomReservations = RoomReservation::with('room')
             ->where('Client_ID', $clientId)
+            ->where('Room_Reservation_Status', 'checked-in')
             ->where('Room_Reservation_Status', 'checked-in')
             ->when(!empty($roomIds), function ($query) use ($roomIds) {
                 $query->whereIn('Room_Reservation_ID', $roomIds);
@@ -1669,6 +2148,7 @@ class ReservationController extends Controller
 
         $venueReservations = VenueReservation::with('venue')
             ->where('Client_ID', $clientId)
+            ->where('Venue_Reservation_Status', 'checked-in')
             ->where('Venue_Reservation_Status', 'checked-in')
             ->when(!empty($venueIds), function ($query) use ($venueIds) {
                 $query->whereIn('Venue_Reservation_ID', $venueIds);
@@ -1691,7 +2171,11 @@ class ReservationController extends Controller
 
             $reservations->push([
                 'date'        => $checkIn->format('F d, Y'),
+<<<<<<< HEAD
+                'particulars' => 'Room ' . ($r->room->Room_Number ?? $r->room->room_number ?? 'Room'),
+=======
                 'particulars' => 'Room ' . ($r->room->Room_Number ?? 'Room'),
+>>>>>>> 0ea1a0d (SEMI CHANGES (PLS CHECK CODE AND STUDY))
                 'qty'         => $nights,
                 'unit'        => 'night',
                 'rate'        => $ratePerNight,
@@ -1732,7 +2216,11 @@ class ReservationController extends Controller
 
             $reservations->push([
                 'date'        => $checkIn->format('F d, Y'),
+<<<<<<< HEAD
+                'particulars' => 'Venue: ' . ($v->venue->Venue_Name ?? $v->venue->name ?? 'Venue'),
+=======
                 'particulars' => 'Venue: ' . ($v->venue->Venue_Name ?? 'Venue'),
+>>>>>>> 0ea1a0d (SEMI CHANGES (PLS CHECK CODE AND STUDY))
                 'qty'         => $days,
                 'unit'        => 'day',
                 'rate'        => $ratePerDay,
@@ -1800,7 +2288,11 @@ class ReservationController extends Controller
         // ── Header ───────────────────────────────────────────────────────────
         $sheet->setCellValue('C11', 'Date: ' . now()->format('F d, Y'));
         $sheet->setCellValue('C15', 'To:');
+<<<<<<< HEAD
+        $sheet->setCellValue('C16', $client->name);
+=======
         $sheet->setCellValue('C16', $client->Account_Name);
+>>>>>>> 0ea1a0d (SEMI CHANGES (PLS CHECK CODE AND STUDY))
 
         // ── Dynamic row insertion ────────────────────────────────────────────
         $numItems  = $reservations->count();
@@ -1902,7 +2394,11 @@ class ReservationController extends Controller
         $sheet->getStyle("J{$r4}")->applyFromArray($totalFont);
 
         // ── Export ───────────────────────────────────────────────────────────
+<<<<<<< HEAD
+        $fileName = 'SOA_' . str_replace(' ', '_', $client->name) . '_' . now()->format('Ymd') . '.xlsx';
+=======
         $fileName = 'SOA_' . str_replace(' ', '_', $client->Account_Name) . '_' . now()->format('Ymd') . '.xlsx';
+>>>>>>> 0ea1a0d (SEMI CHANGES (PLS CHECK CODE AND STUDY))
         $tempFile = tempnam(sys_get_temp_dir(), 'soa');
 
         $writer = new Xlsx($spreadsheet);
@@ -1994,12 +2490,19 @@ class ReservationController extends Controller
             return [
                 'id' => $item->Room_Reservation_ID,
                 'status' => strtolower($item->Room_Reservation_Status),
+                'status' => strtolower($item->Room_Reservation_Status),
                 'check_in' => Carbon::parse($item->Room_Reservation_Check_In_Time)->format('Y-m-d'),
                 'check_out' => Carbon::parse($item->Room_Reservation_Check_Out_Time)->format('Y-m-d'),
                 'user' => $item->user ? [
+<<<<<<< HEAD
+                    'name' => $item->user->name
+                ] : null,
+                'label' => $item->room ? 'Room ' . $item->room->room_number : 'Room N/A',
+=======
                     'name' => $item->user->Account_Name
                     ] : null,
                 'label' => $item->room ? 'Room ' . $item->room->Room_Number : 'Room N/A',
+>>>>>>> 0ea1a0d (SEMI CHANGES (PLS CHECK CODE AND STUDY))
                 'type' => 'room',
             ];
         });
@@ -2008,9 +2511,11 @@ class ReservationController extends Controller
             return [
                 'id' => $item->Venue_Reservation_ID,
                 'status' => strtolower($item->Venue_Reservation_Status),
+                'status' => strtolower($item->Venue_Reservation_Status),
                 'check_in' => Carbon::parse($item->Venue_Reservation_Check_In_Time)->format('Y-m-d'),
                 'check_out' => Carbon::parse($item->Venue_Reservation_Check_Out_Time)->format('Y-m-d'),
                 'user' => $item->user ? [
+                    'name' => $item->user->Account_Name
                     'name' => $item->user->Account_Name
                 ] : null,
                 'label' => $item->venue ? $item->venue->Venue_Name : 'Venue N/A',
@@ -2029,13 +2534,17 @@ class ReservationController extends Controller
         $today = Carbon::today();
 
         $activeRoomGuests = RoomReservation::where('Room_Reservation_Status', 'checked-in')
+        $activeRoomGuests = RoomReservation::where('Room_Reservation_Status', 'checked-in')
             ->whereDate('Room_Reservation_Check_In_Time', '<=', $today)
             ->whereDate('Room_Reservation_Check_Out_Time', '>=', $today)
             ->sum('Room_Reservation_Pax');
+            ->sum('Room_Reservation_Pax');
 
+        $activeVenueGuests = VenueReservation::where('Venue_Reservation_Status', 'checked-in')
         $activeVenueGuests = VenueReservation::where('Venue_Reservation_Status', 'checked-in')
             ->whereDate('Venue_Reservation_Check_In_Time', '<=', $today)
             ->whereDate('Venue_Reservation_Check_Out_Time', '>=', $today)
+            ->sum('Venue_Reservation_Pax');
             ->sum('Venue_Reservation_Pax');
 
         $activeGuests = $activeRoomGuests + $activeVenueGuests;
@@ -2044,6 +2553,7 @@ class ReservationController extends Controller
         $totalRooms = Room::count();
         $totalRoomNights = $totalRooms * $days;
 
+        $roomNightsSold = RoomReservation::where('Room_Reservation_Status', 'checked-in')
         $roomNightsSold = RoomReservation::where('Room_Reservation_Status', 'checked-in')
             ->whereBetween('Room_Reservation_Check_In_Time', [
                 Carbon::now()->subDays($days),
@@ -2057,9 +2567,11 @@ class ReservationController extends Controller
 
         $checkOutsTodayRooms = RoomReservation::whereDate('Room_Reservation_Check_Out_Time', $today)
             ->where('Room_Reservation_Status', 'checked-out')
+            ->where('Room_Reservation_Status', 'checked-out')
             ->count();
 
         $checkOutsTodayVenues = VenueReservation::whereDate('Venue_Reservation_Check_Out_Time', $today)
+            ->where('Venue_Reservation_Status', 'checked-out')
             ->where('Venue_Reservation_Status', 'checked-out')
             ->count();
 
@@ -2119,10 +2631,17 @@ class ReservationController extends Controller
         // ── Status Breakdown ──
         $statuses      = ['pending', 'confirmed', 'checked-in', 'checked-out', 'completed', 'cancelled'];
         $roomStatuses  = RoomReservation::whereBetween('created_at', [$start, $end])
+<<<<<<< HEAD
+                            ->selectRaw('status, count(*) as cnt')->groupBy('status')
+                            ->pluck('cnt', 'status');
+        $venueStatuses = VenueReservation::whereBetween('created_at', [$start, $end])
+                            ->selectRaw('status, count(*) as cnt')->groupBy('status')
+=======
                             ->selectRaw('"Room_Reservation_Status" as status, count(*) as cnt')->groupBy('Room_Reservation_Status')
                             ->pluck('cnt', 'status');
         $venueStatuses = VenueReservation::whereBetween('created_at', [$start, $end])
                             ->selectRaw('"Venue_Reservation_Status" as status, count(*) as cnt')->groupBy('Venue_Reservation_Status')
+>>>>>>> 0ea1a0d (SEMI CHANGES (PLS CHECK CODE AND STUDY))
                             ->pluck('cnt', 'status');
         $statusBreakdown = [];
         foreach ($statuses as $s) {
@@ -2150,8 +2669,13 @@ class ReservationController extends Controller
         // ── Top Rooms ──
         $topRooms = RoomReservation::with('room')
             ->whereBetween('created_at', [$start, $end])
+<<<<<<< HEAD
+            ->selectRaw('"room_id", count(*) as bookings, sum("Room_Reservation_Total_Price") as revenue')
+            ->groupBy('room_id')->orderByDesc('revenue')->limit(5)->get()
+=======
             ->selectRaw('"Room_ID", count(*) as bookings, sum("Room_Reservation_Total_Price") as revenue')
             ->groupBy('Room_ID')->orderByDesc('revenue')->limit(5)->get()
+>>>>>>> 0ea1a0d (SEMI CHANGES (PLS CHECK CODE AND STUDY))
             ->map(fn($r) => [
                 'name'     => $r->room ? 'Room ' . $r->room->Room_Number : 'Room #' . $r->Room_ID,
                 'bookings' => (int)$r->bookings,
@@ -2161,8 +2685,13 @@ class ReservationController extends Controller
         // ── Top Venues ──
         $topVenues = VenueReservation::with('venue')
             ->whereBetween('created_at', [$start, $end])
+<<<<<<< HEAD
+            ->selectRaw('"venue_id", count(*) as bookings, sum("Venue_Reservation_Total_Price") as revenue')
+            ->groupBy('venue_id')->orderByDesc('revenue')->limit(5)->get()
+=======
             ->selectRaw('"Venue_ID", count(*) as bookings, sum("Venue_Reservation_Total_Price") as revenue')
             ->groupBy('Venue_ID')->orderByDesc('revenue')->limit(5)->get()
+>>>>>>> 0ea1a0d (SEMI CHANGES (PLS CHECK CODE AND STUDY))
             ->map(fn($r) => [
                 'name'     => $r->venue ? $r->venue->Venue_Name : 'Venue #' . $r->Venue_ID,
                 'bookings' => (int)$r->bookings,
@@ -2213,7 +2742,11 @@ class ReservationController extends Controller
         // ── Occupancy: previous 30-60 day rolling window ──
         $totalRooms = Room::count();
         $prevRoomNights = $totalRooms * 30;
+<<<<<<< HEAD
+        $prevRoomNightsSold = RoomReservation::where('status', 'checked-in')
+=======
         $prevRoomNightsSold = RoomReservation::where('Room_Reservation_Status', 'checked-in')
+>>>>>>> 0ea1a0d (SEMI CHANGES (PLS CHECK CODE AND STUDY))
             ->whereBetween('Room_Reservation_Check_In_Time', [
                 Carbon::now()->subDays(60),
                 Carbon::now()->subDays(30),
@@ -2223,8 +2756,15 @@ class ReservationController extends Controller
             : 0;
 
         // ── Active guests: pax checked-in during last month (volume proxy) ──
+<<<<<<< HEAD
+        $activeGuestsLast = RoomReservation::where('status', 'checked-in')
+                ->whereBetween('Room_Reservation_Check_In_Time', [$lastStart, $lastEnd])->sum('pax')
+            + VenueReservation::where('status', 'checked-in')
+                ->whereBetween('Venue_Reservation_Check_In_Time', [$lastStart, $lastEnd])->sum('pax');
+=======
         $activeGuestsLast = RoomReservation::whereBetween('Room_Reservation_Check_In_Time', [$lastStart, $lastEnd])->sum('Room_Reservation_Pax')
             + VenueReservation::whereBetween('Venue_Reservation_Check_In_Time', [$lastStart, $lastEnd])->sum('Venue_Reservation_Pax');
+>>>>>>> 0ea1a0d (SEMI CHANGES (PLS CHECK CODE AND STUDY))
 
         // ── Check-outs: this month vs last month ──
         $checkOutsThis = RoomReservation::whereDate('Room_Reservation_Check_Out_Time', '>=', $thisStart)
@@ -2252,4 +2792,8 @@ class ReservationController extends Controller
             'lastMonthLabel'    => Carbon::now()->subMonth()->format('M Y'),
         ];
     }
+<<<<<<< HEAD
+}
+=======
 }   
+>>>>>>> 0ea1a0d (SEMI CHANGES (PLS CHECK CODE AND STUDY))

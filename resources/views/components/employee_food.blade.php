@@ -1,7 +1,11 @@
 <link rel="stylesheet" href="{{ asset('css/employee_food.css') }}">
 
 @php
+<<<<<<< HEAD
+  $isAdmin = auth()->user()->role === 'admin';
+=======
   $isAdmin = auth()->user()->Account_Role === 'admin';
+>>>>>>> 0ea1a0d (SEMI CHANGES (PLS CHECK CODE AND STUDY))
   $categories = [
     'rice'       => 'Rice',
     'set_viand'  => 'Set Viand',
@@ -62,6 +66,22 @@
             <div class="fm-list">
               @foreach($foods[$key] as $food)
                 <div
+<<<<<<< HEAD
+                  class="fm-item {{ $food->status === 'unavailable' ? 'fm-item--unavailable' : '' }} {{ $isAdmin ? 'fm-item--editable' : '' }}"
+                  data-id="{{ $food->food_id }}"
+                  data-name="{{ $food->food_name }}"
+                  data-status="{{ $food->status }}"
+                  data-type="{{ $food->food_category }}"
+                  data-price="{{ $food->food_price }}"
+                >
+                  <div class="fm-item-left">
+                    <span class="fm-item-dot {{ $food->Food_Status === 'unavailable' ? 'dot--off' : 'dot--on' }}"></span>
+                    <span class="fm-item-name">{{ $food->Food_Name }}</span>
+                  </div>
+                  <div class="fm-item-right">
+                    <span class="fm-item-price">₱ {{ number_format($food->food_price, 2) }}</span>
+                    @if($food->status === 'unavailable')
+=======
                   class="fm-item {{ $food->Food_Status === 'unavailable' ? 'fm-item--unavailable' : '' }} {{ $isAdmin ? 'fm-item--editable' : '' }}"
                   data-id="{{ $food->Food_ID }}"
                   data-name="{{ $food->Food_Name }}"
@@ -76,6 +96,7 @@
                   <div class="fm-item-right">
                     <span class="fm-item-price">₱ {{ number_format($food->Food_Price, 2) }}</span>
                     @if($food->Food_Status === 'unavailable')
+>>>>>>> 0ea1a0d (SEMI CHANGES (PLS CHECK CODE AND STUDY))
                       <span class="fm-badge fm-badge--off">Unavailable</span>
                     @else
                       <span class="fm-badge fm-badge--on">Available</span>

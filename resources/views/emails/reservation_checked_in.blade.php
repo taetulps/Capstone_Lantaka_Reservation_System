@@ -26,6 +26,19 @@ body{margin:0;padding:0;background:#f4f6f9;font-family:'Segoe UI',Arial,sans-ser
     <h1>Lantaka Reservation System</h1>
     <p>Ateneo de Zamboanga University</p>
   </div>
+<<<<<<< HEAD
+  <div class="banner">🏨 &nbsp;You're Checked In!</div>
+  <div class="body">
+    <p>Hello, <strong>{{ $reservation->user->Account_Name }}</strong>.</p>
+    <p>You have been successfully <strong>checked in</strong>. We hope you have a wonderful stay!</p>
+    @php
+      if ($type === 'room') {
+        $accLabel  = 'Room ' . ($reservation->room->Room_Number ?? 'N/A');
+        $checkIn   = $reservation->Room_Reservation_Check_In_Time;
+        $checkOut  = $reservation->Room_Reservation_Check_Out_Time;
+      } else {
+        $accLabel  = $reservation->venue->Venue_Name ?? $reservation->venue->name ?? 'Venue';
+=======
   <div class="banner">✓ &nbsp;You're Checked In!</div>
   <div class="body">
     <p>Hello, <strong>{{ $reservation->user->Account_Name }}</strong>.</p>
@@ -37,14 +50,21 @@ body{margin:0;padding:0;background:#f4f6f9;font-family:'Segoe UI',Arial,sans-ser
         $checkOut  = $reservation->Room_Reservation_Check_Out_Time;
       } else {
         $accLabel  = $reservation->venue->Venue_Name ?? 'Venue';
+>>>>>>> 0ea1a0d (SEMI CHANGES (PLS CHECK CODE AND STUDY))
         $checkIn   = $reservation->Venue_Reservation_Check_In_Time;
         $checkOut  = $reservation->Venue_Reservation_Check_Out_Time;
       }
     @endphp
     <div class="detail-box">
+<<<<<<< HEAD
+      <div class="detail-row"><span class="detail-label">{{ ucfirst($type) }}</span><span class="detail-value">{{ $accLabel }}</span></div>
+      <div class="detail-row"><span class="detail-label">Check-in</span><span class="detail-value">{{ \Carbon\Carbon::parse($checkIn)->format('F d, Y') }}</span></div>
+      <div class="detail-row"><span class="detail-label">Expected Check-out</span><span class="detail-value">{{ \Carbon\Carbon::parse($checkOut)->format('F d, Y') }}</span></div>
+=======
       <div class="detail-row"><span class="detail-label">{{ ucfirst($type) . ": "}}</span><span class="detail-value">{{ " ".$accLabel }}</span></div>
       <div class="detail-row"><span class="detail-label">Check-in: </span><span class="detail-value">{{ " " . \Carbon\Carbon::parse($checkIn)->format('F d, Y') }}</span></div>
       <div class="detail-row"><span class="detail-label">Expected Check-out: </span><span class="detail-value">{{ " " . \Carbon\Carbon::parse($checkOut)->format('F d, Y') }}</span></div>
+>>>>>>> 0ea1a0d (SEMI CHANGES (PLS CHECK CODE AND STUDY))
     </div>
     <div class="welcome">For any concerns during your stay, please approach our front desk or contact us at <strong>lantaka@adzu.edu.ph</strong>.</div>
     <p>Enjoy your stay!<br><strong>Lantaka Reservation System Team</strong></p>

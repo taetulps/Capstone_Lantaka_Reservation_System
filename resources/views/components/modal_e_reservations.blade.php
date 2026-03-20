@@ -121,7 +121,17 @@
 
 
             <div id="editSection">
+<<<<<<< HEAD
+                <button type="button" id="editLink" class="check-out-btn" style="
+                    margin-top:20px;
+                width: fit-content;
+                align-self: flex-end;
+                font-size: 12px;
+                appearance: none;
+                justify-content: center;">
+=======
                 <button type="button" id="editLink" class="check-out-btn" style="margin-top:20px; width: fit-content; align-self: flex-end; font-size: 12px; appearance: none; justify-content: center;">
+>>>>>>> 0ea1a0d (SEMI CHANGES (PLS CHECK CODE AND STUDY))
                   Edit
                 </button>
               </div>
@@ -204,6 +214,7 @@
                                 height: 4vh;
                                 padding: 6px; ">
                     <span id="purpose_r" style="font-size:10px; color:#4a4a4a; "></span>
+                    <span id="purpose_r" style="font-size:10px; color:#4a4a4a; "></span>
                   </div>
                 </div>
               </div>
@@ -222,6 +233,7 @@
 
                 <div class="summary-item">
                   <p class="summary-label">Check-in Date:</p>
+                  <p class="summary-value" id="modalCheckIn"> </p>
                   <p class="summary-value" id="modalCheckIn"> </p>
                 </div>
 
@@ -315,7 +327,11 @@
               {{-- Checked-out + PAID: show badge; admin can revert to unpaid --}}
               <div id="checkedOutPaidActions" class="modal-actions" style="display: none; gap: 10px; align-items: center;">
                 <span class="paid-badge">✓ PAID</span>
+<<<<<<< HEAD
+                @if(auth()->user()->role === 'admin')
+=======
                 @if(auth()->user()->Account_Role === 'admin')
+>>>>>>> 0ea1a0d (SEMI CHANGES (PLS CHECK CODE AND STUDY))
                   <button type="button" class="reject-btn" onclick="doMarkAsUnpaid()"
                           title="Revert payment status to unpaid">
                     REVERT TO UNPAID
@@ -519,3 +535,4 @@
     }
   }
 </style>
+

@@ -13,7 +13,13 @@
     <div id="exportModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:9999; align-items:center; justify-content:center;">
         <div style="background:#fff; border-radius:14px; padding:36px 32px 28px; width:400px; box-shadow:0 24px 64px rgba(0,0,0,.3);">
             <div style="display:flex; align-items:center; gap:12px; margin-bottom:8px;">
+<<<<<<< HEAD
+                <div style="width:40px; height:40px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:20px;">
+                    <img src="{{ asset('images/logo/dashboard/dashboard-occupancy.svg') }}" alt="occupancy">
+                </div>
+=======
                 <div style="width:40px; height:40px; background:#1a3a7a; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:20px;">📊</div>
+>>>>>>> 0ea1a0d (SEMI CHANGES (PLS CHECK CODE AND STUDY))
                 <div>
                     <h3 style="margin:0; color:#1a3a7a; font-size:17px; font-weight:700;">Generate Analytics Report</h3>
                     <p style="margin:0; color:#888; font-size:12px;">Export monthly data as a visual PDF</p>
@@ -37,7 +43,11 @@
                 </div>
             </div>
             <div style="background:#f0f4ff; border-radius:8px; padding:10px 14px; margin-bottom:22px; font-size:12px; color:#555; line-height:1.6;">
+<<<<<<< HEAD
+                The PDF will include <strong>daily trend charts</strong>, <strong>status breakdown</strong>, <strong>rooms vs venues comparison</strong>, and a <strong>top accommodations table</strong>.
+=======
                 📄 The PDF will include <strong>daily trend charts</strong>, <strong>status breakdown</strong>, <strong>rooms vs venues comparison</strong>, and a <strong>top accommodations table</strong>.
+>>>>>>> 0ea1a0d (SEMI CHANGES (PLS CHECK CODE AND STUDY))
             </div>
             <div style="display:flex; gap:10px; justify-content:flex-end;">
                 <button id="cancelExportBtn" style="padding:10px 22px; border:1.5px solid #ddd; background:#fff; border-radius:8px; font-size:14px; font-weight:500; cursor:pointer; color:#666;">Cancel</button>
@@ -193,7 +203,16 @@
         </div>
 
         <!-- Export PDF Button -->
+<<<<<<< HEAD
+        <button class="export-btn" id="exportPdfBtn">
+            <div class="export-btn-container">
+                <img src="{{ asset('images/logo/dashboard/dashboard-occupancy.svg') }}" alt="occupancy">
+                <p>Export Report</p>
+            </div>
+        </button>
+=======
         <button class="export-btn" id="exportPdfBtn">📊 Export Report</button>
+>>>>>>> 0ea1a0d (SEMI CHANGES (PLS CHECK CODE AND STUDY))
     </div>
 
     <script>
