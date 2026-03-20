@@ -77,19 +77,19 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function setModalImage(type, src) {
-    const thumb  = document.getElementById(type === 'room' ? 'rvRoomImgPreviewThumb' : 'rvVenueImgPreviewThumb');
-    const none   = document.getElementById(type === 'room' ? 'rvRoomImgNone'         : 'rvVenueImgNone');
-    const badge  = document.getElementById(type === 'room' ? 'rvRoomImgNewBadge'     : 'rvVenueImgNewBadge');
-    const input  = document.getElementById(type === 'room' ? 'rvRoomImgInput'        : 'rvVenueImgInput');
+    const thumb = document.getElementById(type === 'room' ? 'rvRoomImgPreviewThumb' : 'rvVenueImgPreviewThumb');
+    const none = document.getElementById(type === 'room' ? 'rvRoomImgNone' : 'rvVenueImgNone');
+    const badge = document.getElementById(type === 'room' ? 'rvRoomImgNewBadge' : 'rvVenueImgNewBadge');
+    const input = document.getElementById(type === 'room' ? 'rvRoomImgInput' : 'rvVenueImgInput');
 
     if (input) input.value = '';   // clear any previous file selection
 
     if (src) {
       if (thumb) { thumb.src = src; thumb.style.display = 'block'; }
-      if (none)  none.style.display  = 'none';
+      if (none) none.style.display = 'none';
     } else {
       if (thumb) { thumb.src = ''; thumb.style.display = 'none'; }
-      if (none)  none.style.display  = 'inline';
+      if (none) none.style.display = 'inline';
     }
     if (badge) badge.textContent = '📷 Replace photo';
   }
@@ -114,7 +114,7 @@ document.addEventListener("DOMContentLoaded", () => {
 <<<<<<< HEAD
 =======
       roomForm.querySelector('select[name="status"]').value = data.status || "Available";
->>>>>>> 0ea1a0d8d3e241e1c6097bd6792d276017c53b4f
+>>>>>>> 0ea1a0d (SEMI CHANGES (PLS CHECK CODE AND STUDY))
       roomForm.querySelector('textarea[name="description"]').value = data.description || "";
       setModalImage('room', data.image || '');
 
@@ -139,6 +139,8 @@ document.addEventListener("DOMContentLoaded", () => {
       venueForm.querySelector('input[name="capacity"]').value = data.capacity || "";
       venueForm.querySelector('input[name="internal_price"]').value = data.price || "";
       venueForm.querySelector('input[name="external_price"]').value = data.external_price || "";
+      const venueStatusSelect = venueForm.querySelector('select[name="status"]');
+      if (venueStatusSelect) venueStatusSelect.value = data.status || "Available";
       const venueStatusSelect = venueForm.querySelector('select[name="status"]');
       if (venueStatusSelect) venueStatusSelect.value = data.status || "Available";
       venueForm.querySelector('textarea[name="description"]').value = data.description || "";

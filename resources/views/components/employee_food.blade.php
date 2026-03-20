@@ -14,7 +14,7 @@
 @endphp
 
 {{-- Pass role to JS --}}
-<script>window._foodIsAdmin = {{ $isAdmin ? 'true' : 'false' }};</script>
+<script>window._foodIsAdmin = {{ $isAdmin ? 'true' : 'false' }}</script>
 
 <div class="food-modal-overlay" id="foodModalOverlay">
   <div class="food-modal" id="foodModal">

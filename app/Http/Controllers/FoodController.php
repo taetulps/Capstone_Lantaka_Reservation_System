@@ -14,10 +14,18 @@ class FoodController extends Controller
             'Food_Category' => 'required|string|in:rice,set_viand,sidedish,drinks,desserts,other_viand,snacks',
             'Food_Price' => 'required|numeric|min:0',
             'Food_Status' => 'required|string|in:available,unavailable',
+            'Food_Name' => 'required|string|max:50',
+            'Food_Category' => 'required|string|in:rice,set_viand,sidedish,drinks,desserts,other_viand,snacks',
+            'Food_Price' => 'required|numeric|min:0',
+            'Food_Status' => 'required|string|in:available,unavailable',
         ]);
 
         // Map HTML form names to your Database column names!
         Food::create([
+            'Food_Name' => $request->Food_Name,
+            'Food_Category' => $request->Food_Category,
+            'Food_Price' => $request->Food_Price,
+            'Food_Status' => $request->Food_Status,
             'Food_Name' => $request->Food_Name,
             'Food_Category' => $request->Food_Category,
             'Food_Price' => $request->Food_Price,
@@ -31,7 +39,10 @@ class FoodController extends Controller
     {
         // Group by PascalCase column 'Food_Category'
         $foods = Food::where('Food_Status', 'available')
+        // Group by PascalCase column 'Food_Category'
+        $foods = Food::where('Food_Status', 'available')
                      ->get()
+                     ->groupBy('Food_Category');
                      ->groupBy('Food_Category');
 
         return view('client_food_options', [
@@ -48,16 +59,28 @@ class FoodController extends Controller
     }
     public function update(Request $request, $id)
     {
+    {
         $request->validate([
+<<<<<<< HEAD
+            'food_name' => 'required|string|max:255',
+            'status' => 'required|in:available,unavailable',
+            'type' => 'required|string|in:rice,set_viand,sidedish,drinks,desserts,other_viand,snacks',
+            'food_price' => 'required|numeric|min:0',
+=======
             'Food_Name' => 'required|string|max:255',
             'Food_Status' => 'required|in:available,unavailable',
             'Food_Category' => 'required|string|in:rice,set_viand,sidedish,drinks,desserts,other_viand,snacks',
             'Food_Price' => 'required|numeric|min:0',
+>>>>>>> 0ea1a0d (SEMI CHANGES (PLS CHECK CODE AND STUDY))
         ]);
 
         $food = Food::findOrFail($id);
 
         $food->update([
+            'Food_Name' => $request->Food_Name,
+            'Food_Category' => $request->Food_Category,
+            'Food_Price' => $request->Food_Price,
+            'Food_Status' => $request->Food_Status,
             'Food_Name' => $request->Food_Name,
             'Food_Category' => $request->Food_Category,
             'Food_Price' => $request->Food_Price,
@@ -82,8 +105,12 @@ class FoodController extends Controller
         $foods = Food::where('Food_Status', 'available')
             ->orderBy('Food_Category')
             ->orderBy('Food_Name')
+        $foods = Food::where('Food_Status', 'available')
+            ->orderBy('Food_Category')
+            ->orderBy('Food_Name')
             ->get()
             ->groupBy(function ($food) {
+                return strtolower($food->Food_Category);
                 return strtolower($food->Food_Category);
             })
             ->map(function ($categoryFoods) {
@@ -94,12 +121,19 @@ class FoodController extends Controller
                         'Food_Category' => strtolower($food->Food_Category),
                         'Food_Price'    => $food->Food_Price,
                         'Food_Status'   => $food->Food_Status,
+                        'Food_ID'       => $food->Food_ID,
+                        'Food_Name'     => $food->Food_Name,
+                        'Food_Category' => strtolower($food->Food_Category),
+                        'Food_Price'    => $food->Food_Price,
+                        'Food_Status'   => $food->Food_Status,
                     ];
                 })->values();
             });
 
+
         return response()->json($foods);
     }
+
 
 
 }

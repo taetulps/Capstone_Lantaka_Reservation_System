@@ -25,12 +25,6 @@ document.addEventListener('DOMContentLoaded', function () {
       console.log(user);
 
       // 2. TOGGLE BUTTONS based on account status
-      const isDeactivated = user.status === 'deactivate';
-      if (btnDeactivate) btnDeactivate.style.display = isDeactivated ? 'none' : '';
-      if (btnReactivate) btnReactivate.style.display = isDeactivated ? '' : 'none';
-      if (btnSave) btnSave.style.display = isDeactivated ? 'none' : '';
-
-      // 2. TOGGLE BUTTONS based on account status
       const isDeactivated = user.Account_Status === 'deactivate';
       if (btnDeactivate) btnDeactivate.style.display = isDeactivated ? 'none' : '';
       if (btnReactivate) btnReactivate.style.display = isDeactivated ? '' : 'none';

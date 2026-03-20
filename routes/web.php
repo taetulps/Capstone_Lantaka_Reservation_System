@@ -16,6 +16,7 @@ use App\Http\Controllers\NotificationController;
 
 /* Index */
 Route::get('/', function () { return view('pages/index');})->name('pages/index');
+Route::get('/', function () { return view('pages/index');})->name('pages/index');
 
 /* Login */
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
@@ -28,6 +29,7 @@ Route::post('/signup', [SignupController::class, 'store'])->name('register.post'
 /* Room/Venue browsing — public (no login required) */
 Route::get('client.room_venue', [RoomVenueController::class, 'index'])->name('client.room_venue');
 Route::get('/accommodations', [RoomVenueController::class, 'index'])->name('client.index');
+
 
 // Route::get('/checkout/{category}/{id}', [RoomVenueController::class, 'show'])->name('client.show');
 Route::get('/booking/prepare', [RoomVenueController::class, 'prepareBooking'])->name('booking.prepare');
@@ -42,6 +44,7 @@ Route::get('/test_client_room_venue_viewing', function () {
 })->name('test_client_room_venue_viewing');
 
 /* Employee Routes --- */
+/* Employee Routes --- */
 
 Route::prefix('employee')
     ->name('employee.')
@@ -52,6 +55,10 @@ Route::prefix('employee')
         Route::post('/reservations/{id}/mark-paid', [ReservationController::class, 'markAsPaid'])->name('reservations.markPaid');
         Route::get('/dashboard', [ReservationController::class, 'showReservationsCalendar'])->name('dashboard');
         Route::get('/reservations', [ReservationController::class, 'adminIndex'])->name('reservations');
+        
+        Route::get('/reservations/{id}', [ReservationController::class, 'adminIndexSpecificId'])->name('reservations.specific');
+        Route::get('/guest/{id}', [ReservationController::class, 'adminIndexSpecificId'])->name('guests.specific');
+
         
         Route::get('/reservations/{id}', [ReservationController::class, 'adminIndexSpecificId'])->name('reservations.specific');
         Route::get('/guest/{id}', [ReservationController::class, 'adminIndexSpecificId'])->name('guests.specific');
@@ -101,10 +108,12 @@ Route::middleware(['role:admin,staff'])->group(function () {
 Route::prefix('client')
     ->name('client.')
     ->middleware(['auth', 'role:client']) 
+    ->middleware(['auth', 'role:client']) 
     ->group(function () {
        
         Route::get('/my_bookings', [ReservationController::class, 'checkout'])->name('my_bookings');
         Route::get('/my_reservations', [ReservationController::class, 'index'])->name('my_reservations');
+        Route::get('/food_option', function () {return view('food_option');})->name('food_option');
         Route::get('/food_option', function () {return view('food_option');})->name('food_option');
         Route::post('/reservations/{id}/cancel', [ReservationController::class, 'cancel'])->name('reservations.cancel');
 
@@ -126,6 +135,8 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/reservation/store', [ReservationController::class, 'store'])->name('reservation.store');
     Route::post('/checkout/remove', [ReservationController::class, 'removeFromCart'])->name('checkout.remove');
     Route::post('/checkout/edit', [ReservationController::class, 'editCartItem'])->name('checkout.edit');
+    /* Client booking flow — needs auth but role check is loose
+       (employee can create bookings on behalf of clients via their own flow) */
     /* Client booking flow — needs auth but role check is loose
        (employee can create bookings on behalf of clients via their own flow) */
 });

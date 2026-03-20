@@ -239,6 +239,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
       const discountSection = document.getElementById('discountSection');
+<<<<<<< HEAD
+=======
+
+>>>>>>> 0ea1a0d (SEMI CHANGES (PLS CHECK CODE AND STUDY))
+      const discountSection = document.getElementById('discountSection');
       const checkAccomodation = data.accommodationType;
       const row = this.closest('tr');
       const badge = row.querySelector('.badge');

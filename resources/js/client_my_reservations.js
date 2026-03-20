@@ -36,9 +36,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const grouped = {};
     foods.forEach(f => {
-      const raw = f.pivot?.Food_Reservation_Serving_Date || f.Food_Reservation_Serving_Date || null;
+<<<<<<< HEAD
+      const raw = f.pivot?.serving_time || f.serving_time || null;
+      const name = f.food_name || f.name || 'Unknown item';
+      const meal = f.pivot?.meal_time || f.meal_time || null;
+=======
+      const raw  = f.pivot?.Food_Reservation_Serving_Date || f.Food_Reservation_Serving_Date || null;
       const name = f.Food_Name || f.name || 'Unknown item';
       const meal = f.pivot?.Food_Reservation_Meal_time || f.Food_Reservation_Meal_time || null;
+>>>>>>> 0ea1a0d (SEMI CHANGES (PLS CHECK CODE AND STUDY))
       if (!raw) return;
 
       const dateKey = raw.substring(0, 10); // "YYYY-MM-DD"
