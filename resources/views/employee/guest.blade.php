@@ -252,12 +252,8 @@
                                 ? ($res->Room_Reservation_Additional_Fees_Desc ?? '')
                                 : ($res->Venue_Reservation_Additional_Fees_Desc ?? ''),
 
-<<<<<<< HEAD
-                            'payment_status' => $res->payment_status ?? null
-=======
                             'payment_status' => $res->type === 'room' ? ($res->Room_Reservation_Payment_Status ?? null) : ($res->Venue_Reservation_Payment_Status ?? null),
                             'purpose' => $res->type === 'room' ? ($res->Room_Reservation_Purpose ?? '') : ($res->Venue_Reservation_Purpose ?? '')
->>>>>>> 0ea1a0d (SEMI CHANGES (PLS CHECK CODE AND STUDY))
                         ]) }}">
                           ⤢
                       </button>

@@ -81,11 +81,7 @@
 
               {{-- Clear Filters Button --}}
               @if(request()->anyFilled(['search', 'date', 'client_type', 'accommodation_type', 'status']))
-<<<<<<< HEAD
-                <a href="{{ url()->current() }}" style="text-decoration: none; color: #e74c3c; font-size: 14px; font-weight: bold; margin-left: 10px;">✕ Clear </a>
-=======
                 <a href="{{ route('employee.reservations') }}" style="display:flex; align-items :center; text-decoration: none; color: #e74c3c; font-size: 14px; font-weight: bold; margin-left: 10px;">✕ Clear All Filters</a>
->>>>>>> 0ea1a0d (SEMI CHANGES (PLS CHECK CODE AND STUDY))
               @endif
             </div>
         </form>
@@ -246,16 +242,10 @@
                                       'accommodation_id' => $isRoom ? $reservation->Room_ID : $reservation->Venue_ID,
                                       'accommodation_id' => $isRoom ? $reservation->Room_ID : $reservation->Venue_ID,
                                       'userId' => $reservation->Client_ID,
-<<<<<<< HEAD
-                                      'purpose' => $reservation->purpose ?? '',
-                                      'foods' => $reservation->foods ?? [],
-                                      'payment_status' => $reservation->payment_status ?? null
-=======
                                       'purpose' => $isRoom ? ($reservation->Room_Reservation_Purpose ?? 'Error: Purpose Missing')
                                                             :($reservation->Venue_Reservation_Purpose ?? 'Error: Purpose Missing'),
                                       'foods' => $reservation->foods ?? [],
                                       'payment_status' => $isRoom ? ($reservation->Room_Reservation_Payment_Status ?? null) : ($reservation->Venue_Reservation_Payment_Status ?? null)
->>>>>>> 0ea1a0d (SEMI CHANGES (PLS CHECK CODE AND STUDY))
                                   ]) }}">
                               ⤢
                           </button>

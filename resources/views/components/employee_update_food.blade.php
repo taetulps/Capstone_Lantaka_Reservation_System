@@ -46,11 +46,7 @@
 
         <div class="updatefood-group">
           <label for="updateFoodType">Food Category</label>
-<<<<<<< HEAD
-          <select id="updateFoodType" name="type" required>
-=======
           <select id="updateFoodType" name="Food_Category" required>
->>>>>>> 0ea1a0d (SEMI CHANGES (PLS CHECK CODE AND STUDY))
             <option value="rice">Rice</option>
             <option value="set_viand">Set Viand</option>
             <option value="sidedish">Side Dish</option>

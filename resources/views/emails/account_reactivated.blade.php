@@ -29,11 +29,7 @@
       <p>Account Management</p>
     </div>
     <div class="body">
-<<<<<<< HEAD
-      <p>Hello, <strong>{{ $user->name }}</strong>.</p>
-=======
       <p>Hello, <strong>{{ $user->Account_Name }}</strong>.</p>
->>>>>>> 0ea1a0d (SEMI CHANGES (PLS CHECK CODE AND STUDY))
       <span class="status-badge">✓ Account Reactivated</span>
       <p>
         Your account has been reactivated by an administrator. You can now log in
@@ -42,11 +38,7 @@
 
       <div class="credentials">
         <p>Username</p>
-<<<<<<< HEAD
-        <span class="value">{{ $user->username }}</span>
-=======
         <span class="value">{{ $user->Account_Username }}</span>
->>>>>>> 0ea1a0d (SEMI CHANGES (PLS CHECK CODE AND STUDY))
       </div>
       <div class="credentials">
         <p>Temporary Password</p>

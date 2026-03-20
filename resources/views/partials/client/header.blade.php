@@ -40,15 +40,9 @@
 
                 {{-- ── Notification Bell (powered by event_logs) ── --}}
                 @php
-<<<<<<< HEAD
-                    $unreadCount  = \App\Models\EventLog::where('notifiable_user_id', Auth::id())
-                                        ->where('is_read', false)->count();
-                    $recentNotifs = \App\Models\EventLog::where('notifiable_user_id', Auth::id())
-=======
                     $unreadCount  = \App\Models\EventLog::where('Event_Logs_Notifiable_User_ID', Auth::id())
                                         ->where('Event_Logs_isRead', false)->count();
                     $recentNotifs = \App\Models\EventLog::where('Event_Logs_Notifiable_User_ID', Auth::id())
->>>>>>> 0ea1a0d (SEMI CHANGES (PLS CHECK CODE AND STUDY))
                                         ->orderByDesc('created_at')->limit(10)->get();
                 @endphp
                 <div class="notif-wrap" id="notifWrap">
@@ -71,15 +65,6 @@
                         </div>
                         <div class="notif-list">
                             @forelse($recentNotifs as $notif)
-<<<<<<< HEAD
-                                <a href="{{ $notif->link ?? '/client/my_reservations' }}"
-                                   class="notif-item {{ $notif->is_read ? 'notif-read' : 'notif-unread' }}"
-                                   onclick="markNotifRead({{ $notif->id }}, this, event)">
-                                    <span class="notif-dot notif-dot--{{ $notif->type ?? 'default' }}"></span>
-                                    <div class="notif-text">
-                                        <p class="notif-title">{{ $notif->title ?? ucfirst(str_replace('_', ' ', $notif->action)) }}</p>
-                                        <p class="notif-msg">{{ Str::limit($notif->message, 70) }}</p>
-=======
                                 <a href="{{ $notif->Event_Logs_Link ?? '/client/my_reservations' }}"
                                    class="notif-item {{ $notif->Event_Logs_isRead ? 'notif-read' : 'notif-unread' }}"
                                    onclick="markNotifRead({{ $notif->Event_Logs_ID }}, this, event)">
@@ -87,7 +72,6 @@
                                     <div class="notif-text">
                                         <p class="notif-title">{{ $notif->Event_Logs_Title ?? ucfirst(str_replace('_', ' ', $notif->Event_Logs_Action)) }}</p>
                                         <p class="notif-msg">{{ Str::limit($notif->Event_Logs_Message, 70) }}</p>
->>>>>>> 0ea1a0d (SEMI CHANGES (PLS CHECK CODE AND STUDY))
                                         <p class="notif-time">{{ $notif->created_at->diffForHumans() }}</p>
                                     </div>
                                 </a>

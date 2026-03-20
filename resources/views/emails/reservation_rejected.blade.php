@@ -32,35 +32,20 @@ body{margin:0;padding:0;background:#f4f6f9;font-family:'Segoe UI',Arial,sans-ser
     <p>We regret to inform you that your reservation request was <strong>not approved</strong>. Please see the details below.</p>
     @php
       if ($type === 'room') {
-<<<<<<< HEAD
-        $accLabel = 'Room ' . ($reservation->room->room_number ?? 'N/A');
-        $checkIn  = $reservation->Room_Reservation_Check_In_Time;
-        $checkOut = $reservation->Room_Reservation_Check_Out_Time;
-      } else {
-        $accLabel = $reservation->venue->Venue_Name ?? $reservation->venue->name ?? 'Venue';
-=======
         $accLabel = $reservation->room->Room_Number ?? 'N/A';
         $checkIn  = $reservation->Room_Reservation_Check_In_Time;
         $checkOut = $reservation->Room_Reservation_Check_Out_Time;
       } else {
         $accLabel = $reservation->venue->Venue_Name ?? 'Venue';
->>>>>>> 0ea1a0d (SEMI CHANGES (PLS CHECK CODE AND STUDY))
         $checkIn  = $reservation->Venue_Reservation_Check_In_Time;
         $checkOut = $reservation->Venue_Reservation_Check_Out_Time;
       }
     @endphp
     <div class="detail-box">
-<<<<<<< HEAD
-      <div class="detail-row"><span class="detail-label">{{ ucfirst($type) }}</span><span class="detail-value">{{ $accLabel }}</span></div>
-      <div class="detail-row"><span class="detail-label">Requested Check-in</span><span class="detail-value">{{ \Carbon\Carbon::parse($checkIn)->format('F d, Y') }}</span></div>
-      <div class="detail-row"><span class="detail-label">Requested Check-out</span><span class="detail-value">{{ \Carbon\Carbon::parse($checkOut)->format('F d, Y') }}</span></div>
-      <div class="detail-row"><span class="detail-label">Status</span><span class="detail-value" style="color:#dc2626">Not Approved</span></div>
-=======
       <div class="detail-row"><span class="detail-label">{{ ucfirst($type) . ": " }}</span><span class="detail-value">{{ $accLabel }}</span></div>
       <div class="detail-row"><span class="detail-label">Requested Check-in: </span><span class="detail-value">{{ \Carbon\Carbon::parse($checkIn)->format('F d, Y') }}</span></div>
       <div class="detail-row"><span class="detail-label">Requested Check-out: </span><span class="detail-value">{{ \Carbon\Carbon::parse($checkOut)->format('F d, Y') }}</span></div>
       <div class="detail-row"><span class="detail-label">Status: </span><span class="detail-value" style="color:#dc2626">Not Approved</span></div>
->>>>>>> 0ea1a0d (SEMI CHANGES (PLS CHECK CODE AND STUDY))
     </div>
     <div class="info">This decision may be due to availability, capacity, or scheduling. To inquire further or request a new reservation, please contact us at <strong>lantaka@adzu.edu.ph</strong>.</div>
     <p>We hope to accommodate you in the future.<br><strong>Lantaka Reservation System Team</strong></p>

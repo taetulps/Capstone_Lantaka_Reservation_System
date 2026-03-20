@@ -5,10 +5,10 @@ document.addEventListener('DOMContentLoaded', () => {
   ========================== */
 
   const foodOverlay = document.getElementById('foodModalOverlay')
-  const foodModal   = document.getElementById('foodModal')
+  const foodModal = document.getElementById('foodModal')
   const foodCloseBtn = document.getElementById('foodModalClose')
-  const foodOpenBtn  = document.getElementById('food_button')
-  const addFoodBtn   = document.getElementById('add_food_button')
+  const foodOpenBtn = document.getElementById('food_button')
+  const addFoodBtn = document.getElementById('add_food_button')
 
   window.openFoodModal = () => {
     foodOverlay?.classList.add('show')
@@ -40,7 +40,7 @@ document.addEventListener('DOMContentLoaded', () => {
   ========================== */
 
   const updateFoodOverlay = document.getElementById('updateFoodOverlay')
-  const updateFoodModal   = document.getElementById('updateFoodModal')
+  const updateFoodModal = document.getElementById('updateFoodModal')
   const updateFoodCloseBtn = document.getElementById('updateFoodClose')
 
   function openUpdateModal() {
@@ -63,7 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
      CATEGORY TAB FILTERING
   ========================== */
 
-  const tabs     = document.querySelectorAll('.fm-tab')
+  const tabs = document.querySelectorAll('.fm-tab')
   const sections = document.querySelectorAll('.fm-section')
 
   tabs.forEach(tab => {
@@ -100,20 +100,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
     item.addEventListener('click', () => {
       // Populate the update food form
-      const updateFoodId       = document.getElementById('updateFoodId')
-      const updateFoodName     = document.getElementById('updateFoodName')
-      const updateFoodType     = document.getElementById('updateFoodType')
-      const updateFoodPrice    = document.getElementById('updateFoodPrice')
-      const updateFoodStatus   = document.getElementById('updateFoodStatus')
+      const updateFoodId = document.getElementById('updateFoodId')
+      const updateFoodName = document.getElementById('updateFoodName')
+      const updateFoodType = document.getElementById('updateFoodType')
+      const updateFoodPrice = document.getElementById('updateFoodPrice')
+      const updateFoodStatus = document.getElementById('updateFoodStatus')
 
       const updateFoodForm = document.getElementById('updateFoodForm')
 
-      if (updateFoodId)     updateFoodId.value     = item.dataset.id
-      if (updateFoodName)   updateFoodName.value   = item.dataset.name
-      if (updateFoodType)   updateFoodType.value   = item.dataset.type
-      if (updateFoodPrice)  updateFoodPrice.value  = item.dataset.price
+      if (updateFoodId) updateFoodId.value = item.dataset.id
+      if (updateFoodName) updateFoodName.value = item.dataset.name
+      if (updateFoodType) updateFoodType.value = item.dataset.type
+      if (updateFoodPrice) updateFoodPrice.value = item.dataset.price
       if (updateFoodStatus) updateFoodStatus.value = item.dataset.status
-      if (updateFoodForm)   updateFoodForm.action  = `/employee/room_venue/${item.dataset.id}`
+      if (updateFoodForm) updateFoodForm.action = `/employee/room_venue/${item.dataset.id}`
 
       closeFoodModal()
       openUpdateModal()

@@ -27,11 +27,11 @@ let currentReservationDates = window.serverCurrentReservationDates || [];
 
 // Pre-fill dates if returning from cart edit
 const _urlParams = new URLSearchParams(window.location.search)
-const _preCheckIn  = _urlParams.get('check_in')
+const _preCheckIn = _urlParams.get('check_in')
 const _preCheckOut = _urlParams.get('check_out')
-if (_preCheckIn)  rangeStart = _preCheckIn
-if (_preCheckOut) rangeEnd   = _preCheckOut
-if (_preCheckIn)  monthNow   = dayjs(_preCheckIn).month()
+if (_preCheckIn) rangeStart = _preCheckIn
+if (_preCheckOut) rangeEnd = _preCheckOut
+if (_preCheckIn) monthNow = dayjs(_preCheckIn).month()
 
 // --- helpers ---
 const iso = (d) => d.format('YYYY-MM-DD')

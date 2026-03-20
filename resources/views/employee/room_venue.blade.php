@@ -49,11 +49,7 @@
 
           <div class="button-section">
             <button class="btn btn-secondary" id="food_button">Food Menu</button>
-<<<<<<< HEAD
-            @if(auth()->user()->role === 'admin')
-=======
             @if(auth()->user()->Account_Role === 'admin')
->>>>>>> 0ea1a0d (SEMI CHANGES (PLS CHECK CODE AND STUDY))
               <button class="btn btn-primary" id="add_room_venue_button">Add Room/Venue</button>
             @endif
           </div>
@@ -77,17 +73,6 @@
                   {{ $room->Room_Number }}
 
                   <input type="hidden" class="room-details"
-<<<<<<< HEAD
-                        data-id="{{ $room->id }}"
-                        data-name="{{ $room->room_number }}"
-                        data-type="{{ $room->room_type }}"
-                        data-capacity="{{ $room->capacity }}"
-                        data-price="{{ $room->price }}"
-                        data-external_price="{{ $room->external_price }}"
-                        data-status="{{ $room->status }}"
-                        data-description="{{ $room->description }}"
-                        data-image="{{ $room->image ? asset('storage/' . $room->image) : '' }}">
-=======
                         data-id="{{ $room->Room_ID }}"
                         data-name="{{ $room->Room_Number }}"
                         data-type="{{ $room->Room_Type }}"
@@ -97,7 +82,6 @@
                         data-status="{{ $room->Room_Status }}"
                         data-description="{{ $room->Room_Description }}"
                         data-image="{{ $room->Room_Image ? asset('storage/' . $room->Room_Image) : '' }}">
->>>>>>> 0ea1a0d (SEMI CHANGES (PLS CHECK CODE AND STUDY))
                 </div>
               @endforeach
 
@@ -121,16 +105,6 @@
                   {{ $venue->Venue_Name }}
 
                   <input type="hidden" class="venue-details"
-<<<<<<< HEAD
-                        data-id="{{ $venue->id }}"
-                        data-name="{{ $venue->name }}"
-                        data-capacity="{{ $venue->capacity }}"
-                        data-price="{{ $venue->price }}"
-                        data-external_price="{{ $venue->external_price }}"
-                        data-status="{{ $venue->status }}"
-                        data-description="{{ $venue->description }}"
-                        data-image="{{ $venue->image ? asset('storage/' . $venue->image) : '' }}">
-=======
                         data-id="{{ $venue->Venue_ID }}"
                         data-name="{{ $venue->Venue_Name }}"
                         data-capacity="{{ $venue->Venue_Capacity }}"
@@ -139,7 +113,6 @@
                         data-status="{{ $venue->Venue_Status }}"
                         data-description="{{ $venue->Venue_Description }}"
                         data-image="{{ $venue->Venue_Image ? asset('storage/' . $venue->Venue_Image) : '' }}">
->>>>>>> 0ea1a0d (SEMI CHANGES (PLS CHECK CODE AND STUDY))
                 </div>
               @endforeach
 

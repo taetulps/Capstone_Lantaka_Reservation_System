@@ -37,7 +37,7 @@ function renderSummaryItems() {
   summaryItemsContainer.innerHTML = '';
 
   Object.values(cart).forEach(item => {
-      console.log(cart);
+    console.log(cart);
 
     summaryItemsContainer.innerHTML += `
 

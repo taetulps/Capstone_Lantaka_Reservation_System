@@ -12,13 +12,6 @@ class AccountUpdatedMail extends Mailable
 
     public $user;
     public $campusName;
-<<<<<<< HEAD
-
-    public function __construct($user, array $changedFields = [])
-    {
-        $this->user       = $user;
-        $this->campusName = env('CAMPUS_NAME', 'Lantaka Reservation System');
-=======
     public $changedFields;
 
     public function __construct($user, array $changedFields = [])
@@ -26,7 +19,6 @@ class AccountUpdatedMail extends Mailable
         $this->user          = $user;
         $this->campusName    = env('CAMPUS_NAME', 'Lantaka Reservation System');
         $this->changedFields = $changedFields;
->>>>>>> 0ea1a0d (SEMI CHANGES (PLS CHECK CODE AND STUDY))
     }
 
     public function build()

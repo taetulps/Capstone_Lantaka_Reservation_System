@@ -7,11 +7,7 @@
             <div class="header-right">
                 @php
                     // Employee bell shows total un-reviewed audit entries from today
-<<<<<<< HEAD
-                    $empUnread = \App\Models\EventLog::whereNull('notifiable_user_id')
-=======
                     $empUnread = \App\Models\EventLog::whereNull('Event_Logs_Notifiable_User_ID')
->>>>>>> 0ea1a0d (SEMI CHANGES (PLS CHECK CODE AND STUDY))
                         ->whereDate('created_at', today())->count();
                 @endphp
                 <a href="{{ route('employee.eventlogs') }}" class="icon-btn" style="position:relative;text-decoration:none;" title="View Action Logs">

@@ -48,13 +48,6 @@
         </div>
 
         <div class="account-field full-width">
-<<<<<<< HEAD
-          <label>ID / Proof of Identity</label>
-            <div class="id-preview-container">
-                <img id="view_id_image" src="" alt="Valid ID"> 
-                <p id="view_no_id" style="color: #999;">No image available</p>
-            </div>
-=======
           <label>Valid ID</label>
           <div style="margin-bottom:8px;">
             <img id="view_id_preview" src="" alt="Valid ID"
@@ -62,20 +55,14 @@
             <span id="view_id_placeholder" style="color:#aaa; font-size:13px;">No ID uploaded.</span>
           </div>
           <input type="file" id="view_id_file" name="valid_id" accept="image/*" style="font-size:13px;">
->>>>>>> 0ea1a0d (SEMI CHANGES (PLS CHECK CODE AND STUDY))
         </div>
 
         <div class="approval-buttons">
             {{-- Shown for active accounts --}}
             <button type="submit" name="action" value="deactivate" id="btn-deactivate" class="approval-btn deactivate btn-decline">DEACTIVATE</button>
             {{-- Shown only for deactivated accounts --}}
-<<<<<<< HEAD
-            <button type="submit" name="action" value="reactivate" id="btn-reactivate" class="approval-btn accept btn-accept" style="display:none;">REACTIVATE</button>
-            <button type="submit" name="action" value="save" id="btn-save" class="approval-btn accept btn-accept">SAVE</button>
-=======
             <button type="submit" name="action" value="reactivate" id="btn-reactivate" class="approval-btn accept btn-accept" style="display:none;" data-sends-email="true">REACTIVATE</button>
             <button type="submit" name="action" value="save" id="btn-save" class="approval-btn accept btn-accept" data-sends-email="true">SAVE</button>
->>>>>>> 0ea1a0d (SEMI CHANGES (PLS CHECK CODE AND STUDY))
         </div>
       </form>
     </div>

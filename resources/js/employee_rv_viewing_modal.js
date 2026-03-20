@@ -111,10 +111,7 @@ document.addEventListener("DOMContentLoaded", () => {
       roomForm.querySelector('input[name="capacity"]').value = data.capacity || "";
       roomForm.querySelector('input[name="internal_price"]').value = data.price || "";
       roomForm.querySelector('input[name="external_price"]').value = data.external_price || "";
-<<<<<<< HEAD
-=======
       roomForm.querySelector('select[name="status"]').value = data.status || "Available";
->>>>>>> 0ea1a0d (SEMI CHANGES (PLS CHECK CODE AND STUDY))
       roomForm.querySelector('textarea[name="description"]').value = data.description || "";
       setModalImage('room', data.image || '');
 
@@ -139,8 +136,6 @@ document.addEventListener("DOMContentLoaded", () => {
       venueForm.querySelector('input[name="capacity"]').value = data.capacity || "";
       venueForm.querySelector('input[name="internal_price"]').value = data.price || "";
       venueForm.querySelector('input[name="external_price"]').value = data.external_price || "";
-      const venueStatusSelect = venueForm.querySelector('select[name="status"]');
-      if (venueStatusSelect) venueStatusSelect.value = data.status || "Available";
       const venueStatusSelect = venueForm.querySelector('select[name="status"]');
       if (venueStatusSelect) venueStatusSelect.value = data.status || "Available";
       venueForm.querySelector('textarea[name="description"]').value = data.description || "";

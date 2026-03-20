@@ -10,7 +10,6 @@ class VenueReservation extends Model
     use HasFactory;
 
     protected $table = 'Venue_Reservation';
-    protected $table = 'Venue_Reservation';
     protected $primaryKey = 'Venue_Reservation_ID';
 
     protected $fillable = [
@@ -25,13 +24,8 @@ class VenueReservation extends Model
         'Venue_Reservation_Pax',                // from 'pax',
         'Venue_Reservation_Purpose',            // from 'purpose',
         'Venue_Reservation_Total_Price',
-<<<<<<< HEAD
-        'status',
-        'payment_status',
-=======
         'Venue_Reservation_Status',             // from 'status',
         'Venue_Reservation_Payment_Status',     // from 'payment_status',
->>>>>>> 0ea1a0d (SEMI CHANGES (PLS CHECK CODE AND STUDY))
         'Venue_Reservation_Additional_Fees',
         'Venue_Reservation_Additional_Fees_Desc',
         'Venue_Reservation_Discount'
@@ -55,11 +49,7 @@ class VenueReservation extends Model
             'Venue_Reservation_ID', // Foreign key for VenueReservation
             'Food_ID'               // Foreign key for Food
         )->withPivot('Food_Reservation_Status', 'Food_Reservation_Serving_Date', 'Food_Reservation_Meal_time', 'Food_Reservation_Total_Price');
-            Food::class,
-            'Food_Reservation',    // Table name
-            'Venue_Reservation_ID', // Foreign key for VenueReservation
-            'Food_ID'               // Foreign key for Food
-        )->withPivot('Food_Reservation_Status', 'Food_Reservation_Serving_Date', 'Food_Reservation_Meal_time', 'Food_Reservation_Total_Price');
+           
     }
 }
 

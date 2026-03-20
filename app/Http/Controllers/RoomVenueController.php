@@ -9,7 +9,6 @@ use App\Models\VenueReservation;
 use App\Models\Room;
 use App\Models\Venue;
 use App\Models\Account;
-use App\Models\Account;
 use App\Models\Food;
 use Carbon\CarbonPeriod;
 
@@ -76,19 +75,6 @@ class RoomVenueController extends Controller
             $folder    = $request->category === 'Room' ? 'rooms' : 'venues';
             $imagePath = $this->processAndStoreImage($request->file('image'), $folder);
         }
-<<<<<<< HEAD
-
-        $commonData = [
-            'user_id'        => Auth::id(),
-            'capacity'       => $request->capacity,
-            'price'          => $request->internal_price,
-            'external_price' => $request->external_price,
-            'status'         => 'Available',
-            'description'    => $request->description,
-            'image'          => $imagePath,
-        ];
-=======
->>>>>>> 0ea1a0d (SEMI CHANGES (PLS CHECK CODE AND STUDY))
 
         if ($request->category === 'Room') {
             Room::create([
@@ -256,7 +242,7 @@ class RoomVenueController extends Controller
         });
 
         return view('employee.room_venue', compact('rooms', 'venues', 'foods'));
-        }
+        
         }
         public function show($category, $id)
         {
@@ -289,36 +275,6 @@ class RoomVenueController extends Controller
                 $data->status = $data->Venue_Status;
                 $data->description = $data->Venue_Description;
                 $data->image = $data->Venue_Image;
-        {
-            // 1. Find the correct item based on category
-            if (strtolower($category) === 'room') {
-                $data = Room::findOrFail($id);
-                $data->id = $data->Room_ID;
-                $data->display_name = "Room " . ($data->Room_Number ?? $id);
-                $data->capacity= $data->Room_Capacity;
-                $data->internal_price = $data->Room_Internal_Price;
-                $data->external_price = $data->Room_External_Price;
-                $data->status = $data->Room_Status;
-                $data->description = $data->Room_Description;
-                $data->image = $data->Room_Image;
-
-                // Use RoomReservation model
-                $reservations = RoomReservation::where('Room_Reservation_ID', $id)
-                    ->whereIn('Room_Reservation_Status', ['pending', 'confirmed', 'checked-in'])
-                    ->get();
-
-                $dateFieldIn = 'Room_Reservation_Check_In_Time';
-                $dateFieldOut = 'Room_Reservation_Check_Out_Time';
-            } else {
-                $data = Venue::findOrFail($id); 
-                $data->id = $data->Venue_ID;
-                $data->display_name = $data->Venue_Name;
-                $data->capacity= $data->Venue_Capacity;
-                $data->internal_price = $data->Venue_Internal_Price;
-                $data->external_price = $data->Venue_External_Price;
-                $data->status = $data->Venue_Status;
-                $data->description = $data->Venue_Description;
-                $data->image = $data->Venue_Image;
 
                 // Use VenueReservation model
                 $reservations = VenueReservation::where('Venue_ID', $id)
@@ -328,25 +284,6 @@ class RoomVenueController extends Controller
                 $dateFieldIn = 'Venue_Reservation_Check_In_Time';
                 $dateFieldOut = 'Venue_Reservation_Check_Out_Time';
             }
-                // Use VenueReservation model
-                $reservations = VenueReservation::where('Venue_ID', $id)
-                    ->whereIn('Venue_Reservation_Status', ['pending', 'confirmed', 'checked-in'])
-                    ->get();
-
-                $dateFieldIn = 'Venue_Reservation_Check_In_Time';
-                $dateFieldOut = 'Venue_Reservation_Check_Out_Time';
-            }
-
-            // 2. Map the occupied dates
-            $occupiedDates = [];
-            foreach ($reservations as $res) {
-                $period = CarbonPeriod::create($res->$dateFieldIn, $res->$dateFieldOut);
-                foreach ($period as $date) {
-                    $occupiedDates[] = $date->format('Y-m-d');
-                }
-            }
-            // Remove duplicate dates just in case, and reset array keys
-            $occupiedDates = array_values(array_unique($occupiedDates));
             // 2. Map the occupied dates
             $occupiedDates = [];
             foreach ($reservations as $res) {
@@ -361,10 +298,7 @@ class RoomVenueController extends Controller
             // 3. Pass the data AND the occupiedDates to the view
             return view('client.room_venue_viewing', compact('data', 'category', 'occupiedDates'));
         }
-    public function prepareBooking(Request $request)
-            // 3. Pass the data AND the occupiedDates to the view
-            return view('client.room_venue_viewing', compact('data', 'category', 'occupiedDates'));
-        }
+
     public function prepareBooking(Request $request)
     {
         // Grab all the data the user just submitted (dates, pax, accommodation_id, type)
@@ -411,15 +345,6 @@ class RoomVenueController extends Controller
             $room = Room::findOrFail($request->id);
 
             $data = [
-<<<<<<< HEAD
-                'room_number'    => $request->name,
-                'room_type'      => $request->type ?? 'Standard',
-                'capacity'       => $request->capacity,
-                'price'          => $request->internal_price,
-                'external_price' => $request->external_price,
-                'status'         => $request->status,
-                'description'    => $request->description,
-=======
                 'Room_Number'         => $request->name,
                 'Room_Type'           => $request->type ?? 'Standard',
                 'Room_Capacity'       => $request->capacity,
@@ -427,24 +352,15 @@ class RoomVenueController extends Controller
                 'Room_External_Price' => $request->external_price,
                 'Room_Status'         => $request->status,
                 'Room_Description'    => $request->description,
->>>>>>> 0ea1a0d (SEMI CHANGES (PLS CHECK CODE AND STUDY))
             ];
 
             if ($request->hasFile('image') && $request->file('image')->isValid()) {
                 // Delete old image file if it exists
-<<<<<<< HEAD
-                if ($room->image) {
-                    $old = storage_path('app/public/' . $room->image);
-                    if (file_exists($old)) @unlink($old);
-                }
-                $data['image'] = $this->processAndStoreImage($request->file('image'), 'rooms');
-=======
                 if ($room->Room_Image) {
                     $old = storage_path('app/public/' . $room->Room_Image);
                     if (file_exists($old)) @unlink($old);
                 }
                 $data['Room_Image'] = $this->processAndStoreImage($request->file('image'), 'rooms');
->>>>>>> 0ea1a0d (SEMI CHANGES (PLS CHECK CODE AND STUDY))
             }
 
             $room->update($data);
@@ -453,22 +369,6 @@ class RoomVenueController extends Controller
             $venue = Venue::findOrFail($request->id);
 
             $data = [
-<<<<<<< HEAD
-                'name'           => $request->name,
-                'capacity'       => $request->capacity,
-                'price'          => $request->internal_price,
-                'external_price' => $request->external_price,
-                'status'         => $request->status,
-                'description'    => $request->description,
-            ];
-
-            if ($request->hasFile('image') && $request->file('image')->isValid()) {
-                if ($venue->Venue_Image) {
-                    $old = storage_path('app/public/' . $venue->Venue_Image);
-                    if (file_exists($old)) @unlink($old);
-                }
-                $data['image'] = $this->processAndStoreImage($request->file('image'), 'venues');
-=======
                 'Venue_Name'           => $request->name,
                 'Venue_Capacity'       => $request->capacity,
                 'Venue_Internal_Price' => $request->internal_price,
@@ -483,7 +383,6 @@ class RoomVenueController extends Controller
                     if (file_exists($old)) @unlink($old);
                 }
                 $data['Venue_Image'] = $this->processAndStoreImage($request->file('image'), 'venues');
->>>>>>> 0ea1a0d (SEMI CHANGES (PLS CHECK CODE AND STUDY))
             }
 
             $venue->update($data);

@@ -13,11 +13,7 @@ return new class extends Migration
             $table->string('payment_status')->nullable()->default(null)->after('status');
         });
 
-<<<<<<< HEAD
-        Schema::table('venue_reservations', function (Blueprint $table) {
-=======
         Schema::table('Venue_Reservation', function (Blueprint $table) {
->>>>>>> 0ea1a0d (SEMI CHANGES (PLS CHECK CODE AND STUDY))
             $table->string('payment_status')->nullable()->default(null)->after('status');
         });
     }
@@ -28,11 +24,7 @@ return new class extends Migration
             $table->dropColumn('payment_status');
         });
 
-<<<<<<< HEAD
-        Schema::table('venue_reservations', function (Blueprint $table) {
-=======
         Schema::table('Venue_Reservation', function (Blueprint $table) {
->>>>>>> 0ea1a0d (SEMI CHANGES (PLS CHECK CODE AND STUDY))
             $table->dropColumn('payment_status');
         });
     }

@@ -1,13 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
-<<<<<<< HEAD
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Reservation Confirmed</title>
-<style>
-=======
 <head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Reservation Confirmed</title>
   <style>
->>>>>>> 0ea1a0d (SEMI CHANGES (PLS CHECK CODE AND STUDY))
 body{margin:0;padding:0;background:#f4f6f9;font-family:'Segoe UI',Arial,sans-serif;color:#333}
 .wrap{max-width:580px;margin:40px auto;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.08)}
 .hdr{background:#1a2e4a;padding:32px 40px;text-align:center}
@@ -26,44 +21,6 @@ body{margin:0;padding:0;background:#f4f6f9;font-family:'Segoe UI',Arial,sans-ser
 .footer p{margin:0;font-size:12px;color:#999;line-height:1.5}
 </style>
 </head>
-<<<<<<< HEAD
-<body>
-<div class="wrap">
-  <div class="hdr">
-    <h1>Lantaka Reservation System</h1>
-    <p>Ateneo de Zamboanga University</p>
-  </div>
-  <div class="banner">✓ &nbsp;Reservation Confirmed</div>
-  <div class="body">
-    <p>Hello, <strong>{{ $reservation->user->name }}</strong>.</p>
-    <p>Great news — your reservation has been <strong>confirmed</strong>! Please review your booking details below.</p>
-    @php
-      if ($type === 'room') {
-        $accLabel  = 'Room ' . ($reservation->room->room_number ?? 'N/A');
-        $checkIn   = $reservation->Room_Reservation_Check_In_Time;
-        $checkOut  = $reservation->Room_Reservation_Check_Out_Time;
-        $total     = $reservation->Room_Reservation_Total_Price ?? 0;
-      } else {
-        $accLabel  = $reservation->venue->Venue_Name ?? $reservation->venue->name ?? 'Venue';
-        $checkIn   = $reservation->Venue_Reservation_Check_In_Time;
-        $checkOut  = $reservation->Venue_Reservation_Check_Out_Time;
-        $total     = $reservation->Venue_Reservation_Total_Price ?? 0;
-      }
-    @endphp
-    <div class="detail-box">
-      <div class="detail-row"><span class="detail-label">{{ ucfirst($type) }}</span><span class="detail-value">{{ $accLabel }}</span></div>
-      <div class="detail-row"><span class="detail-label">Check-in</span><span class="detail-value">{{ \Carbon\Carbon::parse($checkIn)->format('F d, Y') }}</span></div>
-      <div class="detail-row"><span class="detail-label">Check-out</span><span class="detail-value">{{ \Carbon\Carbon::parse($checkOut)->format('F d, Y') }}</span></div>
-      <div class="detail-row"><span class="detail-label">No. of Pax</span><span class="detail-value">{{ $reservation->pax ?? '—' }}</span></div>
-      <div class="detail-row"><span class="detail-label">Total Amount</span><span class="detail-value">₱ {{ number_format($total, 2) }}</span></div>
-    </div>
-    <div class="info">Please arrive on time for check-in. If you have any questions or need to make changes, contact us at <strong>lantaka@adzu.edu.ph</strong>.</div>
-    <p>We look forward to welcoming you!<br><strong>Lantaka Reservation System Team</strong></p>
-  </div>
-  <div class="footer"><p>This is an automated message. Please do not reply directly to this email.</p><p>&copy; {{ date('Y') }} Lantaka Reservation System.</p></div>
-</div>
-</body>
-=======
   <body>
     <div class="wrap">
       <div class="hdr">
@@ -102,5 +59,4 @@ body{margin:0;padding:0;background:#f4f6f9;font-family:'Segoe UI',Arial,sans-ser
       <div class="footer"><p>This is an automated message. Please do not reply directly to this email.</p><p>&copy; {{ date('Y') }} Lantaka Reservation System.</p></div>
     </div>
   </body>
->>>>>>> 0ea1a0d (SEMI CHANGES (PLS CHECK CODE AND STUDY))
 </html>

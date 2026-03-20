@@ -1,131 +1,131 @@
 document.addEventListener("DOMContentLoaded", () => {
 
-  const form = document.getElementById("reservationForm");
+    const form = document.getElementById("reservationForm");
 
-  const searchInput = document.getElementById("account_search");
-  const resultsBox = document.getElementById("account_results");
+    const searchInput = document.getElementById("account_search");
+    const resultsBox = document.getElementById("account_results");
 
-  const selectedUserInput = document.getElementById("selected_user_id");
-  const selectedName = document.getElementById("selected_account_name");
-  const selectedBox = document.getElementById("selected_account_box");
+    const selectedUserInput = document.getElementById("selected_user_id");
+    const selectedName = document.getElementById("selected_account_name");
+    const selectedBox = document.getElementById("selected_account_box");
 
-  const errorMessage = document.getElementById("account_error");
+    const errorMessage = document.getElementById("account_error");
 
-  if(!searchInput) return;
+    if (!searchInput) return;
 
-  /* ============================
-     ACCOUNT SEARCH
-  ============================ */
+    /* ============================
+       ACCOUNT SEARCH
+    ============================ */
 
-  searchInput.addEventListener("keyup", async function(){
+    searchInput.addEventListener("keyup", async function () {
 
-      const query = this.value.trim();
+        const query = this.value.trim();
 
-      // clear selected user if typing again
-      selectedUserInput.value = "";
-      selectedBox.style.display = "none";
+        // clear selected user if typing again
+        selectedUserInput.value = "";
+        selectedBox.style.display = "none";
 
-      if(query.length < 2){
-          resultsBox.innerHTML = "";
-          return;
-      }
+        if (query.length < 2) {
+            resultsBox.innerHTML = "";
+            return;
+        }
 
-      try{
+        try {
 
-          const response = await fetch(`/employee/search-accounts?search=${query}`);
-          const users = await response.json();
+            const response = await fetch(`/employee/search-accounts?search=${query}`);
+            const users = await response.json();
 
-          resultsBox.innerHTML = "";
+            resultsBox.innerHTML = "";
 
-          if(users.length === 0){
+            if (users.length === 0) {
 
-              resultsBox.innerHTML = `
+                resultsBox.innerHTML = `
                   <div class="account-result-item" style="cursor:default;">
                       No accounts found
                   </div>
               `;
-              return;
-          }
+                return;
+            }
 
-          users.forEach(user => {
+            users.forEach(user => {
 
-              const item = document.createElement("div");
-              item.classList.add("account-result-item");
+                const item = document.createElement("div");
+                item.classList.add("account-result-item");
 
-              item.innerHTML = `
+                item.innerHTML = `
                   <strong>${user.name}</strong><br>
                   <small>${user.email}</small>
               `;
 
-              item.addEventListener("click", () => {
+                item.addEventListener("click", () => {
 
-                  /* SET SELECTED ACCOUNT */
+                    /* SET SELECTED ACCOUNT */
 
-                  selectedUserInput.value = user.id;
-                  searchInput.value = user.name;
+                    selectedUserInput.value = user.id;
+                    searchInput.value = user.name;
 
-                  selectedName.textContent = user.name;
-                  selectedBox.style.display = "block";
+                    selectedName.textContent = user.name;
+                    selectedBox.style.display = "block";
 
-                  resultsBox.innerHTML = "";
+                    resultsBox.innerHTML = "";
 
-                  errorMessage.style.display = "none";
+                    errorMessage.style.display = "none";
 
-              });
+                });
 
-              resultsBox.appendChild(item);
+                resultsBox.appendChild(item);
 
-          });
+            });
 
-      }catch(error){
-          console.error("Search error:", error);
-      }
+        } catch (error) {
+            console.error("Search error:", error);
+        }
 
-  });
-
-
-  /* ============================
-     CLEAR ERROR WHEN TYPING
-  ============================ */
-
-  searchInput.addEventListener("input", () => {
-
-      errorMessage.style.display = "none";
-
-  });
+    });
 
 
-  /* ============================
-     FORM VALIDATION
-  ============================ */
+    /* ============================
+       CLEAR ERROR WHEN TYPING
+    ============================ */
 
-  form?.addEventListener("submit", function(e){
+    searchInput.addEventListener("input", () => {
 
-      const typedValue = searchInput.value.trim();
-      const selectedValue = selectedUserInput.value;
+        errorMessage.style.display = "none";
 
-      errorMessage.style.display = "none";
+    });
 
-      /* NOTHING TYPED */
 
-      if(typedValue === ""){
-          e.preventDefault();
+    /* ============================
+       FORM VALIDATION
+    ============================ */
 
-          errorMessage.textContent = "Please search and select a client account.";
-          errorMessage.style.display = "block";
-          return;
-      }
+    form?.addEventListener("submit", function (e) {
 
-      /* TYPED BUT NOT SELECTED */
+        const typedValue = searchInput.value.trim();
+        const selectedValue = selectedUserInput.value;
 
-      if(selectedValue === ""){
-          e.preventDefault();
+        errorMessage.style.display = "none";
 
-          errorMessage.textContent = "Account does not exist. Please select from the search results.";
-          errorMessage.style.display = "block";
-          return;
-      }
+        /* NOTHING TYPED */
 
-  });
+        if (typedValue === "") {
+            e.preventDefault();
+
+            errorMessage.textContent = "Please search and select a client account.";
+            errorMessage.style.display = "block";
+            return;
+        }
+
+        /* TYPED BUT NOT SELECTED */
+
+        if (selectedValue === "") {
+            e.preventDefault();
+
+            errorMessage.textContent = "Account does not exist. Please select from the search results.";
+            errorMessage.style.display = "block";
+            return;
+        }
+
+    });
 
 });

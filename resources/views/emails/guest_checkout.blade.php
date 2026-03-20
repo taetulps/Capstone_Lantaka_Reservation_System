@@ -32,46 +32,21 @@ body{margin:0;padding:0;background:#f4f6f9;font-family:'Segoe UI',Arial,sans-ser
   </div>
   <div class="banner">✓ &nbsp;Check-out Complete</div>
   <div class="body">
-<<<<<<< HEAD
-    <p>Hello, <strong>{{ $reservation->user->name }}</strong>.</p>
-    <p>Thank you for staying with us at Lantaka! Your check-out has been processed. Below is a summary of your stay.</p>
-    @php
-      if ($type === 'room') {
-        $accLabel  = 'Room ' . ($reservation->room->room_number ?? 'N/A');
-=======
     <p>Hello, <strong>{{ $reservation->user->Account_Name}}</strong>.</p>
     <p>Thank you for staying with us at Lantaka! Your check-out has been processed. Below is a summary of your stay.</p>
     @php
       if ($type === 'room') {
         $accLabel  = $reservation->room->Room_Number ?? 'N/A';
->>>>>>> 0ea1a0d (SEMI CHANGES (PLS CHECK CODE AND STUDY))
         $checkIn   = $reservation->Room_Reservation_Check_In_Time;
         $checkOut  = $reservation->Room_Reservation_Check_Out_Time;
         $accTotal  = $reservation->Room_Reservation_Total_Price ?? 0;
       } else {
-<<<<<<< HEAD
-        $accLabel  = $reservation->venue->Venue_Name ?? $reservation->venue->name ?? 'Venue';
-=======
         $accLabel  = $reservation->venue->Venue_Name ?? 'Venue';
->>>>>>> 0ea1a0d (SEMI CHANGES (PLS CHECK CODE AND STUDY))
         $checkIn   = $reservation->Venue_Reservation_Check_In_Time;
         $checkOut  = $reservation->Venue_Reservation_Check_Out_Time;
         $accTotal  = $reservation->Venue_Reservation_Total_Price ?? 0;
       }
       $grandTotal    = $accTotal + ($foodTotal ?? 0);
-<<<<<<< HEAD
-      $paymentStatus = $reservation->payment_status ?? 'unpaid';
-    @endphp
-    <div class="detail-box">
-      <div class="detail-row"><span class="detail-label">{{ ucfirst($type) }}</span><span class="detail-value">{{ $accLabel }}</span></div>
-      <div class="detail-row"><span class="detail-label">Check-in: </span><span class="detail-value">{{ \Carbon\Carbon::parse($checkIn)->format('F d, Y') }}</span></div>
-      <div class="detail-row"><span class="detail-label">Check-out: </span><span class="detail-value">{{ \Carbon\Carbon::parse($checkOut)->format('F d, Y') }}</span></div>
-      <div class="detail-row"><span class="detail-label">Accommodation: </span><span class="detail-value">₱ {{ number_format($accTotal, 2) }}</span></div>
-      @if(($foodTotal ?? 0) > 0)
-      <div class="detail-row"><span class="detail-label">Food: </span><span class="detail-value">₱ {{ number_format($foodTotal, 2) }}</span></div>
-      @endif
-      <div class="total-row"><span>Total Amount</span><span>₱ {{ number_format($grandTotal, 2) }}</span></div>
-=======
       $paymentStatus = ($type === 'room' ? $reservation->Room_Reservation_Payment_Status : $reservation->Venue_Reservation_Payment_Status) ?? 'unpaid';
     @endphp
     <div class="detail-box">
@@ -83,7 +58,6 @@ body{margin:0;padding:0;background:#f4f6f9;font-family:'Segoe UI',Arial,sans-ser
       <div class="detail-row"><span class="detail-label">Food: </span><span class="detail-value">₱ {{ number_format($foodTotal, 2) }}</span></div>
       @endif
       <div class="total-row"><span>Total Amount:</span><span>₱ {{ number_format($grandTotal, 2) }}</span></div>
->>>>>>> 0ea1a0d (SEMI CHANGES (PLS CHECK CODE AND STUDY))
     </div>
     <div class="detail-row" style="padding:8px 0 16px;border:none">
       <span class="detail-label" style="font-size:14px">Payment Status</span>
